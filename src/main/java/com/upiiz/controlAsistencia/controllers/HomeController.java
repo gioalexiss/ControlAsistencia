@@ -11,15 +11,4 @@ public class HomeController {
         return "page-login";
     }
 
-    @PostMapping("/login/valido")
-    public String loginValido() {
-
-        return "index";
-    }
-
-    @GetMapping("/listado")
-    public String listado() {
-        return "index";
-    }
-
 }
