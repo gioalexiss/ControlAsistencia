@@ -20943,7 +20943,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
     border: 0.0625rem solid #444444 !important; }
 
 [data-theme-version="dark"] {
-  --secondary:$white; }
+  --secondary:white; }
   [data-theme-version="dark"] .card {
     background-color: #242424;
     box-shadow: none;
@@ -34970,7 +34970,7 @@ html[dir="rtl"] [direction="rtl"][data-sidebar-style="compact"]:not([data-layout
     border: 0.0625rem solid #444444 !important; }
 
 [data-theme-version="dark"] {
-  --secondary:$white; }
+  --secondary:white; }
   [data-theme-version="dark"] .card {
     background-color: #242424;
     box-shadow: none;
