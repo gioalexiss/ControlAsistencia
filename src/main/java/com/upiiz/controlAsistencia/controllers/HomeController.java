@@ -8,18 +8,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class HomeController {
     @GetMapping("/")
     public String login() {
-        return "page-login"; // Aquí pones el nombre de tu archivo de login (sin .html)
+        return "page-login";
     }
 
     @PostMapping("/login/valido")
     public String loginValido() {
-        // Por ahora, redirige al listado sin validar
+
         return "index";
     }
 
     @GetMapping("/listado")
     public String listado() {
-        return "index"; // listado.html en templates
+        return "index";
     }
 
 }
