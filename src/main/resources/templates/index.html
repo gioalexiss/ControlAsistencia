@@ -830,7 +830,16 @@
 
 									</a>
 								</li>
-								<li class="nav-item align-items-center header-border"><a href="page-login.html" class="btn btn-primary btn-sm">Logout</a></li>
+
+
+								<!--boton logput -->
+
+								<li class="nav-item align-items-center header-border">
+									<form action="/logout" method="post">
+										<button type="submit" class="btn btn-primary btn-sm">Logout</button>
+									</form>
+								</li>
+
 								<li class="nav-item ps-3">
 									<div class="dropdown header-profile2">
 										<a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -1227,7 +1236,7 @@
 							<span class="nav-text">Pages</span>
 							</a>
 							<ul aria-expanded="false">
-								<li><a href="./page-login.html">Login</a></li>
+								<li><a href="page-login.html">Login</a></li>
 								<li><a href="./page-register.html">Register</a></li>
 								<li><a class="has-arrow" href="javascript:void(0);" aria-expanded="false">Error</a>
 									<ul aria-expanded="false">

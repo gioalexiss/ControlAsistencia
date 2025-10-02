@@ -15,4 +15,7 @@ public class DocenteController {
     public String dashboard() {
         return "index"; // Dashboard docente
     }
+
+ @GetMapping("/page-login")
+    public String loginPage() {return "logout";}
 }
