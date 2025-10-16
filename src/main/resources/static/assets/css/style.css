@@ -102,6 +102,15 @@
   --font-family-title: poppins, sans-serif, sans-serif;
   --title: #374557; }
 
+
+.montserrat-text {
+    font-family: 'Montserrat', sans-serif; /* Usamos 'Montserrat' y un respaldo 'sans-serif' */
+    font-size: 8px; /* Ajusta el tamaño según sea necesario */
+    fill: #white; /* Un azul que se parece al del IPN (hexadecimal) */
+    font-weight: 500; /* Si cargaste el estilo 'Bold 700' */
+}
+
+
 .gradient_one {
   background-image: linear-gradient(to right, rgba(186, 1, 181, 0.85) 0%, rgba(103, 25, 255, 0.85) 100%); }
 
@@ -9502,6 +9511,8 @@ label {
 [data-sidebar-style="mini"] .nav-control,
 [data-layout="horizontal"] .nav-control {
   display: none; }
+
+
 
 [data-header-position="fixed"] .nav-header {
   position: fixed; }

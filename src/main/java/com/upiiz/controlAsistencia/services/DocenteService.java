@@ -41,5 +41,4 @@ public class DocenteService implements DocenteRepository, UserDetailsService{
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_DOCENTE"))
         );
     }
-
 }
