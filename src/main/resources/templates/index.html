@@ -385,18 +385,41 @@
 				<!--FIN seccion "Reportes"-->
 
 				<!-- Sección Mi Horario -->
+				<!-- Sección Mi Horario -->
 				<div id="contentMiHorario" style="display:none;">
-					<form id="formHorario" enctype="multipart/form-data">
-						<div>
-							<label for="formFileLg" class="form-label">Sube tu horario</label>
-							<input class="form-control form-control-lg" id="formFileLg" type="file" name="imagenHorario">
-						</div>
-						<button type="submit" class="btn btn-primary mt-2">Subir</button>
-					</form>
-					<div id="respuestaHorario"></div>
+					<div class="tool">
+						<div class="tool__workarea" id="workArea">
+							<div class="tool__wrapper">
+								<div class="tool__header text-center mb-3">
+									<h1 class="tool__header__title">Sube tu horario</h1>
+									<h2 class="tool__header__subtitle">Analiza tu imagen de horario y obtén el formato en tabla.</h2>
+								</div>
 
-					<button id="btnRegresarDashboard" class="btn btn-secondary mt-2">Regresar</button>
+								<form id="formHorario" enctype="multipart/form-data" class="uploader text-center p-4 border border-dashed rounded">
+									<!-- Zona de arrastre expandida -->
+									<label for="imagenHorario" id="dropArea" class="d-flex flex-column justify-content-center align-items-center w-100" style="height:300px; cursor:pointer;">
+										<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" stroke="#007bff" fill="none" stroke-width="2" class="mb-3">
+											<path d="M12 5v14m7-7H5" />
+										</svg>
+										<span class="fw-bold text-primary">Selecciona tu imagen o arrástrala aquí</span>
+										<input id="imagenHorario" type="file" name="imagenHorario" accept="image/*,application/pdf" style="display:none;">
+									</label>
+									<button type="submit" class="btn btn-primary mt-3">Procesar Horario</button>
+								</form>
+
+								<div id="respuestaHorario" class="mt-4 text-center"></div>
+								<div id="tablaHorario" class="mt-4"></div>
+
+								<div class="text-center mt-3">
+									<button id="btnRegresarDashboard" class="btn btn-secondary">Regresar</button>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
+
+
+
 
 			</div>
 
@@ -462,7 +485,7 @@
 			<!--**********************************
 				Fin pie de pagina
 			***********************************-->
-
+		</div>
 		<!--Scripts-->
 
 		<!--Scripts Personales-->
@@ -514,5 +537,9 @@
 				},1500)
 			});
 		</script>
+
+	<!--Estilos-->
+
+
 	</body>
 	</html>

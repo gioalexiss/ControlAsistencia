@@ -102,6 +102,96 @@
   --font-family-title: poppins, sans-serif, sans-serif;
   --title: #374557; }
 
+/* Estilo para horario*/
+/* Estilo para horario */
+.tool__header__title {
+    font-size: 1.8rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.tool__header__subtitle {
+    font-size: 1rem;
+    color: #666;
+}
+
+.uploader {
+    border: 2px dashed #007bff;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.uploader:hover {
+    background-color: #4f5153;
+    border-color: #0056b3;
+}
+
+#dropArea svg {
+    transition: transform 0.2s;
+}
+
+#dropArea:hover svg {
+    transform: scale(1.1);
+}
+
+/* Haz que el label ocupe todo el formulario */
+#formHorario .uploader label#dropArea {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 300px; /* o el alto que quieras */
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Hover suave */
+#formHorario .uploader label#dropArea:hover {
+    background-color: #f0f2f5;
+    border-color: #007bff;
+}
+
+/* Escalar icono SVG */
+#formHorario .uploader label#dropArea svg {
+    transition: transform 0.2s;
+}
+
+#formHorario .uploader label#dropArea:hover svg {
+    transform: scale(1.1);
+}
+
+/* Efecto hover y borde */
+#dropArea {
+    border: 2px dashed #007bff;
+    border-radius: 12px;
+    transition: background-color 0.3s, border-color 0.3s;
+    padding: 20px; /* espacio interno */
+    box-sizing: border-box; /* para que el padding no aumente el tamaño total */
+}
+
+#dropArea:hover {
+    background-color: #f0f2f5;
+    border-color: #0056b3;
+}
+
+/* Escalar icono SVG al hover */
+#dropArea svg {
+    transition: transform 0.2s;
+}
+
+#dropArea:hover svg {
+    transform: scale(1.1);
+}
+
+/* Clase temporal cuando arrastras archivo */
+#dropArea.drag-over {
+    background-color: #e0ebff;
+    border-color: #007bff;
+}
+
+/* FIN ESTILO HORARIO */
+
 
 .montserrat-text {
     font-family: 'Montserrat', sans-serif; /* Usamos 'Montserrat' y un respaldo 'sans-serif' */
