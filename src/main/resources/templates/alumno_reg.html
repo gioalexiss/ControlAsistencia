@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Alumnos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            /* Fondo con imagen */
+            background-image: url('https://zacatecas.ipn.mx/assets/files/upiiz/assets/uploads/cafeteria.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .register-box {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #8B0A50; /* Color guinda */
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #8B0A50; /* Color guinda */
+            box-shadow: 0 0 0 2px rgba(139, 10, 80, 0.2);
+            background-color: white;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #8B0A50, #A62C63); /* Gradiente guinda */
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 10, 80, 0.4);
+            background: linear-gradient(to right, #A62C63, #8B0A50);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .qr-container {
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        #qrCode {
+            margin: 0 auto;
+        }
+
+        .footer {
+            margin-top: 20px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8B0A50; /* Color guinda */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Instrucciones para cambiar la imagen */
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 3;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .instructions h3 {
+            margin-bottom: 8px;
+            color: #8B0A50; /* Color guinda */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="register-box">
+        <h1>Registro de Alumno</h1>
+        <p class="subtitle">Completa tus datos para registrarte</p>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="nombre">Nombre completo</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="carrera">Carrera</label>
+                <select id="carrera" name="carrera" required>
+                    <option value="">Selecciona una carrera</option>
+                    <option value="Sistemas">Ingeniería en Sistemas</option>
+                    <option value="IA">Inteligencia Artificial</option>
+                    <option value="Metalúrgica">Ingeniería Metalúrgica</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="grado">Grado</label>
+                <select id="grado" name="grado" required>
+                    <option value="">Selecciona un grado</option>
+                    <option value="1">1°</option>
+                    <option value="2">2°</option>
+                    <option value="3">3°</option>
+                    <option value="4">4°</option>
+                    <option value="5">5°</option>
+                    <option value="6">6°</option>
+                    <option value="7">7°</option>
+                    <option value="8">8°</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="grupo">Grupo</label>
+                <select id="grupo" name="grupo" required>
+                    <option value="">Selecciona un grupo</option>
+                    <option value="A">Grupo A</option>
+                    <option value="B">Grupo B</option>
+                    <option value="C">Grupo C</option>
+                    <option value="D">Grupo D</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="materia">Materia</label>
+                <select id="materia" name="materia" required>
+                    <option value="">Selecciona una materia</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="correo">Correo electrónico</label>
+                <input type="email" id="correo" name="correo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="boleta">Número de Boleta</label>
+                <input type="text" id="boleta" name="boleta" required>
+            </div>
+
+            <button type="submit" class="btn">Registrarse</button>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div class="qr-container" id="qrContainer">
+            <h3>Código QR Generado</h3>
+            <div id="qrCode"></div>
+            <p class="footer">El código QR ha sido enviado a tu correo electrónico</p>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    // Datos de materias según carrera y grado
+    const materiasPorCarrera = {
+        "Sistemas": {
+            1: ["Fundamentos de Programación", "Matemáticas discretas","Comunicación oral y escrita", "Calculo","Análisis vectorial"],
+            2: ["Algoritmos y estructura de datos", "Algebra lineal", "Mecánica y electromagnetismo","Calculo aplicado","Ingeniería ética y sociedad","Fundamentos económicos"],
+            3: ["Bases de Datos", "Análisis y diseño de algoritmos", "Paradigmas de programación","Ecuaciones diferenciales","Fundamentos de diseño digital","Circuitos eléctricos","Finanzas empresariales"],
+            4: ["Teoría de la computación", "Probabilidad y estadística", "Matemáticas avanzadas para la ingería","Diseño de sistemas digitales","Electrónica analógica"," Tecnologías para el desarrollo de aplicaciones web","Sistemas operativos"],
+            5: ["Compiladores", "Procesamiento digital de señales","Arquitectura de computadoras","Instrumentación y control","Análisis y diseño de sistemas","Redes de computadoras","Formulación y evaluación de proyectos informáticos"],
+            6: ["Inteligencia artificial", "Sistemas en chip", "Método cuantitativos para la toma de decisiones","Optativa A","Optativa B","Ingeniería de software"],
+            7: ["Trabajo terminal 1", "Sistemas distribuidos", "Optativa A2","Optativa B2","Desarrollo de aplicaciones móviles nativas","Administración de servicios en red"],
+            8: ["Trabajo terminal 2", "Liderazgo personal", "Gestión empresarial ","Desarrollo de habilidades sociales para la alta dirección"]
+        },
+        "IA": {
+            1: ["Fundamentos de Programación", "Matemáticas discretas","Comunicación oral y escrita", "Calculo","Mecánica y electromagnetismo","Fundamentos económicos "],
+            2: ["Algebra lineal","Cálculo multivariable","Fundamentos de diseño digital","Ingeniería ética y sociedad","Finanzas empresariales"],
+            3: ["Análisis y diseño de algoritmos", "Paradigmas de la programación", "Base de datos","Diseño de sistemas digitales","Liderazgo personal "],
+            4: ["Fundamentos de inteligencia artificial", "probabilidad y estadística", "Matemáticas avanzadas para la ingeniería"],
+            5: ["Aprendizaje de maquina", "Vision artificial", "Teoría de la computación","Procesamiento de señales","Algoritmos bioinspirados","Tecnologías de lenguaje natural"],
+            6: ["Cómputo paralelo", "Redes neuronales y aprendizaje profundo", "Ingeniería de software para sistemas inteligentes","Metodología de la investigación y divulgación científica","Optativa A","Optativa B"],
+            7: ["Trabajo terminal 1","Reconocimiento de voz","Formulación y evaluación de proyectos informáticos","Optativa C","Optativa D"],
+            8: ["Trabajo terminal 2","Gestión empresarial","Estacia profesional","Desarrollo de habilidades sociales para la alta dirección"]
+        },
+        "Metalúrgica": {
+            1: ["Introducción a la Metalurgia", "Química General", "Matemáticas I"],
+            2: ["Física I", "Cristalografía", "Procesos Metalúrgicos I"],
+            3: ["Termodinámica", "Metalografía", "Química Analítica"],
+            4: ["Tratamientos Térmicos", "Corrosión", "Mecánica de Materiales"],
+            5: ["Fundición", "Soldadura", "Ensayos No Destructivos"],
+            6: ["Metalurgia Extractiva", "Proyecto Metalúrgico", "Control de Calidad"]
+        }
+    };
+
+    const carreraSelect = document.getElementById("carrera");
+    const gradoSelect = document.getElementById("grado");
+    const materiaSelect = document.getElementById("materia");
+
+    // Cuando cambia carrera o grado → actualizar materias
+    function actualizarMaterias() {
+        const carrera = carreraSelect.value;
+        const grado = gradoSelect.value;
+
+        materiaSelect.innerHTML = "<option value=''>Selecciona una materia</option>";
+
+        if (carrera && grado && materiasPorCarrera[carrera] && materiasPorCarrera[carrera][grado]) {
+            materiasPorCarrera[carrera][grado].forEach(materia => {
+                const option = document.createElement("option");
+                option.value = materia;
+                option.textContent = materia;
+                materiaSelect.appendChild(option);
+            });
+        }
+    }
+
+    carreraSelect.addEventListener("change", actualizarMaterias);
+    gradoSelect.addEventListener("change", actualizarMaterias);
+
+    // CÓDIGO PARA EL REGISTRO
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('registerForm');
+        const messageDiv = document.getElementById('message');
+        const qrContainer = document.getElementById('qrContainer');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading';
+        loadingDiv.innerHTML = '<div class="spinner"></div><p>Procesando registro...</p>';
+        form.appendChild(loadingDiv);
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Obtener datos del formulario
+            const alumno = {
+                nombre: document.getElementById('nombre').value,
+                carrera: document.getElementById('carrera').value,
+                grado: document.getElementById('grado').value,
+                materia: document.getElementById('materia').value,
+                correo: document.getElementById('correo').value,
+                grupo: document.getElementById('grupo').value,
+                boleta: document.getElementById('boleta').value
+            };
+
+            // Validar que se haya seleccionado una materia
+            if (!alumno.materia) {
+                showMessage('Por favor selecciona una materia', 'error');
+                return;
+            }
+
+            // Mostrar loading
+            loadingDiv.style.display = 'block';
+            messageDiv.style.display = 'none';
+            qrContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/registrar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(alumno)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage(result.mensaje, 'success');
+                    qrContainer.style.display = 'block';
+                    form.reset();
+                    // Resetear también las materias
+                    actualizarMaterias();
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error de conexión: ' + error.message, 'error');
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        });
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            // Auto-ocultar mensaje después de 5 segundos
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    });
+</script>
+</body>
+</html>
