@@ -35,12 +35,17 @@
 
 	</head>
 	<body data-typography="poppins"
-		  data-theme-version="light"
+		  data-theme-version="dark"
 		  data-layout="vertical"
-		  data-nav-headerbg="black"
-		  data-headerbg="color_1"
-		  style="background:#fff url(/assets/images/background/bg6.jpg); height:100vh;"
-		  class="bg-img-fix overflow-hidden">
+          data-headerbg="color_4"
+          data-sidebar-style="full"
+          data-sidebarbg="color_1"
+          data-sidebar-position="fixed"
+          data-header-position="fixed"
+          data-container="wide"
+          direction="ltr"
+          data-primary="color_1"
+          data-secondary="color_1">
 
 		<!--*******************
 			Preloader start
@@ -384,46 +389,194 @@
 				</div>
 				<!--FIN seccion "Reportes"-->
 
-				<!-- Sección Mi Horario -->
-				<div id="contentMiHorario" style="display:none;">
-					<div class="tool">
-						<div class="tool__workarea" id="workArea">
-							<div class="tool__wrapper">
-								<div class="tool__header text-center mb-3">
-                                    <br>
-									<h1 class="tool__header__title">Sube tu horario</h1>
-									<h2 class="tool__header__subtitle">Analiza tu comprobante de horario y obtén el formato en tabla.</h2>
-								</div>
-
-								<form id="formHorario" enctype="multipart/form-data" class="uploader text-center p-4 border border-dashed rounded">
-									<!-- Zona de arrastre expandida -->
-									<label for="imagenHorario" id="dropArea" class="d-flex flex-column justify-content-center align-items-center w-100" style="height:300px; cursor:pointer;">
-										<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" stroke="#007bff" fill="none" stroke-width="2" class="mb-3">
-											<path d="M12 5v14m7-7H5" />
-										</svg>
-										<span class="fw-bold text-primary">Selecciona tu comprobante de horario .pdf o arrástralo aquí</span>
-										<input id="imagenHorario" type="file" name="imagenHorario" accept="image/*,application/pdf" style="display:none;">
-									</label>
-									<button type="submit" class="btn btn-primary mt-3">Procesar Horario</button>
-								</form>
-
-								<div id="respuestaHorario" class="mt-4 text-center"></div>
-								<div id="tablaHorario" class="mt-4"></div>
-
-								<div class="text-center mt-3">
-									<button id="btnRegresarDashboard" class="btn btn-secondary">Regresar</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-                <!--Fin seccion mi horario-->
+                <!-- INICIO seccion "Mi Horario"-->
 
 
 
+                <div id="contentMiHorario" style="display:none;">
+                    <div class="page-titles">
+                        <ol class="breadcrumb">
+                            <li><h5 class="bc-title">Mi horario</h5></li>
+                            <li class="breadcrumb-item"><a href="javascript:void(0)">
+                                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.125 6.375L8.5 1.41667L14.875 6.375V14.1667C14.875 14.5424 14.7257 14.9027 14.4601 15.1684C14.1944 15.4341 13.8341 15.5833 13.4583 15.5833H3.54167C3.16594 15.5833 2.80561 15.4341 2.53993 15.1684C2.27426 14.9027 2.125 14.5424 2.125 14.1667V6.375Z" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6.375 15.5833V8.5H10.625V15.5833" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Home
+                            </a></li>
+                            <li class="breadcrumb-item active"><a href="javascript:void(0)">Mi horario</a></li>
+                        </ol>
+                    </div>
 
-			</div>
+                    <div class="col-xl-12 col-lg-12 p-4">
+                        <div class="card">
+                            <div class="card-body">
 
+                                <div class="tool">
+                                    <div class="tool__workarea" id="workArea">
+                                        <div class="tool__wrapper">
+                                            <div class="tool__header text-center mb-3">
+                                                <br>
+                                                <h1 class="tool__header__title">Captura tu horario por grupo</h1>
+                                                <h2 class="tool__header__subtitle">Agrega tus unidades de aprendizaje y registra cada grupo con sus horas.</h2>
+                                            </div>
+
+                                            <!-- Selección o creación de unidad -->
+                                            <form id="formUnidad" class="p-5 card">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Unidad de aprendizaje</label>
+                                                    <input type="text" id="unidad" class="form-control" placeholder="Ej. Compiladores, Paradigmas de Programación" required>
+                                                </div>
+
+                                                <!-- Formulario de grupos -->
+                                                <div class="border p-3 rounded bg-white mb-4">
+                                                    <h5 class="mb-3 text-primary">Agregar grupo</h5>
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label fw-bold">Grupo</label>
+                                                            <input type="text" id="grupo" class="form-control" placeholder="Ej. 3CM1" required>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <label class="form-label fw-bold">Semestre</label>
+                                                            <input type="number" id="semestre" class="form-control" min="1" max="10" placeholder="Ej. 3" required>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Horario del grupo -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Agregar horario</label>
+                                                        <div class="row g-2 align-items-center">
+                                                            <div class="col-md-3">
+                                                                <select id="dia" class="form-select" required>
+                                                                    <option value="">Día</option>
+                                                                    <option value="Lunes">Lunes</option>
+                                                                    <option value="Martes">Martes</option>
+                                                                    <option value="Miércoles">Miércoles</option>
+                                                                    <option value="Jueves">Jueves</option>
+                                                                    <option value="Viernes">Viernes</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <input type="time" id="horaInicio" class="form-control" required>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <input type="time" id="horaFin" class="form-control" required>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <select id="tipoHorario" class="form-select" required>
+                                                                    <option value="">Tipo</option>
+                                                                    <option value="Teórica">Teórica</option>
+                                                                    <option value="Práctica">Práctica</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <button type="button" id="btnAgregarHora" class="btn btn-success w-100">Agregar</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Tabla de horarios del grupo -->
+                                                    <div class="card mt-4">
+
+                                                        <div class="card-body p-0">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-responsive-md text-center" id="tablaHoras">
+                                                                    <thead>
+                                                                    <tr>
+                                                                        <th><strong>Día</strong></th>
+                                                                        <th><strong>Inicio</strong></th>
+                                                                        <th><strong>Fin</strong></th>
+                                                                        <th><strong>Tipo</strong></th>
+                                                                        <th><strong>Acción</strong></th>
+                                                                    </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                    <!-- Aquí se insertarán las filas dinámicamente -->
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+
+                                                    <div class="text-center mt-3">
+                                                        <button type="button" id="btnGuardarGrupo" class="btn btn-primary">Guardar grupo</button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Tabla de grupos por unidad -->
+                                                <div class="card mt-4">
+                                                    <div class="card-body p-0">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-responsive-md text-center" id="tablaGrupos">
+                                                                <thead>
+                                                                <tr>
+                                                                    <th><strong>Grupo</strong></th>
+                                                                    <th><strong>Tipo</strong></th>
+                                                                    <th><strong>Semestre</strong></th>
+                                                                    <th><strong>Horarios</strong></th>
+                                                                    <th><strong>Acción</strong></th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                <!-- Aquí se insertarán las filas dinámicamente -->
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="text-center mt-4">
+                                                    <button type="button" id="btnGuardarUnidad" class="btn btn-success">Guardar Unidad Completa</button>
+                                                    <button type="button" id="btnGenerarHorario" class="btn btn-primary">Generar Horario Automático</button>
+                                                </div>
+                                            </form>
+
+                                            <!-- Tabla general de unidades -->
+                                            <div class="card mt-5">
+                                                <div class="card-body p-0">
+                                                    <h4 class="text-center mt-3">Unidades capturadas</h4>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-responsive-md text-center" id="tablaUnidades">
+                                                            <thead>
+                                                            <tr>
+                                                                <th><strong>Unidad</strong></th>
+                                                                <th><strong>Grupos</strong></th>
+                                                                <th><strong>Acción</strong></th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            <!-- Aquí se insertarán las filas dinámicamente -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <!-- Vista del horario generado -->
+                                            <div id="vistaHorario" class="mt-5" style="display:none;">
+                                                <h4 class="text-center mb-4">Horario Semanal</h4>
+                                                <div id="tablaHorarioGenerado" class="table-responsive"></div>
+                                                <div class="text-center mt-3">
+                                                    <button id="btnEditarHorario" class="btn btn-warning">Editar / Agregar más materias</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-center mt-4">
+                                                <button id="btnRegresarDashboard" class="btn btn-dark">Regresar al inicio</button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
 			<!--**********************************
 				Fin del cuerpo del contenido
 			***********************************-->
@@ -473,6 +626,7 @@
 				  </div>
 				</div>
 			  </div>
+            </div>
 
 			<!--**********************************
 				Inicio pie de pagina
@@ -483,6 +637,8 @@
 				</div>
 			</div>
 			</div>
+
+            </div>
 			<!--**********************************
 				Fin pie de pagina
 			***********************************-->

@@ -102,6 +102,83 @@
   --font-family-title: poppins, sans-serif, sans-serif;
   --title: #374557; }
 
+/*Estilo horario*/
+/* Tabla minimalista */
+/* Tabla minimalista dark mode */
+/* Tabla minimalista dark mode con líneas entre columnas */
+.horario-minimalista {
+    width: 100%;
+    border-collapse: collapse; /* usamos collapse para bordes consistentes */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.95rem;
+    background-color: #1c1c1c; /* fondo general gris oscuro */
+    color: #ffffff;            /* texto blanco */
+}
+
+.horario-minimalista th,
+.horario-minimalista td {
+    border-bottom: 1px solid #444; /* línea horizontal sutil entre filas */
+    border-right: 1px solid #444;  /* línea vertical sutil entre columnas */
+    padding: 10px 12px;
+}
+
+/* Quitar borde derecho en la última columna */
+.horario-minimalista th:last-child,
+.horario-minimalista td:last-child {
+    border-right: none;
+}
+
+.encabezado-horario {
+    background-color: #2c2c2c; /* encabezado más oscuro */
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid #555;
+}
+
+.horario-minimalista tbody tr {
+    background-color: #2a2a2a; /* filas oscuras */
+    transition: background-color 0.3s;
+}
+
+.horario-minimalista tbody tr:hover {
+    background-color: #3a3a3a; /* hover sutil */
+}
+
+.hora {
+    font-weight: 600;
+}
+
+.materia-nombre {
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.materia-grupo {
+    color: #cccccc;
+}
+
+.tipo-materia {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.badge.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+.badge.bg-success {
+    background-color: #198754 !important;
+}
+
+/*Fin estilo horario*/
+
+
+
+
+
+
 /* Estilo para horario*/
 /* Estilo para horario */
 .tool__header__title {
