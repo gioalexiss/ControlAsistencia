@@ -9,7 +9,11 @@ $(document).ready(function() {
 
     // Manejar clicks en la barra lateral
     $('#linkDashboard').click(function(e){ e.preventDefault(); mostrarSeccion('#dashboardPrincipal'); });
-    $('#linkMisGrupos').click(function(e){ e.preventDefault(); mostrarSeccion('#contentMisGrupos'); });
+    $('#linkMisGrupos').on('click', function(e) {
+        e.preventDefault();
+        // Redirigir a la página de grupos
+        window.location.href = '/grupos';
+});
     $('#linkTomarAsistencia').click(function(e){ e.preventDefault(); mostrarSeccion('#contentTomarAsistencia'); });
     $('#linkReportes').click(function(e){ e.preventDefault(); mostrarSeccion('#contentReportes'); });
     $('#linkMiHorario').click(function(e){ e.preventDefault(); mostrarSeccion('#contentMiHorario'); });

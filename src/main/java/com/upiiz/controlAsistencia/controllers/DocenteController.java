@@ -18,4 +18,9 @@ public class DocenteController {
 
  @GetMapping("/page-login")
     public String loginPage() {return "logout";}
+
+    @GetMapping("/grupos")
+    public String gruposPage() {
+        return "grupos";
+    }
 }

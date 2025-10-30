@@ -37,7 +37,7 @@ public class SeguridadConfigDocente {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/assets/**", "/page-login").permitAll()
-                        .requestMatchers("/index", "/listado").hasAuthority("ROLE_DOCENTE")
+                        .requestMatchers("/index", "/listado","/grupos").hasAuthority("ROLE_DOCENTE")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
