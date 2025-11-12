@@ -10,6 +10,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -123,6 +124,17 @@ public class EmailService {
                 "</div>" +
                 "</body>" +
                 "</html>";
+    }
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
+    public void enviarCodigo(String destino, String codigo) {
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setTo(destino);
+        mensaje.setSubject("Código de verificación - Control de Asistencia IPN");
+        mensaje.setText("Tu código de verificación es: " + codigo + "\n\nExpira en 10 minutos.\n\nSi no solicitaste este código, ignora este mensaje.");
+        mailSender.send(mensaje);
     }
 
 }

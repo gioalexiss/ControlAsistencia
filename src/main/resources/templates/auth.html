@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es" class="h-100">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <meta name="robots" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Control de Asistencia IPN">
+    <meta property="og:title" content="Control de Asistencia IPN">
+    <meta property="og:description" content="Sistema de Control de Asistencia">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- PAGE TITLE HERE -->
+    <title>Control de Asistencia - IPN</title>
+
+    <!-- FAVICONS ICON -->
+    <link rel="shortcut icon" type="image/png" href="/assets/images/iconoipn.ico">
+    <link href="/assets/vendor/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet">
+    <link href="/assets/css/style.css" rel="stylesheet">
+
+    <style>
+        .seccion {
+            display: none;
+        }
+        .seccion.activa {
+            display: block;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .nav-buttons .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body class="vh-100">
+<div class="page-wraper">
+
+    <!-- Content -->
+    <div class="browse-job login-style3">
+        <!-- Coming Soon -->
+        <div class="bg-img-fix overflow-hidden" style="background:#fff url(/assets/images/background/bg6.jpg); height: 100vh;">
+            <div class="row gx-0 d-flex justify-content-center align-items-center">
+                <div class="col-xl-4 col-lg-5 col-md-6 col-sm-12 vh-100 bg-white ">
+                    <div id="mCSB_1" class="mCustomScrollBox mCS-light mCSB_vertical mCSB_inside" style="max-height: 653px;" tabindex="0">
+                        <div id="mCSB_1_container" class="mCSB_container" style="position:relative; top:0; left:0;" dir="ltr">
+                            <div class="login-form style-2">
+
+                                <div class="card-body">
+                                    <div class="logo-header">
+                                        <a href="#" class="logo"><img src="/assets/images/logo/logo-ipn-horizontal.png" alt="" class="width-230 light-logo"></a>
+                                        <a href="#" class="logo"><img src="/assets/images/logo/logo-ipn-horizontal.png" alt="" class="width-230 dark-logo"></a>
+                                    </div>
+
+                                    <!-- SECCIÓN LOGIN -->
+                                    <div id="seccionLogin" class="seccion activa">
+                                        <div class="dz-form pb-3">
+                                            <h3 class="form-title m-t0">Iniciar Sesión</h3>
+                                            <div class="dz-separator-outer m-b5">
+                                                <div class="dz-separator bg-primary style-liner"></div>
+                                            </div>
+                                            <p>Introduce tus datos</p>
+                                            <div class="form-group mb-3">
+                                                <input type="email" id="correoLogin" class="form-control" placeholder="Correo electrónico">
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <input type="password" id="passwordLogin" class="form-control" placeholder="Contraseña">
+                                            </div>
+                                            <div class="form-group text-left mb-3">
+                                                <button type="button" onclick="login()" class="btn btn-primary w-100">Ingresar</button>
+                                            </div>
+                                            <div class="nav-buttons">
+                                                <button type="button" onclick="mostrarSeccion('registro')" class="btn btn-outline-primary">Registrarse</button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SECCIÓN REGISTRO -->
+                                    <div id="seccionRegistro" class="seccion">
+                                        <div class="dz-form py-2">
+                                            <h3 class="form-title">Registro</h3>
+                                            <div class="dz-separator-outer m-b5">
+                                                <div class="dz-separator bg-primary style-liner"></div>
+                                            </div>
+                                            <p>Introduce tus datos:</p>
+                                            <div class="form-group mt-3">
+                                                <input type="text"
+                                                       id="nombre"
+                                                       class="form-control"
+                                                       placeholder="Nombre completo (mínimo 10 caracteres)"
+                                                       minlength="10"
+                                                       required>
+                                            </div>
+                                            <div class="form-group mt-3">
+                                                <input type="email"
+                                                       id="correoRegistro"
+                                                       class="form-control"
+                                                       placeholder="Correo electrónico"
+                                                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                       required>
+                                            </div>
+                                            <div class="form-group mt-3">
+                                                <input type="password"
+                                                       id="passwordRegistro"
+                                                       class="form-control"
+                                                       placeholder="Contraseña (mínimo 10 caracteres)"
+                                                       minlength="10"
+                                                       required>
+                                            </div>
+                                            <div class="form-group mt-3 mb-3">
+                                                <input type="password"
+                                                       id="confirmPassword"
+                                                       class="form-control"
+                                                       placeholder="Confirmar contraseña"
+                                                       minlength="10"
+                                                       required>
+                                            </div>
+                                            <div class="form-group clearfix text-left">
+                                                <button type="button" onclick="mostrarSeccion('login')" class="btn btn-outline-primary">Volver al Login</button>
+                                                <button type="button" onclick="registrar()" class="btn btn-primary float-end">Registrarse</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SECCIÓN VERIFICACIÓN -->
+                                    <div id="seccionVerificacion" class="seccion">
+                                        <div class="dz-form">
+                                            <h3 class="form-title m-t0">Verificar Correo</h3>
+                                            <div class="dz-separator-outer m-b5">
+                                                <div class="dz-separator bg-primary style-liner"></div>
+                                            </div>
+                                            <p>Ingresa el código de verificación que recibiste en tu correo.</p>
+                                            <div class="form-group mb-3">
+                                                <input type="email" id="correoVerificacion" class="form-control" placeholder="Correo electrónico">
+                                            </div>
+                                            <div class="form-group mb-4">
+                                                <input type="text" id="codigo" class="form-control" placeholder="Código de verificación">
+                                            </div>
+                                            <div class="form-group clearfix text-left">
+                                                <button type="button" onclick="mostrarSeccion('login')" class="btn btn-outline-primary">Volver al Login</button>
+                                                <button type="button" onclick="verificar()" class="btn btn-primary float-end">Verificar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- MENSAJES -->
+                                    <div id="mensaje" class="mt-3"></div>
+
+                                </div>
+                            </div>
+                            <div id="mCSB_1_scrollbar_vertical" class="mCSB_scrollTools mCSB_1_scrollbar mCS-light mCSB_scrollTools_vertical" style="display: block;">
+                                <div class="mCSB_draggerContainer">
+                                    <div id="mCSB_1_dragger_vertical" class="mCSB_dragger" style="position: absolute; min-height: 0px; display: block; height: 652px; max-height: 643px; top: 0px;">
+                                        <div class="mCSB_dragger_bar" style="line-height: 0px;"></div>
+                                        <div class="mCSB_draggerRail"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Full Blog Page Contant -->
+        </div>
+        <!-- Content END-->
+    </div>
+</div>
+
+<!--**********************************
+	Scripts
+***********************************-->
+<!-- Required vendors -->
+<script src="/assets/vendor/global/global.min.js"></script>
+<script src="/assets/vendor/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+<script src="/assets/js/deznav-init.js"></script>
+<script src="/assets/js/custom.js"></script>
+<script src="/assets/js/styleSwitcher.js"></script>
+
+<script>
+    // Variable para guardar el correo del registro reciente
+    let correoRegistrado = '';
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        mostrarSeccion('login');
+
+        // Mostrar mensajes de error/éxito de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error')) {
+            mostrarMensaje("Credenciales incorrectas o cuenta no verificada. Por favor, verifica tus datos.", "error");
+        }
+        if (urlParams.has('logout')) {
+            mostrarMensaje("Sesión cerrada correctamente.", "success");
+        }
+    });
+
+    // Función para cambiar entre secciones
+    function mostrarSeccion(seccion) {
+        // Ocultar todas las secciones
+        document.querySelectorAll('.seccion').forEach(div => {
+            div.classList.remove('activa');
+        });
+
+        // Mostrar la sección seleccionada
+        const seccionId = 'seccion' + seccion.charAt(0).toUpperCase() + seccion.slice(1);
+        document.getElementById(seccionId).classList.add('activa');
+
+        // Limpiar mensajes
+        document.getElementById('mensaje').innerHTML = '';
+
+        // Si vamos a verificación y tenemos un correo registrado, llenar automáticamente
+        if (seccion === 'verificacion' && correoRegistrado) {
+            document.getElementById('correoVerificacion').value = correoRegistrado;
+        }
+    }
+
+    // Función de registro
+    async function registrar() {
+        const nombre = document.getElementById("nombre").value;
+        const correo = document.getElementById("correoRegistro").value;
+        const password = document.getElementById("passwordRegistro").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (!nombre || !correo || !password || !confirmPassword) {
+            mostrarMensaje("Por favor, completa todos los campos.", "error");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            mostrarMensaje("Las contraseñas no coinciden.", "error");
+            return;
+        }
+
+        try {
+            const res = await fetch("/auth/register", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: `nombre=${encodeURIComponent(nombre)}&correo=${encodeURIComponent(correo)}&password=${encodeURIComponent(password)}`
+            });
+
+            const mensaje = await res.text();
+            mostrarMensaje(mensaje, mensaje === "Usuario registrado. Verifica tu correo." ? "success" : "error");
+
+            if (mensaje === "Usuario registrado. Verifica tu correo.") {
+                // Guardar el correo y mostrar sección de verificación
+                correoRegistrado = correo;
+                setTimeout(() => {
+                    mostrarSeccion('verificacion');
+                }, 1500);
+            }
+        } catch (error) {
+            mostrarMensaje("Error de conexión. Intenta de nuevo.", "error");
+        }
+    }
+
+    // Función de verificación
+    async function verificar() {
+        const correo = document.getElementById("correoVerificacion").value;
+        const codigo = document.getElementById("codigo").value;
+
+        if (!correo || !codigo) {
+            mostrarMensaje("Por favor, completa todos los campos.", "error");
+            return;
+        }
+
+        try {
+            const res = await fetch("/auth/verify", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: `correo=${encodeURIComponent(correo)}&codigo=${encodeURIComponent(codigo)}`
+            });
+
+            const mensaje = await res.text();
+            mostrarMensaje(mensaje, mensaje === "Correo verificado correctamente." ? "success" : "error");
+
+            if (mensaje === "Correo verificado correctamente.") {
+                // Limpiar el correo guardado y mostrar login
+                correoRegistrado = '';
+                setTimeout(() => {
+                    mostrarSeccion('login');
+                    mostrarMensaje("¡Correo verificado! Ahora puedes iniciar sesión.", "success");
+                }, 1500);
+            }
+        } catch (error) {
+            mostrarMensaje("Error de conexión. Intenta de nuevo.", "error");
+        }
+    }
+
+    // Función de login
+    async function login() {
+        const correo = document.getElementById("correoLogin").value;
+        const password = document.getElementById("passwordLogin").value;
+
+        if (!correo || !password) {
+            mostrarMensaje("Por favor, completa todos los campos.", "error");
+            return;
+        }
+
+        try {
+            const res = await fetch("/auth/loginProcess", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `correo=${encodeURIComponent(correo)}&password=${encodeURIComponent(password)}`
+            });
+
+            const mensaje = await res.text();
+
+            if (mensaje.startsWith("OK:")) {
+                mostrarMensaje("Inicio de sesión exitoso. Redirigiendo...", "success");
+                setTimeout(() => {
+                    window.location.href = "/auth/index";
+                }, 1000);
+            } else {
+                mostrarMensaje(mensaje, "error");
+            }
+        } catch (error) {
+            mostrarMensaje("Error de conexión. Intenta de nuevo.", "error");
+        }
+    }
+
+    // Función para mostrar mensajes
+    function mostrarMensaje(mensaje, tipo) {
+        const mensajeDiv = document.getElementById('mensaje');
+        const clase = tipo === 'success' ? 'alert alert-success' : 'alert alert-danger';
+        mensajeDiv.innerHTML = `<div class="${clase}">${mensaje}</div>`;
+
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+            mensajeDiv.innerHTML = '';
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>

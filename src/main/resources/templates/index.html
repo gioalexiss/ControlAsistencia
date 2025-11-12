@@ -219,7 +219,7 @@
 													</a>
 
 													<!--Opcion para cerrar sesion-->
-													<a href="page-login.html" class="dropdown-item ai-icon">
+													<a href="auth.html" class="dropdown-item ai-icon">
 														<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
 														<span class="ms-2">Cerrar Sesión </span>
 													</a>
@@ -274,15 +274,15 @@
 							</a>
 						</li>
 
-						<!--Pestaña para tomar asistencia-->
-						<li><a id="linkTomarAsistencia" href="#" class="" aria-expanded="false">
+						<!--Pestaña para los estudiantes-->
+						<li><a id="linkMisEstudiantes" href="#" class="" aria-expanded="false">
 							<div class="menu-icon">
 								<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
 									<path fill-rule="evenodd" clip-rule="evenodd" d="M14.9732 2.52102H7.0266C4.25735 2.52102 2.52118 4.48177 2.52118 7.25651V14.7438C2.52118 17.5186 4.2491 19.4793 7.0266 19.4793H14.9723C17.7507 19.4793 19.4795 17.5186 19.4795 14.7438V7.25651C19.4795 4.48177 17.7507 2.52102 14.9732 2.52102Z" stroke="#888888" stroke-linecap="round" stroke-linejoin="round"/>
 									<path d="M7.73657 11.0002L9.91274 13.1754L14.2632 8.82493" stroke="#888888" stroke-linecap="round" stroke-linejoin="round"/>
 								</svg>
 							</div>
-								<span class="nav-text">Tomar asistencia</span>
+								<span class="nav-text">Mis Estudiantes</span>
 							</a>
 						</li>
 
@@ -373,14 +373,183 @@
 				<!-- FIN dashboardPrincipal -->
 
 				<!-- INICIO seccion "Mis Grupos"-->
-				<div id="contentMisGrupos" style="display:none;">
-					... contenido Mis Grupos ...
-				</div>
-				<!--FIN seccion "Mis Grupos"-->
+                <div id="contentMisGrupos" style="display:none;">
+                    <!-- Breadcrumb -->
+                    <div class="page-titles">
+                        <ol class="breadcrumb">
+                            <li><h5 class="bc-title">Mis Grupos</h5></li>
+                            <li class="breadcrumb-item"><a href="javascript:void(0)">
+                                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.125 6.375L8.5 1.41667L14.875 6.375V14.1667C14.875 14.5424 14.7257 14.9027 14.4601 15.1684C14.1944 15.4341 13.8341 15.5833 13.4583 15.5833H3.54167C3.16594 15.5833 2.80561 15.4341 2.53993 15.1684C2.27426 14.9027 2.125 14.5424 2.125 14.1667V6.375Z" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6.375 15.5833V8.5H10.625V15.5833" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Panel Principal
+                            </a></li>
+                            <li class="breadcrumb-item active"><a href="javascript:void(0)">Mis Grupos</a></li>
+                        </ol>
+                    </div>
+
+                    <!-- Contenido Principal de Grupos -->
+                    <div class="container-fluid">
+                        <div class="row">
+                            <!-- Widget: Total de Grupos -->
+                            <div class="col-xl-3 col-lg-6 col-sm-6">
+                                <div class="widget-stat card">
+                                    <div class="card-body p-4">
+                                        <div class="media ai-icon">
+                            <span class="me-3 bgl-primary text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </span>
+                                            <div class="media-body">
+                                                <p class="mb-1">Total Grupos</p>
+                                                <h4 class="mb-0">8</h4>
+                                                <span class="badge badge-primary">+2 este semestre</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Widget: Estudiantes Activos -->
+                            <div class="col-xl-3 col-lg-6 col-sm-6">
+                                <div class="widget-stat card">
+                                    <div class="card-body p-4">
+                                        <div class="media ai-icon">
+                            <span class="me-3 bgl-success text-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="8.5" cy="7" r="4"></circle>
+                                    <polyline points="17 11 19 13 23 9"></polyline>
+                                </svg>
+                            </span>
+                                            <div class="media-body">
+                                                <p class="mb-1">Estudiantes Activos</p>
+                                                <h4 class="mb-0">245</h4>
+                                                <span class="badge badge-success">95% asistencia</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Widget: Asistencias Hoy -->
+                            <div class="col-xl-3 col-lg-6 col-sm-6">
+                                <div class="widget-stat card">
+                                    <div class="card-body p-4">
+                                        <div class="media ai-icon">
+                            <span class="me-3 bgl-info text-info">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </span>
+                                            <div class="media-body">
+                                                <p class="mb-1">Asistencias Hoy</p>
+                                                <h4 class="mb-0">189</h4>
+                                                <span class="badge badge-info">87% del total</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Widget: Promedio General -->
+                            <div class="col-xl-3 col-lg-6 col-sm-6">
+                                <div class="widget-stat card bg-primary">
+                                    <div class="card-body p-4">
+                                        <div class="media">
+                            <span class="me-3 text-white">
+                                <i class="la la-chart-line" style="font-size: 30px;"></i>
+                            </span>
+                                            <div class="media-body text-white">
+                                                <p class="mb-1">Promedio Asistencia</p>
+                                                <h3 class="text-white">92%</h3>
+                                                <div class="progress mb-2 bg-secondary">
+                                                    <div class="progress-bar progress-animated bg-white" style="width: 92%"></div>
+                                                </div>
+                                                <small>+5% vs semestre anterior</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Grupos -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Lista de Mis Grupos</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-bordered" id="tablaGruposIndex">
+                                                <thead class="table-dark">
+                                                <tr>
+                                                    <th>Grupo</th>
+                                                    <th>Materia</th>
+                                                    <th>Horario</th>
+                                                    <th>Estudiantes</th>
+                                                    <th>Asistencia Promedio</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <td>5CM1</td>
+                                                    <td>Análisis y Diseño de Sistemas</td>
+                                                    <td>Mar-Mie 7:00-8:30</td>
+                                                    <td>33</td>
+                                                    <td><span class="badge badge-success">94%</span></td>
+                                                    <td>
+                                                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
+                                                        <button class="btn btn-info btn-sm">Tomar Asistencia</button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>3CM2</td>
+                                                    <td>Base de Datos</td>
+                                                    <td>Mar-Jue 14:30-16:00</td>
+                                                    <td>33</td>
+                                                    <td><span class="badge badge-warning">88%</span></td>
+                                                    <td>
+                                                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
+                                                        <button class="btn btn-info btn-sm">Tomar Asistencia</button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>1CM1</td>
+                                                    <td>Matemáticas Discretas</td>
+                                                    <td>Lun-Jue-Vie 7:00-8:30</td>
+                                                    <td>33</td>
+                                                    <td><span class="badge badge-success">91%</span></td>
+                                                    <td>
+                                                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
+                                                        <button class="btn btn-info btn-sm">Tomar Asistencia</button>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--FIN seccion "Mis Grupos"-->
 
 				<!-- INICIO seccion "Tomar asistencia"-->
-				<div id="contentTomarAsistencia" style="display:none;">
-					... contenido Tomar asistencia ...
+				<div id="contentMisEstudiantes" style="display:none;">
+					... mis estudiantes ...
 				</div>
 				<!--FIN seccion "Tomar asistencia"-->
 
@@ -634,7 +803,7 @@
 			***********************************-->
 			<div class="footer">
 				<div class="copyright">
-				   <p>Copyright © Developed by <a href="https://dexignzone.com/" target="_blank">DexignZone</a> 2023</p>
+				   <p>Copyright © Developed by <a href="https://dexignzone.com/" target="_blank">Pozonquitos</a> 2025</p>
 				</div>
 			</div>
 			</div>
