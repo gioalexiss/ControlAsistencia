@@ -295,6 +295,7 @@
     }
 
     // Función de login
+    // Función de login - VERSIÓN MODIFICADA
     async function login() {
         const correo = document.getElementById("correoLogin").value;
         const password = document.getElementById("passwordLogin").value;
@@ -314,7 +315,18 @@
             const mensaje = await res.text();
 
             if (mensaje.startsWith("OK:")) {
-                mostrarMensaje("Inicio de sesión exitoso. Redirigiendo...", "success");
+                // ✅ EXTRAER EL ID DEL DOCENTE DEL MENSAJE
+                const partes = mensaje.split(':');
+                const docenteId = partes[1]; // El ID viene después de "OK:"
+                const mensajeExito = partes[2] || "Inicio de sesión exitoso";
+
+                // ✅ GUARDAR EL ID EN LOCALSTORAGE
+                localStorage.setItem('docenteId', docenteId);
+                localStorage.setItem('docenteCorreo', correo);
+
+                console.log('✅ Docente ID guardado:', docenteId);
+
+                mostrarMensaje(mensajeExito + ". Redirigiendo...", "success");
                 setTimeout(() => {
                     window.location.href = "/auth/index";
                 }, 1000);
