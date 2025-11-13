@@ -383,9 +383,9 @@ $(document).ready(function () {
                 detalleHTML += `
                     <div class="card mb-3">
                         <div class="card-header bg-light">
-                            <strong>Grupo: ${gNombre}</strong> |
-                            Semestre: ${g.semestre || 'N/A'} |
-                            Tipo: ${g.tipo || 'N/A'}
+                            <strong>Grupo: ${gNombre}</strong> 
+                            Semestre: ${g.semestre || 'N/A'} 
+                         
                         </div>
                         <div class="card-body">
                             <table class="table table-sm">
@@ -537,11 +537,13 @@ $(document).ready(function () {
 
                             if (hDia === dia && `${hInicio}-${hFin}` === hora) {
                                 materia = `
-                                    <div class="p-2" style="background-color: ${hTipo==='Teórica'?'#e3f2fd':'#e8f5e9'}; border-radius: 5px;">
-                                        <div class="materia-nombre fw-bold" style="font-size: 0.9em;">${u.nombreUnidad}</div>
-                                        <small class="materia-grupo text-muted">${gNombre}</small><br>
-                                        <span class="badge ${hTipo==='Teórica'?'bg-primary':'bg-success'} mt-1">${hTipo}</span>
-                                    </div>`;
+                                    <div class="p-2" style="border-radius: 5px;">
+  <div class="materia-nombre fw-bold" style="font-size: 0.9em;">${u.nombreUnidad}</div>
+  <small class="materia-grupo text-muted">${gNombre}</small><br>
+  <span class="badge ${hTipo==='Teórica'?'bg-primary':'bg-success'} mt-1">${hTipo}</span>
+</div>
+
+`;
                             }
                         });
                     });
