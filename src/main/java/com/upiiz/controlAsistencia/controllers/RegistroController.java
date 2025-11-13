@@ -1,13 +1,10 @@
 package com.upiiz.controlAsistencia.controllers;
 
-
-
 import com.upiiz.controlAsistencia.models.Alumno;
 import com.upiiz.controlAsistencia.services.EmailService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -22,6 +19,7 @@ public class RegistroController {
     @Autowired
     private EmailService emailService;
 
+    // 📧 API para registrar alumno y enviar correo con QR
     @PostMapping("/registrar")
     public ResponseEntity<Map<String, String>> registrarAlumno(@RequestBody Alumno alumno) {
         Map<String, String> response = new HashMap<>();
@@ -51,15 +49,7 @@ public class RegistroController {
         }
     }
 
-    @Controller
-    public class alumno {
-        @GetMapping("/alumno_reg")
-        public String login() {
-            return "alumno_reg";
-        }
-
-    }
-
+    // ✅ Health check
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Servicio funcionando correctamente");

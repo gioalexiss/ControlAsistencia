@@ -21,28 +21,32 @@ public class SeguridadConfigDocente {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // ✅ Rutas públicas (accesibles sin login)
                         .requestMatchers(
-                                "/",
-                                "/auth/**",
+                                "/",                              // Página principal (registro alumnos)
+                                "/alumno_reg",                    // Página de registro de alumnos
+                                "/auth/login",                    // Login de maestros
+                                "/auth/register",                 // Registro de maestros (POST)
+                                "/auth/verify",                   // Verificación de maestros (POST)
+                                "/auth/loginProcess",             // Proceso de login (POST)
+                                "/api/registrar",                 // API para registrar alumnos
+                                "/api/health",                    // Health check
                                 "/assets/**",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/favicon.ico",
-                                "/api/**"
+                                "/favicon.ico"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        // ⚠️ NO especificamos /auth/index aquí - lo manejamos con sesión HTTP
+                        .anyRequest().permitAll()  // Temporalmente permitimos todo para debugging
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout") // Coincide con tu formulario HTML
-                        .logoutSuccessUrl("/auth/login?logout=true") // URL después de cerrar sesión
-                        .invalidateHttpSession(true) // Invalidar sesión
-                        .deleteCookies("JSESSIONID") // Eliminar cookies
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
-                )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
-
+                );
 
         return http.build();
     }

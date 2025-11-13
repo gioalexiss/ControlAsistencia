@@ -27,7 +27,35 @@
             position: relative;
         }
 
+        /* Botón rojo para dashboard */
+        .dashboard-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to right, #d32f2f, #f44336);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
 
+        .dashboard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(211, 47, 47, 0.5);
+            background: linear-gradient(to right, #f44336, #d32f2f);
+        }
+
+        .dashboard-btn:active {
+            transform: translateY(0);
+        }
 
         .container {
             width: 100%;
@@ -187,6 +215,9 @@
     </style>
 </head>
 <body>
+<!-- Botón rojo para dashboard -->
+<a href="/auth/login" class="dashboard-btn">Soy Docente</a>
+
 <div class="container">
     <div class="register-box">
         <h1>Registro de Alumno</h1>
@@ -263,8 +294,6 @@
         </div>
     </div>
 </div>
-
-
 
 <script>
     // Datos de materias según carrera y grado
