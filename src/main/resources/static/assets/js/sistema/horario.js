@@ -28,7 +28,75 @@ $(document).ready(function () {
         });
     });
 
-    // ==== 4️⃣ AGREGAR HORARIO ====
+    // ==== 4️⃣ VALIDAR TRASLAPES DE HORARIOS ====
+    function validarTraslape(dia, inicio, fin) {
+        const inicioMinutos = convertirAMinutos(inicio);
+        const finMinutos = convertirAMinutos(fin);
+
+        // Validar que hora de fin sea mayor a hora de inicio
+        if (finMinutos <= inicioMinutos) {
+            alert('⚠️ La hora de fin debe ser mayor a la hora de inicio.');
+            return false;
+        }
+
+        // Función auxiliar para verificar si dos rangos de tiempo se traslapan
+        function seTraslapa(inicio1, fin1, inicio2, fin2) {
+            const i1 = convertirAMinutos(inicio1);
+            const f1 = convertirAMinutos(fin1);
+            const i2 = convertirAMinutos(inicio2);
+            const f2 = convertirAMinutos(fin2);
+
+            // Se traslapan si: inicio1 < fin2 AND inicio2 < fin1
+            return i1 < f2 && i2 < f1;
+        }
+
+        // 1. Verificar traslape con horarios temporales del grupo actual
+        for (let h of horariosTemp) {
+            if (h.dia === dia && seTraslapa(inicio, fin, h.inicio, h.fin)) {
+                alert(`⚠️ Conflicto de horario detectado!\n\nYa existe una clase el ${dia} de ${h.inicio} a ${h.fin}.\n\nNo puedes agregar otra clase que se traslape en el mismo día.`);
+                return false;
+            }
+        }
+
+        // 2. Verificar traslape con grupos temporales
+        for (let g of gruposTemp) {
+            for (let h of g.horarios) {
+                if (h.dia === dia && seTraslapa(inicio, fin, h.inicio, h.fin)) {
+                    alert(`⚠️ Conflicto de horario detectado!\n\nEl grupo "${g.grupo}" ya tiene clase el ${dia} de ${h.inicio} a ${h.fin}.\n\nNo puedes agregar otra clase que se traslape en el mismo día.`);
+                    return false;
+                }
+            }
+        }
+
+        // 3. Verificar traslape con unidades ya guardadas en BD
+        for (let u of unidades) {
+            if (!u.grupos) continue;
+            for (let g of u.grupos) {
+                if (!g.horarios) continue;
+                for (let h of g.horarios) {
+                    const hDia = h.dia || h.diaSemana;
+                    const hInicio = h.inicio || h.horaInicio;
+                    const hFin = h.fin || h.horaFin;
+                    const gNombre = g.grupo || g.nombreGrupo;
+
+                    if (hDia === dia && seTraslapa(inicio, fin, hInicio, hFin)) {
+                        alert(`⚠️ Conflicto de horario detectado!\n\nLa materia "${u.nombreUnidad}" (${gNombre}) ya tiene clase el ${dia} de ${hInicio} a ${hFin}.\n\nNo puedes agregar otra clase que se traslape en el mismo día.`);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true; // No hay traslapes
+    }
+
+    // Función auxiliar para convertir tiempo HH:mm a minutos
+    function convertirAMinutos(tiempo) {
+        const [horas, minutos] = tiempo.split(':').map(Number);
+        return horas * 60 + minutos;
+    }
+
+    // ==== 5️⃣ AGREGAR HORARIO ====
     $('#btnAgregarHora').click(function () {
         const dia = $('#dia').val();
         const inicio = $('#horaInicio').val();
@@ -38,6 +106,11 @@ $(document).ready(function () {
         if (!dia || !inicio || !fin || !tipoHorario) {
             alert('Por favor completa todos los campos del horario.');
             return;
+        }
+
+        // Validar traslapes antes de agregar
+        if (!validarTraslape(dia, inicio, fin)) {
+            return; // Si hay traslape, no agregar
         }
 
         horariosTemp.push({ dia, inicio, fin, tipo: tipoHorario });
@@ -222,8 +295,12 @@ $(document).ready(function () {
                 unidades = data || [];
                 actualizarTablaUnidades();
 
-                // Mostrar mensaje si no hay unidades
-                if (unidades.length === 0) {
+                // Si hay unidades, mostrar automáticamente el horario visual
+                if (unidades.length > 0) {
+                    console.log('✅ Se encontraron unidades, generando horario automáticamente...');
+                    generarTablaHorario();
+                } else {
+                    // Mostrar mensaje si no hay unidades
                     $('#tablaUnidades tbody').html(`
                         <tr>
                             <td colspan="3" class="text-center text-muted">
@@ -231,6 +308,9 @@ $(document).ready(function () {
                             </td>
                         </tr>
                     `);
+                    // Asegurar que el formulario esté visible
+                    $('#formUnidad').show();
+                    $('#vistaHorario').hide();
                 }
             })
             .catch(err => {
