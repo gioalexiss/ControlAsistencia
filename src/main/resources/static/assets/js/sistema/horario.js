@@ -211,32 +211,68 @@ $(document).ready(function () {
     // ==== 9️⃣ CARGAR UNIDADES DESDE BD ====
     function cargarHorariosDesdeBackend() {
         fetch(`/horario/obtener/${idDocente}`)
-            .then(res => res.json())
-            .then(data => {
-                unidades = data;
-                actualizarTablaUnidades();
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Error al cargar horarios');
+                }
+                return res.json();
             })
-            .catch(err => console.error('Error al cargar unidades:', err));
+            .then(data => {
+                console.log('📚 Unidades cargadas:', data);
+                unidades = data || [];
+                actualizarTablaUnidades();
+
+                // Mostrar mensaje si no hay unidades
+                if (unidades.length === 0) {
+                    $('#tablaUnidades tbody').html(`
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                No tienes unidades registradas aún. ¡Crea tu primer horario!
+                            </td>
+                        </tr>
+                    `);
+                }
+            })
+            .catch(err => {
+                console.error('Error al cargar unidades:', err);
+                alert('❌ Error al cargar los horarios guardados');
+            });
     }
 
     function actualizarTablaUnidades() {
         const tbody = $('#tablaUnidades tbody');
         tbody.empty();
+
+        if (unidades.length === 0) {
+            tbody.html(`
+                <tr>
+                    <td colspan="3" class="text-center text-muted">
+                        No tienes unidades registradas aún. ¡Crea tu primer horario!
+                    </td>
+                </tr>
+            `);
+            return;
+        }
+
         unidades.forEach((u, i) => {
+            // Compatibilidad con ambos formatos de nombre de grupo
             const nombresGrupos = u.grupos && u.grupos.length > 0
-                ? u.grupos.map(g => g.grupo).join(', ')
+                ? u.grupos.map(g => g.grupo || g.nombreGrupo || 'N/A').join(', ')
                 : 'Sin grupos';
 
             tbody.append(`
                 <tr>
-                    <td>${u.nombreUnidad}</td>
+                    <td><strong>${u.nombreUnidad}</strong></td>
                     <td>${nombresGrupos}</td>
                     <td>
                         <div class="d-flex justify-content-center">
-                            <button class="btn btn-primary btn-sm btnEditarUnidad me-1" data-index="${i}">
+                            <button class="btn btn-info btn-sm btnVerDetalleUnidad me-1" data-index="${i}" title="Ver detalle">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            <button class="btn btn-primary btn-sm btnEditarUnidad me-1" data-index="${i}" title="Editar">
                                 <i class="fa fa-pencil"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm btnEliminarUnidad" data-index="${i}">
+                            <button class="btn btn-danger btn-sm btnEliminarUnidad" data-index="${i}" title="Eliminar">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </div>
@@ -246,11 +282,93 @@ $(document).ready(function () {
         });
     }
 
+    // Ver detalle de unidad
+    $(document).on('click', '.btnVerDetalleUnidad', function () {
+        const index = $(this).data('index');
+        const u = unidades[index];
+
+        let detalleHTML = `
+            <div class="modal fade" id="modalDetalleUnidad" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">📚 ${u.nombreUnidad}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">`;
+
+        if (u.grupos && u.grupos.length > 0) {
+            u.grupos.forEach(g => {
+                const gNombre = g.grupo || g.nombreGrupo || 'N/A';
+                detalleHTML += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <strong>Grupo: ${gNombre}</strong> |
+                            Semestre: ${g.semestre || 'N/A'} |
+                            Tipo: ${g.tipo || 'N/A'}
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Día</th>
+                                        <th>Hora Inicio</th>
+                                        <th>Hora Fin</th>
+                                        <th>Tipo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                if (g.horarios && g.horarios.length > 0) {
+                    g.horarios.forEach(h => {
+                        const hDia = h.dia || h.diaSemana || 'N/A';
+                        const hInicio = h.inicio || h.horaInicio || 'N/A';
+                        const hFin = h.fin || h.horaFin || 'N/A';
+                        const hTipo = h.tipo || h.tipoHorario || 'N/A';
+
+                        detalleHTML += `
+                            <tr>
+                                <td>${hDia}</td>
+                                <td>${hInicio}</td>
+                                <td>${hFin}</td>
+                                <td><span class="badge ${hTipo==='Teórica'?'bg-primary':'bg-success'}">${hTipo}</span></td>
+                            </tr>`;
+                    });
+                } else {
+                    detalleHTML += `<tr><td colspan="4" class="text-center text-muted">Sin horarios</td></tr>`;
+                }
+
+                detalleHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            });
+        } else {
+            detalleHTML += `<p class="text-center text-muted">Esta unidad no tiene grupos registrados</p>`;
+        }
+
+        detalleHTML += `
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        // Eliminar modal anterior si existe
+        $('#modalDetalleUnidad').remove();
+        $('body').append(detalleHTML);
+        const modal = new bootstrap.Modal(document.getElementById('modalDetalleUnidad'));
+        modal.show();
+    });
+
     $(document).on('click', '.btnEliminarUnidad', function () {
         const index = $(this).data('index');
         const unidad = unidades[index];
 
-        if (!confirm(`¿Seguro que deseas eliminar la unidad "${unidad.nombreUnidad}"?`)) return;
+        if (!confirm(`¿Seguro que deseas eliminar la unidad "${unidad.nombreUnidad}"?\n\nEsto eliminará todos sus grupos y horarios.`)) return;
 
         fetch(`/horario/unidad/${unidad.id}`, { method: 'DELETE' })
             .then(res => res.text())
@@ -258,7 +376,7 @@ $(document).ready(function () {
                 if (resultado.startsWith('OK:')) {
                     unidades.splice(index, 1);
                     actualizarTablaUnidades();
-                    alert('Unidad eliminada correctamente');
+                    alert('✅ Unidad eliminada correctamente');
                 } else {
                     alert('❌ Error al eliminar: ' + resultado);
                 }
@@ -285,29 +403,70 @@ $(document).ready(function () {
 
     // ==== 10️⃣ GENERAR TABLA DE HORARIO ====
     function generarTablaHorario() {
+        if (unidades.length === 0) {
+            alert('⚠️ No hay unidades capturadas para generar el horario');
+            return;
+        }
+
         const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
         const horasSet = new Set();
-        unidades.forEach(u => u.grupos.forEach(g => g.horarios.forEach(h => horasSet.add(`${h.inicio}-${h.fin}`))));
+
+        // Recolectar todas las horas (compatible con ambos formatos)
+        unidades.forEach(u => {
+            if (!u.grupos) return;
+            u.grupos.forEach(g => {
+                if (!g.horarios) return;
+                g.horarios.forEach(h => {
+                    const inicio = h.inicio || h.horaInicio;
+                    const fin = h.fin || h.horaFin;
+                    if (inicio && fin) {
+                        horasSet.add(`${inicio}-${fin}`);
+                    }
+                });
+            });
+        });
+
         const horas = Array.from(horasSet).sort((a, b) => a.split('-')[0].localeCompare(b.split('-')[0]));
 
         $('.tool__header').html('<h1 class="text-white mb-3">Horario Semanal</h1>');
         $('#formUnidad').hide();
 
-        let tabla = `<table class="table text-center align-middle horario-minimalista">
-            <thead><tr><th>Hora/Dia</th>${dias.map(d => `<th>${d}</th>`).join('')}</tr></thead><tbody>`;
+        let tabla = `<table class="table table-bordered text-center align-middle horario-minimalista" style="background-color: white;">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 120px;">Horario</th>
+                    ${dias.map(d => `<th>${d}</th>`).join('')}
+                </tr>
+            </thead>
+            <tbody>`;
 
         horas.forEach(hora => {
-            tabla += `<tr><td class="hora">${hora}</td>`;
+            tabla += `<tr><td class="hora fw-bold">${hora}</td>`;
             dias.forEach(dia => {
                 let materia = '';
-                unidades.forEach(u => u.grupos.forEach(g => g.horarios.forEach(h => {
-                    if (h.dia === dia && `${h.inicio}-${h.fin}` === hora) {
-                        materia = `<div class="materia-nombre">${u.nombreUnidad}</div>
-                                   <small class="materia-grupo">${g.grupo}</small><br>
-                                   <span class="badge ${h.tipo==='Teórica'?'bg-primary':'bg-success'} tipo-materia">${h.tipo}</span>`;
-                    }
-                })));
-                tabla += `<td>${materia || '-'}</td>`;
+                unidades.forEach(u => {
+                    if (!u.grupos) return;
+                    u.grupos.forEach(g => {
+                        if (!g.horarios) return;
+                        g.horarios.forEach(h => {
+                            const hDia = h.dia || h.diaSemana;
+                            const hInicio = h.inicio || h.horaInicio;
+                            const hFin = h.fin || h.horaFin;
+                            const hTipo = h.tipo || h.tipoHorario;
+                            const gNombre = g.grupo || g.nombreGrupo;
+
+                            if (hDia === dia && `${hInicio}-${hFin}` === hora) {
+                                materia = `
+                                    <div class="p-2" style="background-color: ${hTipo==='Teórica'?'#e3f2fd':'#e8f5e9'}; border-radius: 5px;">
+                                        <div class="materia-nombre fw-bold" style="font-size: 0.9em;">${u.nombreUnidad}</div>
+                                        <small class="materia-grupo text-muted">${gNombre}</small><br>
+                                        <span class="badge ${hTipo==='Teórica'?'bg-primary':'bg-success'} mt-1">${hTipo}</span>
+                                    </div>`;
+                            }
+                        });
+                    });
+                });
+                tabla += `<td>${materia || '<span class="text-muted">-</span>'}</td>`;
             });
             tabla += '</tr>';
         });

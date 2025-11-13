@@ -1,17 +1,67 @@
 package com.upiiz.controlAsistencia.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalTime;
 
 public class HorarioModel {
     private Long id;
     private Long idGrupo;
+
+    @JsonProperty("diaSemana")
     private String diaSemana;
+
+    @JsonProperty("horaInicio")
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime horaInicio;
+
+    @JsonProperty("horaFin")
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime horaFin;
+
+    @JsonProperty("tipoHorario")
     private String tipoHorario;
+
     private String aula;
 
     public HorarioModel() {}
+
+    // Alias para compatibilidad con frontend
+    @JsonProperty("dia")
+    public String getDia() {
+        return diaSemana;
+    }
+
+    public void setDia(String dia) {
+        this.diaSemana = dia;
+    }
+
+    @JsonProperty("inicio")
+    public String getInicio() {
+        return horaInicio != null ? horaInicio.toString() : null;
+    }
+
+    public void setInicio(String inicio) {
+        this.horaInicio = inicio != null ? LocalTime.parse(inicio) : null;
+    }
+
+    @JsonProperty("fin")
+    public String getFin() {
+        return horaFin != null ? horaFin.toString() : null;
+    }
+
+    public void setFin(String fin) {
+        this.horaFin = fin != null ? LocalTime.parse(fin) : null;
+    }
+
+    @JsonProperty("tipo")
+    public String getTipo() {
+        return tipoHorario;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipoHorario = tipo;
+    }
 
     public HorarioModel(Long id, Long idGrupo, String diaSemana, LocalTime horaInicio,
                         LocalTime horaFin, String tipoHorario, String aula) {

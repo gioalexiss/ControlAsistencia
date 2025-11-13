@@ -1,16 +1,30 @@
 package com.upiiz.controlAsistencia.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class GrupoModel {
     private Long id;
     private Long idUnidad;
+
+    @JsonProperty("nombreGrupo")
     private String nombreGrupo;
+
     private Integer semestre;
     private String tipo;
 
     public GrupoModel() {}
     private List<HorarioModel> horarios;
+
+    // Alias para compatibilidad con frontend
+    @JsonProperty("grupo")
+    public String getGrupo() {
+        return nombreGrupo;
+    }
+
+    public void setGrupo(String grupo) {
+        this.nombreGrupo = grupo;
+    }
 
     public GrupoModel(Long id, Long idUnidad, String nombreGrupo, Integer semestre, String tipo) {
         this.id = id;
