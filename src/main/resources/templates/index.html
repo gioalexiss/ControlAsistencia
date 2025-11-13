@@ -544,6 +544,127 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Seccion de Carga de PDF -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Cargar Lista de Alumnos desde PDF</h4>
+                                        <p class="text-muted mb-0">Extrae automáticamente: Boleta, Nombre y Correo Electrónico</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Área de carga con Drag & Drop -->
+                                        <div id="uploadArea" class="upload-area" style="
+                                            border: 2px dashed #1E90FF;
+                                            border-radius: 10px;
+                                            padding: 40px;
+                                            text-align: center;
+                                            background-color: #f8f9fa;
+                                            cursor: pointer;
+                                            transition: all 0.3s ease;
+                                            margin-bottom: 20px;">
+                                            <input type="file" id="pdfFileInput" accept="application/pdf" style="display: none;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#1E90FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                                            </svg>
+                                            <h4 style="color: #333; margin-bottom: 10px;">Arrastra tu PDF aquí</h4>
+                                            <p style="color: #666; margin-bottom: 20px;">o haz clic para seleccionar un archivo</p>
+                                            <button type="button" class="btn btn-primary" id="btnSelectPDF">
+                                                Seleccionar PDF
+                                            </button>
+                                        </div>
+
+                                        <!-- Información del archivo seleccionado -->
+                                        <div id="fileInfo" class="alert alert-info" style="display: none;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>Archivo seleccionado:</strong>
+                                                    <p class="mb-0">
+                                                        <i class="fas fa-file-pdf me-2"></i>
+                                                        <span id="fileName">archivo.pdf</span>
+                                                        <small class="text-muted ms-2">(<span id="fileSize">0 KB</span>)</small>
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <button type="button" class="btn btn-primary me-2" id="btnProcessPDF">
+                                                        Procesar PDF
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary" id="btnClearFile">
+                                                        Cancelar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Barra de progreso -->
+                                        <div id="progressContainer" class="mt-3" style="display:none;">
+                                            <p class="mb-2" id="progressText">Procesando PDF...</p>
+                                            <div class="progress" style="height: 25px;">
+                                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                                     role="progressbar" style="width: 0%;">0%</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tabla de resultados -->
+                                        <div class="mt-4" id="extractedDataContainer" style="display:none;">
+                                            <div class="card">
+                                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                                    <h5 class="mb-0">
+                                                        <i class="fas fa-users me-2"></i>
+                                                        Estudiantes Extraídos
+                                                    </h5>
+                                                    <span class="badge bg-light text-primary" id="totalExtracted">0 estudiantes</span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-bordered table-hover">
+                                                            <thead class="table-dark">
+                                                            <tr>
+                                                                <th class="text-center" style="width: 50px;">#</th>
+                                                                <th style="width: 120px;">Boleta</th>
+                                                                <th>Nombre Completo</th>
+                                                                <th style="width: 250px;">Correo Electrónico</th>
+                                                                <th class="text-center" style="width: 80px;">
+                                                                    <input type="checkbox" id="selectAll" checked> Sel.
+                                                                </th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody id="tbodyEstudiantes">
+                                                            <!-- Los datos se llenarán dinámicamente -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="mt-3 d-flex gap-2">
+                                                        <button type="button" class="btn btn-success" id="btnSaveStudents">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
+                                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                                                <polyline points="7 3 7 8 15 8"></polyline>
+                                                            </svg>
+                                                            Guardar Estudiantes Seleccionados
+                                                        </button>
+                                                        <button type="button" class="btn btn-info" id="btnExportCSV">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
+                                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                                            </svg>
+                                                            Exportar a CSV
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!--FIN seccion "Mis Grupos"-->
@@ -822,8 +943,15 @@
 		<!-- jQuery -->
 
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<!-- PDF.js -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+		<script>
+			// Configurar el worker de PDF.js
+			pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+		</script>
 		<script src="/assets/js/sistema/horario.js"></script>
-			<script src="/assets/js/sistema/navegacion.js"></script>
+		<script src="/assets/js/sistema/navegacion.js"></script>
+		<script src="/assets/js/sistema/pdf-processor.js"></script>
 
 		<!-- Required vendors -->
 		<script src="/assets/vendor/global/global.min.js"></script>
