@@ -20,11 +20,6 @@ public class PdfExtractorService {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b");
     private static final Pattern NOMBRE_PATTERN = Pattern.compile("([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)");
 
-    /**
-     * Extrae información de estudiantes desde un archivo PDF
-     * @param file Archivo PDF subido
-     * @return Lista de EstudianteDTO con los datos extraídos
-     */
     public List<EstudianteDTO> extraerDatosDePDF(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("El archivo PDF está vacío");
@@ -47,10 +42,6 @@ public class PdfExtractorService {
         }
     }
 
-    /**
-     * Procesa el contenido del PDF y extrae los datos de estudiantes
-     * Intenta identificar patrones de: boleta, nombre y correo
-     */
     private List<EstudianteDTO> procesarContenidoPDF(String contenido) {
         List<EstudianteDTO> estudiantes = new ArrayList<>();
 
@@ -107,10 +98,6 @@ public class PdfExtractorService {
         return estudiantes;
     }
 
-    /**
-     * Método alternativo: procesa PDF con formato tabular
-     * Útil cuando el PDF tiene una estructura de tabla clara
-     */
     public List<EstudianteDTO> extraerDatosTabular(MultipartFile file) throws IOException {
         String contenido = extraerTextoDePDF(file);
         List<EstudianteDTO> estudiantes = new ArrayList<>();

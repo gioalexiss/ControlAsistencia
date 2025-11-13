@@ -18,10 +18,6 @@ public class EstudianteService {
         this.estudianteRepository = estudianteRepository;
     }
 
-    /**
-     * Guarda una lista de estudiantes desde el PDF
-     * Retorna un reporte con éxitos y errores
-     */
     @Transactional
     public ResultadoCargaMasiva guardarEstudiantesDesdePDF(List<EstudianteDTO> estudiantes) {
         ResultadoCargaMasiva resultado = new ResultadoCargaMasiva();
