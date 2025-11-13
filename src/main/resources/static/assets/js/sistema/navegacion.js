@@ -1,11 +1,20 @@
 $(document).ready(function() {
 
-    function mostrarSeccion(seccionID) {
+    function mostrarSeccion(seccionID, linkActivo) {
         // Oculta todas las secciones
         $('#dashboardPrincipal, #contentMisGrupos, #contentMisEstudiantes, #contentReportes, #contentMiHorario').hide();
 
         // Remueve la clase 'active' de todos los links del menú
         $('#menu a').removeClass('active');
+
+        // Cambia todos los iconos SVG a color gris
+        $('#menu .svg-icon-path').attr('stroke', '#888888');
+
+        // Agrega la clase 'active' al link seleccionado
+        $(linkActivo).addClass('active');
+
+        // Cambia los iconos SVG del link activo a color azul
+        $(linkActivo).find('.svg-icon-path').attr('stroke', '#1E90FF');
 
         // Muestra solo la sección seleccionada
         $(seccionID).show();
@@ -14,35 +23,29 @@ $(document).ready(function() {
     // Manejar clicks en la barra lateral
     $('#linkDashboard').click(function(e){
         e.preventDefault();
-        $(this).addClass('active');
-        mostrarSeccion('#dashboardPrincipal');
+        mostrarSeccion('#dashboardPrincipal', this);
     });
 
     $('#linkMisGrupos').click(function(e){
         e.preventDefault();
-        $(this).addClass('active');
-        mostrarSeccion('#contentMisGrupos');
+        mostrarSeccion('#contentMisGrupos', this);
     });
 
     $('#linkMisEstudiantes').click(function(e){
         e.preventDefault();
-        $(this).addClass('active');
-        mostrarSeccion('#contentMisEstudiantes');
+        mostrarSeccion('#contentMisEstudiantes', this);
     });
 
     $('#linkReportes').click(function(e){
         e.preventDefault();
-        $(this).addClass('active');
-        mostrarSeccion('#contentReportes');
+        mostrarSeccion('#contentReportes', this);
     });
 
     $('#linkMiHorario').click(function(e){
         e.preventDefault();
-        $(this).addClass('active');
-        mostrarSeccion('#contentMiHorario');
+        mostrarSeccion('#contentMiHorario', this);
     });
 
     // Inicializa mostrando el panel principal con clase active
-    $('#linkDashboard').addClass('active');
-    mostrarSeccion('#dashboardPrincipal');
+    mostrarSeccion('#dashboardPrincipal', '#linkDashboard');
 });
