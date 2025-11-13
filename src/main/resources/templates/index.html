@@ -33,6 +33,112 @@
 		<!-- Style css -->
 		<link href="/assets/css/style.css" rel="stylesheet">
 
+		<!-- Estilos personalizados para PDF Upload -->
+		<style>
+			/* Animaciones para el área de carga de PDF */
+			@keyframes floatAnimation {
+				0%, 100% {
+					transform: translateY(0px) rotate(-5deg);
+				}
+				50% {
+					transform: translateY(-10px) rotate(-5deg);
+				}
+			}
+
+			@keyframes slidePattern {
+				0% {
+					transform: translate(0, 0);
+				}
+				100% {
+					transform: translate(50px, 50px);
+				}
+			}
+
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes fadeInUp {
+				from {
+					opacity: 0;
+					transform: translateY(30px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* Efectos hover para el área de carga */
+			#uploadArea:hover {
+				border-color: #764ba2 !important;
+				transform: scale(1.02);
+				box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+			}
+
+			#uploadArea:hover .pdf-icon-wrapper > div {
+				transform: rotate(0deg) scale(1.1);
+				box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+			}
+
+			/* Efectos hover para botones */
+			#btnSelectPDF:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5) !important;
+			}
+
+			#btnProcessPDF:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+			}
+
+			#btnSaveStudents:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 12px 28px rgba(17, 153, 142, 0.4) !important;
+			}
+
+			#btnExportCSV:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4) !important;
+			}
+
+			/* Estilo para las filas de la tabla */
+			#tbodyEstudiantes tr {
+				transition: all 0.3s ease;
+				border-bottom: 1px solid #e2e8f0;
+			}
+
+			#tbodyEstudiantes tr:hover {
+				background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+				transform: translateX(5px);
+			}
+
+			#tbodyEstudiantes td {
+				padding: 18px;
+				vertical-align: middle;
+				border: none;
+			}
+
+			/* Responsive adjustments */
+			@media (max-width: 768px) {
+				#uploadArea {
+					padding: 40px 20px !important;
+				}
+
+				#btnSaveStudents, #btnExportCSV {
+					padding: 12px 20px !important;
+					font-size: 14px !important;
+				}
+			}
+		</style>
+
 	</head>
 	<body data-typography="poppins"
 		  data-theme-version="dark"
@@ -545,117 +651,409 @@
                             </div>
                         </div>
 
-                        <!-- Seccion de Carga de PDF -->
+                        <!-- Seccion de Carga de PDF - Diseño Moderno -->
                         <div class="row mt-4">
                             <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h4 class="card-title">Cargar Lista de Alumnos desde PDF</h4>
-                                        <p class="text-muted mb-0">Extrae automáticamente: Boleta, Nombre y Correo Electrónico</p>
+                                <div class="card shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
+                                    <div class="card-header" style="
+                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        border: none;
+                                        padding: 25px;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3" style="
+                                                width: 50px;
+                                                height: 50px;
+                                                background: rgba(255,255,255,0.2);
+                                                border-radius: 12px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 class="card-title text-white mb-1" style="font-weight: 600;">Importar Lista de Alumnos</h4>
+                                                <p class="text-white mb-0" style="opacity: 0.9; font-size: 14px;">
+                                                    <i class="fas fa-magic me-1"></i>
+                                                    Extrae automáticamente: Boleta, Nombre y Correo Electrónico
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="card-body">
-                                        <!-- Área de carga con Drag & Drop -->
+                                    <div class="card-body" style="padding: 30px;">
+                                        <!-- Área de carga con Drag & Drop - DISEÑO MEJORADO -->
                                         <div id="uploadArea" class="upload-area" style="
-                                            border: 2px dashed #1E90FF;
-                                            border-radius: 10px;
-                                            padding: 40px;
+                                            position: relative;
+                                            border: 3px dashed #667eea;
+                                            border-radius: 20px;
+                                            padding: 60px 40px;
                                             text-align: center;
-                                            background-color: #f8f9fa;
+                                            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
                                             cursor: pointer;
-                                            transition: all 0.3s ease;
-                                            margin-bottom: 20px;">
+                                            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                                            margin-bottom: 25px;
+                                            overflow: hidden;">
+
+                                            <!-- Patrón de fondo animado -->
+                                            <div style="
+                                                position: absolute;
+                                                top: -50%;
+                                                left: -50%;
+                                                width: 200%;
+                                                height: 200%;
+                                                background: repeating-linear-gradient(
+                                                    45deg,
+                                                    transparent,
+                                                    transparent 20px,
+                                                    rgba(102, 126, 234, 0.05) 20px,
+                                                    rgba(102, 126, 234, 0.05) 40px
+                                                );
+                                                animation: slidePattern 20s linear infinite;
+                                                pointer-events: none;">
+                                            </div>
+
                                             <input type="file" id="pdfFileInput" accept="application/pdf" style="display: none;">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#1E90FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                                <polyline points="14 2 14 8 20 8"></polyline>
-                                                <line x1="12" y1="18" x2="12" y2="12"></line>
-                                                <line x1="9" y1="15" x2="15" y2="15"></line>
-                                            </svg>
-                                            <h4 style="color: #333; margin-bottom: 10px;">Arrastra tu PDF aquí</h4>
-                                            <p style="color: #666; margin-bottom: 20px;">o haz clic para seleccionar un archivo</p>
-                                            <button type="button" class="btn btn-primary" id="btnSelectPDF">
-                                                Seleccionar PDF
+
+                                            <!-- Icono animado -->
+                                            <div class="pdf-icon-wrapper" style="
+                                                display: inline-block;
+                                                animation: floatAnimation 3s ease-in-out infinite;">
+                                                <div style="
+                                                    width: 100px;
+                                                    height: 100px;
+                                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                    border-radius: 20px;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    margin: 0 auto 20px;
+                                                    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+                                                    transform: rotate(-5deg);
+                                                    transition: all 0.3s ease;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                                                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            <h3 style="
+                                                color: #2d3748;
+                                                font-weight: 700;
+                                                margin-bottom: 10px;
+                                                font-size: 24px;">
+                                                Arrastra tu archivo PDF aquí
+                                            </h3>
+                                            <p style="
+                                                color: #718096;
+                                                margin-bottom: 25px;
+                                                font-size: 16px;">
+                                                o haz clic para seleccionar desde tu computadora
+                                            </p>
+
+                                            <button type="button" class="btn btn-lg" id="btnSelectPDF" style="
+                                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                border: none;
+                                                color: white;
+                                                padding: 15px 40px;
+                                                border-radius: 50px;
+                                                font-weight: 600;
+                                                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+                                                transition: all 0.3s ease;
+                                                font-size: 16px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                </svg>
+                                                Seleccionar Archivo PDF
                                             </button>
-                                        </div>
 
-                                        <!-- Información del archivo seleccionado -->
-                                        <div id="fileInfo" class="alert alert-info" style="display: none;">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <strong>Archivo seleccionado:</strong>
-                                                    <p class="mb-0">
-                                                        <i class="fas fa-file-pdf me-2"></i>
-                                                        <span id="fileName">archivo.pdf</span>
-                                                        <small class="text-muted ms-2">(<span id="fileSize">0 KB</span>)</small>
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <button type="button" class="btn btn-primary me-2" id="btnProcessPDF">
-                                                        Procesar PDF
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-secondary" id="btnClearFile">
-                                                        Cancelar
-                                                    </button>
-                                                </div>
+                                            <div style="margin-top: 20px;">
+                                                <small style="color: #a0aec0; font-size: 13px;">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Formato soportado: PDF | Tamaño máximo: 10MB
+                                                </small>
                                             </div>
                                         </div>
 
-                                        <!-- Barra de progreso -->
-                                        <div id="progressContainer" class="mt-3" style="display:none;">
-                                            <p class="mb-2" id="progressText">Procesando PDF...</p>
-                                            <div class="progress" style="height: 25px;">
-                                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
-                                                     role="progressbar" style="width: 0%;">0%</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Tabla de resultados -->
-                                        <div class="mt-4" id="extractedDataContainer" style="display:none;">
-                                            <div class="card">
-                                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                                                    <h5 class="mb-0">
-                                                        <i class="fas fa-users me-2"></i>
-                                                        Estudiantes Extraídos
-                                                    </h5>
-                                                    <span class="badge bg-light text-primary" id="totalExtracted">0 estudiantes</span>
-                                                </div>
-                                                <div class="card-body">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-striped table-bordered table-hover">
-                                                            <thead class="table-dark">
-                                                            <tr>
-                                                                <th class="text-center" style="width: 50px;">#</th>
-                                                                <th style="width: 120px;">Boleta</th>
-                                                                <th>Nombre Completo</th>
-                                                                <th style="width: 250px;">Correo Electrónico</th>
-                                                                <th class="text-center" style="width: 80px;">
-                                                                    <input type="checkbox" id="selectAll" checked> Sel.
-                                                                </th>
-                                                            </tr>
-                                                            </thead>
-                                                            <tbody id="tbodyEstudiantes">
-                                                            <!-- Los datos se llenarán dinámicamente -->
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <div class="mt-3 d-flex gap-2">
-                                                        <button type="button" class="btn btn-success" id="btnSaveStudents">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
-                                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                                                <polyline points="7 3 7 8 15 8"></polyline>
-                                                            </svg>
-                                                            Guardar Estudiantes Seleccionados
-                                                        </button>
-                                                        <button type="button" class="btn btn-info" id="btnExportCSV">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
+                                        <!-- Información del archivo seleccionado - MEJORADO -->
+                                        <div id="fileInfo" style="display: none; animation: slideDown 0.4s ease;">
+                                            <div style="
+                                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                border-radius: 15px;
+                                                padding: 20px;
+                                                margin-bottom: 25px;
+                                                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="d-flex align-items-center flex-grow-1">
+                                                        <div style="
+                                                            width: 60px;
+                                                            height: 60px;
+                                                            background: rgba(255, 255, 255, 0.2);
+                                                            border-radius: 12px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            margin-right: 15px;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                                                 <polyline points="14 2 14 8 20 8"></polyline>
                                                                 <line x1="16" y1="13" x2="8" y2="13"></line>
                                                                 <line x1="16" y1="17" x2="8" y2="17"></line>
-                                                                <polyline points="10 9 9 9 8 9"></polyline>
                                                             </svg>
-                                                            Exportar a CSV
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-1 text-white" style="font-size: 13px; opacity: 0.9;">Archivo seleccionado</p>
+                                                            <h5 class="mb-0 text-white" style="font-weight: 600;">
+                                                                <span id="fileName">documento.pdf</span>
+                                                            </h5>
+                                                            <small class="text-white" style="opacity: 0.8;">
+                                                                <i class="fas fa-hdd me-1"></i>
+                                                                <span id="fileSize">0 KB</span>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-light btn-lg" id="btnProcessPDF" style="
+                                                            border-radius: 10px;
+                                                            padding: 12px 30px;
+                                                            font-weight: 600;
+                                                            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                                                            transition: all 0.3s ease;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
+                                                                <path d="M5 12h14"></path>
+                                                                <path d="m12 5 7 7-7 7"></path>
+                                                            </svg>
+                                                            Procesar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-light" id="btnClearFile" style="
+                                                            border-radius: 10px;
+                                                            padding: 12px 20px;
+                                                            transition: all 0.3s ease;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Barra de progreso - MEJORADA -->
+                                        <div id="progressContainer" style="display:none; animation: slideDown 0.4s ease;">
+                                            <div style="
+                                                background: white;
+                                                border-radius: 15px;
+                                                padding: 25px;
+                                                margin-bottom: 25px;
+                                                box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+                                                border: 2px solid #f0f0f0;">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <div class="spinner-border text-primary me-3" role="status" style="width: 30px; height: 30px;">
+                                                        <span class="visually-hidden">Cargando...</span>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0" style="color: #2d3748; font-weight: 600;">Procesando archivo...</h6>
+                                                        <small id="progressText" style="color: #718096;">Extrayendo datos del PDF</small>
+                                                    </div>
+                                                </div>
+                                                <div style="
+                                                    background: #e2e8f0;
+                                                    border-radius: 50px;
+                                                    height: 12px;
+                                                    overflow: hidden;
+                                                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                                                    <div id="progressBar" style="
+                                                        width: 0%;
+                                                        height: 100%;
+                                                        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                                                        border-radius: 50px;
+                                                        transition: width 0.3s ease;
+                                                        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: flex-end;
+                                                        padding-right: 8px;">
+                                                        <span style="
+                                                            color: white;
+                                                            font-size: 10px;
+                                                            font-weight: 600;
+                                                            text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tabla de resultados - DISEÑO PREMIUM -->
+                                        <div id="extractedDataContainer" style="display:none; animation: fadeInUp 0.5s ease;">
+                                            <!-- Header de resultados con estadísticas -->
+                                            <div style="
+                                                background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+                                                border-radius: 15px;
+                                                padding: 25px;
+                                                margin-bottom: 20px;
+                                                box-shadow: 0 10px 30px rgba(111, 134, 214, 0.3);">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="d-flex align-items-center">
+                                                        <div style="
+                                                            width: 60px;
+                                                            height: 60px;
+                                                            background: rgba(255,255,255,0.3);
+                                                            border-radius: 15px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            margin-right: 15px;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                                                <circle cx="9" cy="7" r="4"></circle>
+                                                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <h4 class="text-white mb-1" style="font-weight: 700;">
+                                                                ¡Extracción Exitosa!
+                                                            </h4>
+                                                            <p class="text-white mb-0" style="opacity: 0.9; font-size: 14px;">
+                                                                <i class="fas fa-check-circle me-1"></i>
+                                                                Datos extraídos y listos para guardar
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div style="
+                                                        background: rgba(255,255,255,0.3);
+                                                        padding: 15px 25px;
+                                                        border-radius: 50px;
+                                                        backdrop-filter: blur(10px);">
+                                                        <h2 class="text-white mb-0" style="font-weight: 700;">
+                                                            <span id="totalExtracted">0</span>
+                                                        </h2>
+                                                        <small class="text-white" style="opacity: 0.9;">estudiantes</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Tabla con diseño moderno -->
+                                            <div style="
+                                                background: white;
+                                                border-radius: 15px;
+                                                overflow: hidden;
+                                                box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+                                                border: 1px solid #e2e8f0;">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover mb-0" style="border: none;">
+                                                        <thead style="
+                                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                            color: white;">
+                                                            <tr>
+                                                                <th class="text-center" style="
+                                                                    padding: 18px;
+                                                                    border: none;
+                                                                    width: 70px;
+                                                                    font-weight: 600;">
+                                                                    #
+                                                                </th>
+                                                                <th style="
+                                                                    padding: 18px;
+                                                                    border: none;
+                                                                    width: 130px;
+                                                                    font-weight: 600;">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
+                                                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                                    </svg>
+                                                                    Boleta
+                                                                </th>
+                                                                <th style="
+                                                                    padding: 18px;
+                                                                    border: none;
+                                                                    font-weight: 600;">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
+                                                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                                        <circle cx="12" cy="7" r="4"></circle>
+                                                                    </svg>
+                                                                    Nombre Completo
+                                                                </th>
+                                                                <th style="
+                                                                    padding: 18px;
+                                                                    border: none;
+                                                                    width: 280px;
+                                                                    font-weight: 600;">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
+                                                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                                                    </svg>
+                                                                    Correo Electrónico
+                                                                </th>
+                                                                <th class="text-center" style="
+                                                                    padding: 18px;
+                                                                    border: none;
+                                                                    width: 100px;
+                                                                    font-weight: 600;">
+                                                                    <input type="checkbox" id="selectAll" checked style="
+                                                                        width: 18px;
+                                                                        height: 18px;
+                                                                        cursor: pointer;
+                                                                        accent-color: white;">
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tbodyEstudiantes" style="font-size: 14px;">
+                                                        <!-- Los datos se llenarán dinámicamente -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Botones de acción -->
+                                                <div style="
+                                                    padding: 25px;
+                                                    background: #f8f9fa;
+                                                    border-top: 1px solid #e2e8f0;">
+                                                    <div class="d-flex gap-3 justify-content-center">
+                                                        <button type="button" class="btn btn-lg" id="btnSaveStudents" style="
+                                                            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                                                            border: none;
+                                                            color: white;
+                                                            padding: 15px 35px;
+                                                            border-radius: 12px;
+                                                            font-weight: 600;
+                                                            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3);
+                                                            transition: all 0.3s ease;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;">
+                                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                                                <polyline points="7 3 7 8 15 8"></polyline>
+                                                            </svg>
+                                                            Guardar Estudiantes
+                                                        </button>
+                                                        <button type="button" class="btn btn-lg" id="btnExportCSV" style="
+                                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                            border: none;
+                                                            color: white;
+                                                            padding: 15px 35px;
+                                                            border-radius: 12px;
+                                                            font-weight: 600;
+                                                            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                                                            transition: all 0.3s ease;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;">
+                                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                            </svg>
+                                                            Exportar CSV
                                                         </button>
                                                     </div>
                                                 </div>
