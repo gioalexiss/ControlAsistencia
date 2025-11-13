@@ -338,7 +338,7 @@ function displayExtractedData(students) {
 }
 
 /**
- * Guarda la lista de estudiantes (simulación - conectar con backend)
+ * Guarda la lista de estudiantes en la base de datos
  */
 function saveStudentsList() {
     const selectedStudents = [];
@@ -354,26 +354,66 @@ function saveStudentsList() {
         return;
     }
 
-    // Aquí conectarías con tu backend para guardar
-    console.log('Estudiantes a guardar:', selectedStudents);
+    // Mostrar indicador de carga
+    const $btnSave = $('#btnSaveStudents');
+    const originalText = $btnSave.html();
+    $btnSave.prop('disabled', true).html(`
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        Guardando...
+    `);
 
-    showAlert(`Se guardaron ${selectedStudents.length} estudiantes correctamente`, 'success');
-
-    // Ejemplo de llamada AJAX (descomentar cuando tengas el endpoint)
-    /*
+    // Llamada AJAX al backend
     $.ajax({
-        url: '/api/estudiantes/guardar',
+        url: '/estudiantes/guardar-desde-pdf',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(selectedStudents),
         success: function(response) {
-            showAlert('Estudiantes guardados correctamente', 'success');
+            console.log('Respuesta del servidor:', response);
+
+            if (response.success) {
+                // Mostrar resumen detallado
+                let mensaje = `
+                    <strong>¡Guardado exitoso!</strong><br>
+                    📊 ${response.mensaje}<br><br>
+                    ✅ <strong>Nuevos:</strong> ${response.nuevos}<br>
+                    🔄 <strong>Actualizados:</strong> ${response.actualizados}
+                `;
+
+                if (response.errores > 0) {
+                    mensaje += `<br>⚠️ <strong>Errores:</strong> ${response.errores}`;
+                    if (response.listaErrores && response.listaErrores.length > 0) {
+                        mensaje += '<br><small>' + response.listaErrores.join('<br>') + '</small>';
+                    }
+                }
+
+                showAlert(mensaje, response.errores > 0 ? 'warning' : 'success');
+
+                // Limpiar selección después de un tiempo
+                setTimeout(() => {
+                    clearFileSelection();
+                }, 3000);
+            } else {
+                showAlert('Error: ' + response.mensaje, 'danger');
+            }
         },
-        error: function(error) {
-            showAlert('Error al guardar estudiantes', 'danger');
+        error: function(xhr, status, error) {
+            console.error('Error al guardar:', error);
+            let mensajeError = 'Error al guardar estudiantes en la base de datos';
+
+            if (xhr.responseJSON && xhr.responseJSON.mensaje) {
+                mensajeError = xhr.responseJSON.mensaje;
+            } else if (xhr.statusText) {
+                mensajeError += ': ' + xhr.statusText;
+            }
+
+            showAlert(mensajeError, 'danger');
+        },
+        complete: function() {
+            // Restaurar botón
+            $btnSave.prop('disabled', false).html(originalText);
         }
     });
-    */
 }
 
 /**
