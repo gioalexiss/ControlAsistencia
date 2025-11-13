@@ -134,48 +134,70 @@ function clearFileSelection() {
 }
 
 /**
- * Procesa el PDF y extrae los datos
+ * Procesa el PDF y extrae los datos usando el backend
  */
 async function processPDF(file) {
     try {
         // Mostrar progreso
         $('#progressContainer').slideDown();
-        updateProgress(10, 'Cargando archivo PDF...');
+        updateProgress(20, 'Cargando archivo PDF...');
 
-        // Leer el archivo como ArrayBuffer
-        const arrayBuffer = await file.arrayBuffer();
-        updateProgress(30, 'Leyendo contenido del PDF...');
+        // Crear FormData para enviar el archivo al backend
+        const formData = new FormData();
+        formData.append('file', file);
 
-        // Cargar el PDF con pdf.js
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const numPages = pdf.numPages;
-        updateProgress(40, `Procesando ${numPages} página(s)...`);
+        updateProgress(40, 'Enviando al servidor...');
 
-        let fullText = '';
+        // Llamada al backend usando AJAX
+        $.ajax({
+            url: '/estudiantes/extraer-pdf',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhr: function() {
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(evt) {
+                    if (evt.lengthComputable) {
+                        const percentComplete = 40 + (evt.loaded / evt.total) * 30;
+                        updateProgress(percentComplete, 'Subiendo archivo...');
+                    }
+                }, false);
+                return xhr;
+            },
+            success: function(response) {
+                console.log('Respuesta del servidor:', response);
 
-        // Extraer texto de todas las páginas
-        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            fullText += pageText + '\n';
+                if (response.success) {
+                    updateProgress(90, 'Procesando datos...');
+                    extractedStudents = response.estudiantes;
 
-            const progress = 40 + (pageNum / numPages * 40);
-            updateProgress(progress, `Extrayendo texto de página ${pageNum}/${numPages}...`);
-        }
+                    updateProgress(100, 'Proceso completado!');
 
-        updateProgress(85, 'Analizando datos de estudiantes...');
+                    // Mostrar resultados
+                    setTimeout(() => {
+                        $('#progressContainer').slideUp();
+                        displayExtractedData(extractedStudents);
+                    }, 500);
+                } else {
+                    $('#progressContainer').slideUp();
+                    showAlert('Error: ' + response.mensaje, 'danger');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al procesar PDF:', error);
+                $('#progressContainer').slideUp();
 
-        // Extraer información de estudiantes
-        extractedStudents = extractStudentData(fullText);
+                let mensajeError = 'Error al procesar el PDF';
+                if (xhr.responseJSON && xhr.responseJSON.mensaje) {
+                    mensajeError = xhr.responseJSON.mensaje;
+                } else if (xhr.statusText) {
+                    mensajeError += ': ' + xhr.statusText;
+                }
 
-        updateProgress(100, 'Proceso completado!');
-
-        // Mostrar resultados
-        setTimeout(() => {
-            $('#progressContainer').slideUp();
-            displayExtractedData(extractedStudents);
-        }, 500);
+                showAlert(mensajeError, 'danger');
+            }
+        });
 
     } catch (error) {
         console.error('Error al procesar PDF:', error);
