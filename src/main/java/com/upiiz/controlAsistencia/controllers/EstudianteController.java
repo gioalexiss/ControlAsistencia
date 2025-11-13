@@ -2,12 +2,14 @@ package com.upiiz.controlAsistencia.controllers;
 
 import com.upiiz.controlAsistencia.models.EstudianteEntity;
 import com.upiiz.controlAsistencia.services.EstudianteService;
+import com.upiiz.controlAsistencia.services.PdfExtractorService;
 import com.upiiz.controlAsistencia.services.EstudianteService.EstudianteDTO;
 import com.upiiz.controlAsistencia.services.EstudianteService.ResultadoCargaMasiva;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +20,51 @@ import java.util.Map;
 public class EstudianteController {
 
     private final EstudianteService estudianteService;
+    private final PdfExtractorService pdfExtractorService;
 
-    public EstudianteController(EstudianteService estudianteService) {
+    public EstudianteController(EstudianteService estudianteService, PdfExtractorService pdfExtractorService) {
         this.estudianteService = estudianteService;
+        this.pdfExtractorService = pdfExtractorService;
+    }
+
+    /**
+     * Endpoint para extraer datos de un PDF
+     * POST /estudiantes/extraer-pdf
+     */
+    @PostMapping("/extraer-pdf")
+    @ResponseBody
+    public ResponseEntity<?> extraerDatosDePDF(@RequestParam("file") MultipartFile file) {
+        try {
+            // Validar archivo
+            if (!pdfExtractorService.esArchivoValido(file)) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(crearRespuestaError("El archivo debe ser un PDF válido"));
+            }
+
+            // Extraer datos del PDF
+            List<EstudianteDTO> estudiantes = pdfExtractorService.extraerDatosDePDF(file);
+
+            if (estudiantes.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(crearRespuestaError("No se encontraron datos de estudiantes en el PDF"));
+            }
+
+            // Preparar respuesta exitosa
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("mensaje", "Datos extraídos exitosamente");
+            respuesta.put("totalEncontrados", estudiantes.size());
+            respuesta.put("estudiantes", estudiantes);
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al procesar el PDF: " + e.getMessage()));
+        }
     }
 
     /**
