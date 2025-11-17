@@ -30,7 +30,9 @@ public class SeguridadConfigDocente {
                                 "/images/**",
                                 "/favicon.ico",
                                 "/api/**",
-                                "/horario/**"
+                                "/horario/**",
+                                "/grupos/**",
+                                "/estudiantes/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
