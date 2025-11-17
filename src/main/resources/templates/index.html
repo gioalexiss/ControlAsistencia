@@ -34,6 +34,129 @@
 		<link href="/assets/css/style.css" rel="stylesheet">
 
 		<!-- Estilos personalizados para PDF Upload -->
+		<style>
+			/* Animaciones para el área de carga de PDF */
+			@keyframes floatAnimation {
+				0%, 100% {
+					transform: translateY(0px) rotate(-5deg);
+				}
+				50% {
+					transform: translateY(-10px) rotate(-5deg);
+				}
+			}
+
+			@keyframes slidePattern {
+				0% {
+					transform: translate(0, 0);
+				}
+				100% {
+					transform: translate(50px, 50px);
+				}
+			}
+
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes fadeInUp {
+				from {
+					opacity: 0;
+					transform: translateY(30px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* Efectos hover para el área de carga */
+			#uploadArea:hover {
+				border-color: #764ba2 !important;
+				transform: scale(1.02);
+				box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+			}
+
+			#uploadArea:hover .pdf-icon-wrapper > div {
+				transform: rotate(0deg) scale(1.1);
+				box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+			}
+
+			/* Efectos hover para botones */
+			#btnSelectPDF:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5) !important;
+			}
+
+			#btnProcessPDF:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+			}
+
+			#btnSaveStudents:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 12px 28px rgba(17, 153, 142, 0.4) !important;
+			}
+
+			#btnExportCSV:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4) !important;
+			}
+
+			/* Estilo para las filas de la tabla */
+			#tbodyEstudiantes tr {
+				transition: all 0.3s ease;
+				border-bottom: 1px solid #e2e8f0;
+			}
+
+			#tbodyEstudiantes tr:hover {
+				background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+				transform: translateX(5px);
+			}
+
+			#tbodyEstudiantes td {
+				padding: 18px;
+				vertical-align: middle;
+				border: none;
+			}
+
+			/* Responsive adjustments */
+			@media (max-width: 768px) {
+				#uploadArea {
+					padding: 40px 20px !important;
+				}
+
+				#btnSaveStudents, #btnExportCSV {
+					padding: 12px 20px !important;
+					font-size: 14px !important;
+				}
+			}
+
+			/* Fix DataTables pagination buttons alignment */
+			.dataTables_wrapper .dataTables_paginate .paginate_button {
+				padding: 0.5em 1em !important;
+				margin: 0 2px !important;
+				display: inline-block !important;
+				vertical-align: middle !important;
+			}
+
+			.dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+			.dataTables_wrapper .dataTables_paginate .paginate_button.next {
+				vertical-align: middle !important;
+				line-height: normal !important;
+			}
+
+			/* DataTables responsive */
+			.dataTables_wrapper {
+				width: 100%;
+			}
+		</style>
 
 	</head>
 	<body data-typography="poppins"
@@ -502,8 +625,11 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="card">
-                                    <div class="card-header">
-                                        <h4 class="card-title">Lista de Mis Grupos</h4>
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h4 class="card-title mb-0">Lista de Mis Grupos</h4>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnActualizarGrupos">
+                                            <i class="fas fa-sync-alt"></i> Actualizar
+                                        </button>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
@@ -512,7 +638,6 @@
                                                 <tr>
                                                     <th>Grupo</th>
                                                     <th>Materia</th>
-                                                    <th>Horario</th>
                                                     <th>Estudiantes</th>
                                                     <th>Asistencia Promedio</th>
                                                     <th>Acciones</th>
@@ -520,7 +645,7 @@
                                                 </thead>
                                                 <tbody id="tbodyGrupos">
                                                 <tr>
-                                                    <td colspan="6" class="text-center">
+                                                    <td colspan="5" class="text-center">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>
