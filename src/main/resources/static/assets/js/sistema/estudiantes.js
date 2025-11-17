@@ -142,7 +142,7 @@ class EstudianteManager {
         if ($.fn.DataTable) {
             this.dataTable = $('#tablaEstudiantes').DataTable({
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
                 },
                 pageLength: 25,
                 order: [[1, 'asc']], // Ordenar por boleta

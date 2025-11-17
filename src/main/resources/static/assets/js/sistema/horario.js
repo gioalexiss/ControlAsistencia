@@ -13,13 +13,19 @@ $(document).ready(function () {
     let horariosTemp = []; // horarios del grupo actual
     let gruposTemp = [];   // grupos de la unidad actual
     let unidades = [];     // todas las unidades cargadas desde backend
+    let horariosYaCargados = false; // Bandera para evitar cargas múltiples
 
     // ==== 3️⃣ MOSTRAR Y OCULTAR SECCIONES ====
     $('#linkMiHorario').click(function (e) {
         e.preventDefault();
         $('#dashboardPrincipal').hide();
         $('#contentMiHorario').fadeIn();
-        cargarHorariosDesdeBackend();
+
+        // Solo cargar si no se han cargado antes
+        if (!horariosYaCargados) {
+            cargarHorariosDesdeBackend();
+            horariosYaCargados = true;
+        }
     });
 
     $('#btnRegresarDashboard').click(function () {
@@ -271,6 +277,7 @@ $(document).ready(function () {
                 actualizarTablaGrupos();
                 actualizarTablaHoras();
                 $('#formUnidad')[0].reset();
+                horariosYaCargados = false; // Resetear bandera para recargar
                 cargarHorariosDesdeBackend();
             } else {
                 alert('❌ Error: ' + resultado);
@@ -480,6 +487,11 @@ $(document).ready(function () {
                     unidades.splice(index, 1);
                     actualizarTablaUnidades();
                     alert('✅ Unidad eliminada correctamente');
+                    // Si no quedan unidades, regenerar vista
+                    if (unidades.length === 0) {
+                        $('#vistaHorario').hide();
+                        $('#formUnidad').show();
+                    }
                 } else {
                     alert('❌ Error al eliminar: ' + resultado);
                 }
