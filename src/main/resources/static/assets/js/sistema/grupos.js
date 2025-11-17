@@ -106,7 +106,7 @@ class GrupoManager {
         // Crear nuevo DataTable
         tabla.DataTable({
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
             },
             pageLength: 10,
             order: [[0, 'asc']],
