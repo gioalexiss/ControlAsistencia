@@ -137,6 +137,25 @@
 					font-size: 14px !important;
 				}
 			}
+
+			/* Fix DataTables pagination buttons alignment */
+			.dataTables_wrapper .dataTables_paginate .paginate_button {
+				padding: 0.5em 1em !important;
+				margin: 0 2px !important;
+				display: inline-block !important;
+				vertical-align: middle !important;
+			}
+
+			.dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+			.dataTables_wrapper .dataTables_paginate .paginate_button.next {
+				vertical-align: middle !important;
+				line-height: normal !important;
+			}
+
+			/* DataTables responsive */
+			.dataTables_wrapper {
+				width: 100%;
+			}
 		</style>
 
 	</head>
@@ -695,8 +714,11 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="card">
-                                    <div class="card-header">
-                                        <h4 class="card-title">Lista de Mis Grupos</h4>
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h4 class="card-title mb-0">Lista de Mis Grupos</h4>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnActualizarGrupos">
+                                            <i class="fas fa-sync-alt"></i> Actualizar
+                                        </button>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
@@ -705,7 +727,6 @@
                                                 <tr>
                                                     <th>Grupo</th>
                                                     <th>Materia</th>
-                                                    <th>Horario</th>
                                                     <th>Estudiantes</th>
                                                     <th>Asistencia Promedio</th>
                                                     <th>Acciones</th>
@@ -713,7 +734,7 @@
                                                 </thead>
                                                 <tbody id="tbodyGrupos">
                                                 <tr>
-                                                    <td colspan="6" class="text-center">
+                                                    <td colspan="5" class="text-center">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>
