@@ -1113,45 +1113,44 @@
 		<!-- Script de inicialización de managers -->
 		<script>
 			// Inicialización de managers cuando se cambia de sección
-			document.addEventListener('DOMContentLoaded', function() {
-				// Detectar cambios de sección
-				const observarCambioSeccion = () => {
-					const dashboardPrincipal = document.getElementById('dashboardPrincipal');
-					const contentMisGrupos = document.getElementById('contentMisGrupos');
-					const contentMisEstudiantes = document.getElementById('contentMisEstudiantes');
+			$(document).ready(function() {
 
-					if (dashboardPrincipal && dashboardPrincipal.style.display !== 'none') {
-						if (window.dashboardManager) {
-							window.dashboardManager.init();
-						}
-					}
-
-					if (contentMisGrupos && contentMisGrupos.style.display !== 'none') {
-						if (window.grupoManager) {
-							window.grupoManager.init();
-						}
-					}
-
-					if (contentMisEstudiantes && contentMisEstudiantes.style.display !== 'none') {
-						if (window.estudianteManager) {
-							window.estudianteManager.init();
-						}
-					}
-				};
-
-				// Observar clics en el menú de navegación
-				document.querySelectorAll('.metismenu a').forEach(link => {
-					link.addEventListener('click', () => {
-						setTimeout(observarCambioSeccion, 300);
-					});
-				});
-
-				// Inicializar dashboard al cargar
-				setTimeout(() => {
+				// Función para inicializar el manager del dashboard
+				function initDashboard() {
 					if (window.dashboardManager) {
 						window.dashboardManager.init();
 					}
-				}, 500);
+				}
+
+				// Función para inicializar el manager de grupos
+				function initGrupos() {
+					if (window.grupoManager) {
+						window.grupoManager.init();
+					}
+				}
+
+				// Función para inicializar el manager de estudiantes
+				function initEstudiantes() {
+					if (window.estudianteManager) {
+						window.estudianteManager.init();
+					}
+				}
+
+				// Observar clics en links específicos
+				$('#linkDashboard').on('click', function() {
+					setTimeout(initDashboard, 400);
+				});
+
+				$('#linkMisGrupos').on('click', function() {
+					setTimeout(initGrupos, 400);
+				});
+
+				$('#linkMisEstudiantes').on('click', function() {
+					setTimeout(initEstudiantes, 400);
+				});
+
+				// Inicializar dashboard al cargar la página
+				setTimeout(initDashboard, 600);
 			});
 		</script>
 
