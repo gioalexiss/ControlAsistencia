@@ -450,28 +450,130 @@
 						</ol>
 					</div>
 
-					<!-- Tabla de Asistencia -->
-					<div class="col-xl-8">
-						<div class="card overflow-hidden">
-							<div class="card-header border-0 pb-0 flex-wrap">
-								<h4 class="heading mb-0">Lista de Asistencia</h4>
+					<!-- Widgets de Estadísticas -->
+					<div class="container-fluid">
+						<div class="row">
+							<!-- Widget 1: Total de Grupos -->
+							<div class="col-xl-3 col-lg-6 col-sm-6">
+								<div class="widget-stat card">
+									<div class="card-body p-4">
+										<div class="media ai-icon">
+											<span class="me-3 bgl-primary text-primary">
+												<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+													<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+													<circle cx="9" cy="7" r="4"></circle>
+													<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+													<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+												</svg>
+											</span>
+											<div class="media-body">
+												<p class="mb-1">Total Grupos</p>
+												<h4 class="mb-0" id="widgetDashGrupos">0</h4>
+												<span class="badge badge-primary">Activos</span>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
-							<div class="card-body p-0">
-								<table class="table table-striped table-bordered" id="tablaAsistencia">
-									<thead class="table-dark">
-									<tr>
-										<th>ID Alumno</th>
-										<th>Nombre del Alumno</th>
-										<th>Fecha</th>
-										<th>Asistencia</th>
-									</tr>
-									</thead>
-									<tbody>
-									<tr id="alumno-1"><td>1</td><td>Esau Flores</td><td>02-10-2025</td><td>✔️</td></tr>
-									<tr id="alumno-2"><td>2</td><td>Diego Yael</td><td>02-10-2025</td><td>❌</td></tr>
-									<tr id="alumno-3"><td>3</td><td>Emilio Santana</td><td>02-10-2025</td><td>✔️</td></tr>
-									</tbody>
-								</table>
+
+							<!-- Widget 2: Total de Estudiantes -->
+							<div class="col-xl-3 col-lg-6 col-sm-6">
+								<div class="widget-stat card">
+									<div class="card-body p-4">
+										<div class="media ai-icon">
+											<span class="me-3 bgl-success text-success">
+												<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+													<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+													<circle cx="8.5" cy="7" r="4"></circle>
+													<polyline points="17 11 19 13 23 9"></polyline>
+												</svg>
+											</span>
+											<div class="media-body">
+												<p class="mb-1">Total Estudiantes</p>
+												<h4 class="mb-0" id="widgetDashEstudiantes">0</h4>
+												<span class="badge badge-success">Registrados</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Widget 3: Total de Unidades -->
+							<div class="col-xl-3 col-lg-6 col-sm-6">
+								<div class="widget-stat card">
+									<div class="card-body p-4">
+										<div class="media ai-icon">
+											<span class="me-3 bgl-info text-info">
+												<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+													<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+													<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+												</svg>
+											</span>
+											<div class="media-body">
+												<p class="mb-1">Total Unidades</p>
+												<h4 class="mb-0" id="widgetDashUnidades">0</h4>
+												<span class="badge badge-info">Materias</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Widget 4: Asistencias Registradas -->
+							<div class="col-xl-3 col-lg-6 col-sm-6">
+								<div class="widget-stat card bg-warning">
+									<div class="card-body p-4">
+										<div class="media">
+											<span class="me-3 text-white">
+												<i class="fas fa-check-circle" style="font-size: 30px;"></i>
+											</span>
+											<div class="media-body text-white">
+												<p class="mb-1">Asistencias Registradas</p>
+												<h4 class="mb-0 text-white" id="widgetDashAsistencias">0</h4>
+												<small>Este semestre</small>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Sección de Gráficas -->
+						<div class="row">
+							<!-- Gráfica 1: Estudiantes por Grupo -->
+							<div class="col-xl-4">
+								<div class="card">
+									<div class="card-header">
+										<h4 class="card-title">Estudiantes por Grupo</h4>
+									</div>
+									<div class="card-body">
+										<canvas id="chartEstudiantesPorGrupo" height="250"></canvas>
+									</div>
+								</div>
+							</div>
+
+							<!-- Gráfica 2: Asistencia Semanal -->
+							<div class="col-xl-4">
+								<div class="card">
+									<div class="card-header">
+										<h4 class="card-title">Asistencia Semanal</h4>
+									</div>
+									<div class="card-body">
+										<canvas id="chartAsistenciaSemanal" height="250"></canvas>
+									</div>
+								</div>
+							</div>
+
+							<!-- Gráfica 3: Promedio de Asistencia -->
+							<div class="col-xl-4">
+								<div class="card">
+									<div class="card-header">
+										<h4 class="card-title">Promedio de Asistencia</h4>
+									</div>
+									<div class="card-body">
+										<canvas id="chartPromedioAsistencia" height="250"></canvas>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -598,7 +700,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-striped table-bordered" id="tablaGruposIndex">
+                                            <table class="table table-striped table-bordered" id="tablaGruposDinamica">
                                                 <thead class="table-dark">
                                                 <tr>
                                                     <th>Grupo</th>
@@ -609,38 +711,13 @@
                                                     <th>Acciones</th>
                                                 </tr>
                                                 </thead>
-                                                <tbody>
+                                                <tbody id="tbodyGrupos">
                                                 <tr>
-                                                    <td>5CM1</td>
-                                                    <td>Análisis y Diseño de Sistemas</td>
-                                                    <td>Mar-Mie 7:00-8:30</td>
-                                                    <td>33</td>
-                                                    <td><span class="badge badge-success">94%</span></td>
-                                                    <td>
-                                                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
-                                                        <button class="btn btn-info btn-sm">Tomar Asistencia</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3CM2</td>
-                                                    <td>Base de Datos</td>
-                                                    <td>Mar-Jue 14:30-16:00</td>
-                                                    <td>33</td>
-                                                    <td><span class="badge badge-warning">88%</span></td>
-                                                    <td>
-                                                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
-                                                        <button class="btn btn-info btn-sm">Tomar Asistencia</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>1CM1</td>
-                                                    <td>Matemáticas Discretas</td>
-                                                    <td>Lun-Jue-Vie 7:00-8:30</td>
-                                                    <td>33</td>
-                                                    <td><span class="badge badge-success">91%</span></td>
-                                                    <td>
-                                                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
-                                                        <button class="btn btn-info btn-sm">Tomar Asistencia</button>
+                                                    <td colspan="6" class="text-center">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Cargando...</span>
+                                                        </div>
+                                                        <p class="mt-2">Cargando grupos...</p>
                                                     </td>
                                                 </tr>
                                                 </tbody>
@@ -1069,7 +1146,121 @@
 
 				<!-- INICIO seccion "Tomar asistencia"-->
 				<div id="contentMisEstudiantes" style="display:none;">
-					... mis estudiantes ...
+					<!-- Breadcrumb -->
+			<div class="page-titles">
+				<ol class="breadcrumb">
+					<li><h5 class="bc-title">Mis Estudiantes</h5></li>
+					<li class="breadcrumb-item"><a href="javascript:void(0)">
+						<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M2.125 6.375L8.5 1.41667L14.875 6.375V14.1667C14.875 14.5424 14.7257 14.9027 14.4601 15.1684C14.1944 15.4341 13.8341 15.5833 13.4583 15.5833H3.54167C3.16594 15.5833 2.80561 15.4341 2.53993 15.1684C2.27426 14.9027 2.125 14.5424 2.125 14.1667V6.375Z" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round"/>
+							<path d="M6.375 15.5833V8.5H10.625V15.5833" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+						Panel Principal
+					</a></li>
+					<li class="breadcrumb-item active"><a href="javascript:void(0)">Mis Estudiantes</a></li>
+				</ol>
+			</div>
+
+			<!-- Contenido Principal -->
+			<div class="container-fluid">
+				<!-- Filtros y Búsqueda -->
+				<div class="row mb-4">
+					<div class="col-xl-12">
+						<div class="card">
+							<div class="card-body">
+								<div class="row align-items-center">
+									<div class="col-xl-4 col-lg-4 col-md-6 mb-3 mb-xl-0">
+										<div class="input-group">
+											<span class="input-group-text">
+												<i class="fas fa-search"></i>
+											</span>
+											<input type="text" class="form-control" id="inputBuscarEstudiante" placeholder="Buscar por boleta, nombre o correo...">
+										</div>
+									</div>
+									<div class="col-xl-3 col-lg-3 col-md-6 mb-3 mb-xl-0">
+										<select class="form-select" id="selectEstadoEstudiante">
+											<option value="todos">Todos los estados</option>
+											<option value="activo">Activos</option>
+											<option value="inactivo">Inactivos</option>
+										</select>
+									</div>
+									<div class="col-xl-2 col-lg-2 col-md-6">
+										<button class="btn btn-primary w-100" id="btnRecargarEstudiantes">
+											<i class="fas fa-sync-alt me-2"></i>Recargar
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Widget Contador -->
+				<div class="row mb-4">
+					<div class="col-xl-12">
+						<div class="widget-stat card bg-primary">
+							<div class="card-body p-4">
+								<div class="media">
+									<span class="me-3 text-white">
+										<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+											<circle cx="9" cy="7" r="4"></circle>
+											<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+											<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+										</svg>
+									</span>
+									<div class="media-body text-white d-flex align-items-center justify-content-between flex-wrap">
+										<div>
+											<p class="mb-1">Total de Estudiantes Registrados</p>
+											<h2 class="mb-0 text-white" id="contadorEstudiantes">0</h2>
+										</div>
+										<div class="text-end">
+											<small>Estudiantes en el sistema</small>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tabla de Estudiantes -->
+				<div class="row">
+					<div class="col-12">
+						<div class="card">
+							<div class="card-header">
+								<h4 class="card-title">Lista de Estudiantes</h4>
+							</div>
+							<div class="card-body">
+								<div class="table-responsive">
+									<table class="table table-striped table-bordered" id="tablaEstudiantes">
+										<thead class="table-dark">
+										<tr>
+											<th class="text-center" style="width: 60px;">#</th>
+											<th style="width: 130px;">Boleta</th>
+											<th>Nombre</th>
+											<th style="width: 280px;">Correo</th>
+											<th class="text-center" style="width: 100px;">Estado</th>
+											<th class="text-center" style="width: 180px;">Acciones</th>
+										</tr>
+										</thead>
+										<tbody id="tbodyEstudiantes">
+										<tr>
+											<td colspan="6" class="text-center">
+												<div class="spinner-border text-primary" role="status">
+													<span class="visually-hidden">Cargando...</span>
+												</div>
+												<p class="mt-2">Cargando estudiantes...</p>
+											</td>
+										</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 				</div>
 				<!--FIN seccion "Tomar asistencia"-->
 
@@ -1389,6 +1580,59 @@
 					dzSettingsOptions.version = 'dark';
 					new dzSettings(dzSettingsOptions);
 				},1500)
+			});
+		</script>
+
+		<!-- Chart.js desde CDN -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+		<!-- Scripts de los managers -->
+		<script src="/assets/js/sistema/dashboard.js"></script>
+		<script src="/assets/js/sistema/grupos.js"></script>
+		<script src="/assets/js/sistema/estudiantes.js"></script>
+
+		<!-- Script de inicialización de managers -->
+		<script>
+			// Inicialización de managers cuando se cambia de sección
+			document.addEventListener('DOMContentLoaded', function() {
+				// Detectar cambios de sección
+				const observarCambioSeccion = () => {
+					const dashboardPrincipal = document.getElementById('dashboardPrincipal');
+					const contentMisGrupos = document.getElementById('contentMisGrupos');
+					const contentMisEstudiantes = document.getElementById('contentMisEstudiantes');
+
+					if (dashboardPrincipal && dashboardPrincipal.style.display !== 'none') {
+						if (window.dashboardManager) {
+							window.dashboardManager.init();
+						}
+					}
+
+					if (contentMisGrupos && contentMisGrupos.style.display !== 'none') {
+						if (window.grupoManager) {
+							window.grupoManager.init();
+						}
+					}
+
+					if (contentMisEstudiantes && contentMisEstudiantes.style.display !== 'none') {
+						if (window.estudianteManager) {
+							window.estudianteManager.init();
+						}
+					}
+				};
+
+				// Observar clics en el menú de navegación
+				document.querySelectorAll('.metismenu a').forEach(link => {
+					link.addEventListener('click', () => {
+						setTimeout(observarCambioSeccion, 300);
+					});
+				});
+
+				// Inicializar dashboard al cargar
+				setTimeout(() => {
+					if (window.dashboardManager) {
+						window.dashboardManager.init();
+					}
+				}, 500);
 			});
 		</script>
 

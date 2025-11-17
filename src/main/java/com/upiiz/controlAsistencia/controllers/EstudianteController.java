@@ -3,6 +3,7 @@ package com.upiiz.controlAsistencia.controllers;
 import com.upiiz.controlAsistencia.models.EstudianteEntity;
 import com.upiiz.controlAsistencia.services.EstudianteService;
 import com.upiiz.controlAsistencia.services.PdfExtractorService;
+import com.upiiz.controlAsistencia.services.ExcelExtractorService;
 import com.upiiz.controlAsistencia.services.EstudianteService.EstudianteDTO;
 import com.upiiz.controlAsistencia.services.EstudianteService.ResultadoCargaMasiva;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,14 @@ public class EstudianteController {
 
     private final EstudianteService estudianteService;
     private final PdfExtractorService pdfExtractorService;
+    private final ExcelExtractorService excelExtractorService;
 
-    public EstudianteController(EstudianteService estudianteService, PdfExtractorService pdfExtractorService) {
+    public EstudianteController(EstudianteService estudianteService,
+                               PdfExtractorService pdfExtractorService,
+                               ExcelExtractorService excelExtractorService) {
         this.estudianteService = estudianteService;
         this.pdfExtractorService = pdfExtractorService;
+        this.excelExtractorService = excelExtractorService;
     }
 
     /**
@@ -140,6 +145,129 @@ public class EstudianteController {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(crearRespuestaError("Error al buscar estudiante: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para extraer datos de un archivo Excel
+     * POST /estudiantes/extraer-excel
+     */
+    @PostMapping("/extraer-excel")
+    @ResponseBody
+    public ResponseEntity<?> extraerDatosDeExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            // Extraer datos del Excel
+            List<Map<String, String>> datosExcel = excelExtractorService.extraerDatosDeExcel(file);
+
+            if (datosExcel.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(crearRespuestaError("No se encontraron datos de estudiantes en el Excel"));
+            }
+
+            // Convertir a DTOs
+            List<EstudianteDTO> estudiantes = datosExcel.stream()
+                .map(datos -> new EstudianteDTO(
+                    datos.get("boleta"),
+                    datos.get("nombre"),
+                    datos.get("correo")
+                ))
+                .toList();
+
+            // Preparar respuesta exitosa
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("mensaje", "Datos extraídos exitosamente del Excel");
+            respuesta.put("totalEncontrados", estudiantes.size());
+            respuesta.put("estudiantes", estudiantes);
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(crearRespuestaError(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al procesar el Excel: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para guardar estudiantes desde Excel y vincularlos a un grupo
+     * POST /estudiantes/guardar-desde-excel/{idGrupo}
+     */
+    @PostMapping("/guardar-desde-excel/{idGrupo}")
+    @ResponseBody
+    public ResponseEntity<?> guardarEstudiantesDesdeExcel(
+            @PathVariable Long idGrupo,
+            @RequestBody List<EstudianteDTO> estudiantes) {
+        try {
+            // Validar que la lista no esté vacía
+            if (estudiantes == null || estudiantes.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(crearRespuestaError("La lista de estudiantes está vacía"));
+            }
+
+            // Guardar estudiantes y vincularlos al grupo
+            ResultadoCargaMasiva resultado = estudianteService.guardarEstudiantesDesdeExcelYVincular(estudiantes, idGrupo);
+
+            // Preparar respuesta
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("mensaje", resultado.getMensajeResumen());
+            respuesta.put("totalProcesados", resultado.getTotalProcesados());
+            respuesta.put("nuevos", resultado.getTotalNuevos());
+            respuesta.put("actualizados", resultado.getTotalActualizados());
+            respuesta.put("errores", resultado.getTotalErrores());
+            respuesta.put("listaErrores", resultado.getErrores());
+
+            if (resultado.getTotalErrores() > 0) {
+                respuesta.put("advertencia", "Algunos estudiantes no pudieron ser procesados");
+            }
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al guardar estudiantes: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para obtener estudiantes de un grupo específico
+     * GET /estudiantes/grupo/{idGrupo}
+     */
+    @GetMapping("/grupo/{idGrupo}")
+    @ResponseBody
+    public ResponseEntity<?> obtenerEstudiantesPorGrupo(@PathVariable Long idGrupo) {
+        try {
+            List<EstudianteEntity> estudiantes = estudianteService.obtenerEstudiantesPorGrupo(idGrupo);
+            return ResponseEntity.ok(estudiantes);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al obtener estudiantes del grupo: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para obtener todos los estudiantes de un docente
+     * GET /estudiantes/docente/{docenteId}
+     */
+    @GetMapping("/docente/{docenteId}")
+    @ResponseBody
+    public ResponseEntity<?> obtenerEstudiantesPorDocente(@PathVariable Long docenteId) {
+        try {
+            List<EstudianteEntity> estudiantes = estudianteService.obtenerEstudiantesPorDocente(docenteId);
+            return ResponseEntity.ok(estudiantes);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al obtener estudiantes del docente: " + e.getMessage()));
         }
     }
 
