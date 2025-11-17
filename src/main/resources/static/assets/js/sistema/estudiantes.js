@@ -270,6 +270,17 @@ class EstudianteManager {
             return;
         }
 
+        // Limpiar todos los backdrops y modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalDetalleEstudiante');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
         const modalHTML = `
             <div class="modal fade" id="modalDetalleEstudiante" tabindex="-1">
                 <div class="modal-dialog">
@@ -279,7 +290,7 @@ class EstudianteManager {
                                 <i class="fas fa-user-graduate"></i>
                                 Detalle del Estudiante
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="row mb-3">
@@ -328,17 +339,25 @@ class EstudianteManager {
             </div>
         `;
 
-        // Remover modal anterior si existe
-        const modalAnterior = document.getElementById('modalDetalleEstudiante');
-        if (modalAnterior) {
-            modalAnterior.remove();
-        }
-
         // Agregar modal al DOM
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         // Mostrar modal
-        const modal = new bootstrap.Modal(document.getElementById('modalDetalleEstudiante'));
+        const modalElement = document.getElementById('modalDetalleEstudiante');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta completamente
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            // Limpiar backdrops
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            // Remover el modal del DOM
+            modalElement.remove();
+            // Asegurar que el body no tenga la clase modal-open
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
         modal.show();
     }
 
