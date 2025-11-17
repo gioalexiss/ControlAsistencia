@@ -367,6 +367,17 @@ $(document).ready(function () {
         const index = $(this).data('index');
         const u = unidades[index];
 
+        // Limpiar todos los backdrops y modales anteriores
+        $('.modal-backdrop').remove();
+        const modalAnterior = document.getElementById('modalDetalleUnidad');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            $(modalAnterior).remove();
+        }
+
         let detalleHTML = `
             <div class="modal fade" id="modalDetalleUnidad" tabindex="-1">
                 <div class="modal-dialog modal-lg">
@@ -383,9 +394,9 @@ $(document).ready(function () {
                 detalleHTML += `
                     <div class="card mb-3">
                         <div class="card-header bg-light">
-                            <strong>Grupo: ${gNombre}</strong> 
-                            Semestre: ${g.semestre || 'N/A'} 
-                         
+                            <strong>Grupo: ${gNombre}</strong>
+                            Semestre: ${g.semestre || 'N/A'}
+
                         </div>
                         <div class="card-body">
                             <table class="table table-sm">
@@ -437,10 +448,22 @@ $(document).ready(function () {
                 </div>
             </div>`;
 
-        // Eliminar modal anterior si existe
-        $('#modalDetalleUnidad').remove();
         $('body').append(detalleHTML);
-        const modal = new bootstrap.Modal(document.getElementById('modalDetalleUnidad'));
+        const modalElement = document.getElementById('modalDetalleUnidad');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta completamente
+        $(modalElement).on('hidden.bs.modal', function () {
+            // Limpiar backdrops
+            $('.modal-backdrop').remove();
+            // Remover el modal del DOM
+            $(modalElement).remove();
+            // Asegurar que el body no tenga la clase modal-open
+            $('body').removeClass('modal-open');
+            $('body').css('overflow', '');
+            $('body').css('padding-right', '');
+        });
+
         modal.show();
     });
 

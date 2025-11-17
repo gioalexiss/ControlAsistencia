@@ -262,6 +262,17 @@ class GrupoManager {
     mostrarModalImportarEstudiantes(grupoId, grupoNombre) {
         this.grupoSeleccionado = { id: grupoId, nombre: grupoNombre };
 
+        // Limpiar todos los backdrops y modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalImportarEstudiantes');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
         // Crear modal dinámicamente
         const modalHTML = `
             <div class="modal fade" id="modalImportarEstudiantes" tabindex="-1">
@@ -272,7 +283,7 @@ class GrupoManager {
                                 <i class="fas fa-file-excel"></i>
                                 Importar Estudiantes - ${grupoNombre}
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-info">
@@ -329,17 +340,25 @@ class GrupoManager {
             </div>
         `;
 
-        // Remover modal anterior si existe
-        const modalAnterior = document.getElementById('modalImportarEstudiantes');
-        if (modalAnterior) {
-            modalAnterior.remove();
-        }
-
         // Agregar modal al DOM
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         // Inicializar modal de Bootstrap
-        const modal = new bootstrap.Modal(document.getElementById('modalImportarEstudiantes'));
+        const modalElement = document.getElementById('modalImportarEstudiantes');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta completamente
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            // Limpiar backdrops
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            // Remover el modal del DOM
+            modalElement.remove();
+            // Asegurar que el body no tenga la clase modal-open
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
         modal.show();
 
         // Configurar eventos del modal
