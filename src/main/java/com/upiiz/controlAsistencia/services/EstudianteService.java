@@ -1,21 +1,27 @@
 package com.upiiz.controlAsistencia.services;
 
 import com.upiiz.controlAsistencia.models.EstudianteEntity;
+import com.upiiz.controlAsistencia.models.GrupoEstudianteEntity;
 import com.upiiz.controlAsistencia.repositories.EstudianteRepository;
+import com.upiiz.controlAsistencia.repositories.GrupoEstudianteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EstudianteService {
 
     private final EstudianteRepository estudianteRepository;
+    private final GrupoEstudianteRepository grupoEstudianteRepository;
 
-    public EstudianteService(EstudianteRepository estudianteRepository) {
+    public EstudianteService(EstudianteRepository estudianteRepository,
+                           GrupoEstudianteRepository grupoEstudianteRepository) {
         this.estudianteRepository = estudianteRepository;
+        this.grupoEstudianteRepository = grupoEstudianteRepository;
     }
 
     @Transactional
@@ -109,6 +115,85 @@ public class EstudianteService {
      */
     public List<EstudianteEntity> obtenerTodos() {
         return estudianteRepository.findAll();
+    }
+
+    /**
+     * Guardar estudiantes desde Excel y vincularlos a un grupo específico
+     */
+    @Transactional
+    public ResultadoCargaMasiva guardarEstudiantesDesdeExcelYVincular(List<EstudianteDTO> estudiantes, Long idGrupo) {
+        ResultadoCargaMasiva resultado = new ResultadoCargaMasiva();
+
+        for (EstudianteDTO dto : estudiantes) {
+            try {
+                // Validar que tenga boleta
+                if (dto.getBoleta() == null || dto.getBoleta().trim().isEmpty()) {
+                    resultado.agregarError("Estudiante sin boleta: " + dto.getNombre());
+                    continue;
+                }
+
+                // Verificar si ya existe
+                Optional<EstudianteEntity> existente = estudianteRepository.findByBoleta(dto.getBoleta());
+
+                EstudianteEntity estudiante;
+                if (existente.isPresent()) {
+                    // Actualizar datos si ya existe
+                    estudiante = existente.get();
+                    actualizarDatos(estudiante, dto);
+                    estudianteRepository.save(estudiante);
+                    resultado.agregarActualizado(dto.getBoleta());
+                } else {
+                    // Crear nuevo estudiante
+                    estudiante = crearDesdeDTO(dto);
+                    estudiante = estudianteRepository.save(estudiante);
+                    resultado.agregarNuevo(dto.getBoleta());
+                }
+
+                // Vincular al grupo si no está ya vinculado
+                if (!grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
+                    GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId());
+                    grupoEstudianteRepository.save(vinculacion);
+                }
+
+            } catch (Exception e) {
+                resultado.agregarError("Error con boleta " + dto.getBoleta() + ": " + e.getMessage());
+            }
+        }
+
+        return resultado;
+    }
+
+    /**
+     * Obtener estudiantes de un grupo específico
+     */
+    public List<EstudianteEntity> obtenerEstudiantesPorGrupo(Long idGrupo) {
+        List<GrupoEstudianteEntity> vinculaciones = grupoEstudianteRepository.findByIdGrupo(idGrupo);
+        List<Long> idsEstudiantes = vinculaciones.stream()
+            .map(GrupoEstudianteEntity::getIdEstudiante)
+            .collect(Collectors.toList());
+
+        return estudianteRepository.findAllById(idsEstudiantes);
+    }
+
+    /**
+     * Obtener todos los estudiantes de todos los grupos de un docente
+     */
+    public List<EstudianteEntity> obtenerEstudiantesPorDocente(Long docenteId) {
+        List<GrupoEstudianteEntity> vinculaciones = grupoEstudianteRepository.findAllByDocenteId(docenteId);
+        List<Long> idsEstudiantes = vinculaciones.stream()
+            .map(GrupoEstudianteEntity::getIdEstudiante)
+            .distinct() // Evitar duplicados si un estudiante está en varios grupos
+            .collect(Collectors.toList());
+
+        return estudianteRepository.findAllById(idsEstudiantes);
+    }
+
+    /**
+     * Desvincular un estudiante de un grupo
+     */
+    @Transactional
+    public void desvincularEstudianteDeGrupo(Long idGrupo, Long idEstudiante) {
+        grupoEstudianteRepository.deleteByIdGrupoAndIdEstudiante(idGrupo, idEstudiante);
     }
 
     // ========================================
