@@ -198,17 +198,96 @@ class AsistenciaManager {
      * Iniciar sesión de toma de asistencia
      */
     iniciarSesion() {
-        // Obtener nombre de la unidad y grupo
+        // Mostrar modal de confirmación
+        this.mostrarModalIniciarSesion();
+    }
+
+    /**
+     * Mostrar modal de confirmación para iniciar sesión
+     */
+    mostrarModalIniciarSesion() {
+        // Limpiar modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalIniciarSesion');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
         const nombreUnidad = $('#selectUnidadAsistencia option:selected').text();
         const nombreGrupo = $('#selectGrupoAsistencia option:selected').text();
 
-        const confirmacion = confirm(
-            `¿Desea iniciar la toma de asistencia?\n\n` +
-            `Materia: ${nombreUnidad}\n` +
-            `Grupo: ${nombreGrupo}`
-        );
+        const modalHTML = `
+            <div class="modal fade" id="modalIniciarSesion" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-play-circle"></i>
+                                Iniciar Toma de Asistencia
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-qrcode fa-4x text-success"></i>
+                            </div>
+                            <h6 class="text-center mb-3">¿Está listo para iniciar la toma de asistencia?</h6>
+                            <div class="alert alert-info">
+                                <p class="mb-2"><strong>Materia:</strong> ${nombreUnidad}</p>
+                                <p class="mb-0"><strong>Grupo:</strong> ${nombreGrupo}</p>
+                            </div>
+                            <div class="alert alert-warning">
+                                <p class="mb-0"><i class="fas fa-info-circle"></i> <strong>Recuerda:</strong> Los estudiantes deben escanear sus códigos QR para registrar su asistencia.</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-success" id="btnConfirmarIniciarSesion">
+                                <i class="fas fa-check-circle"></i> Sí, Iniciar Sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
 
-        if (!confirmacion) return;
+        // Agregar modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Inicializar modal
+        const modalElement = document.getElementById('modalIniciarSesion');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            modalElement.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
+        // Evento del botón de confirmar
+        document.getElementById('btnConfirmarIniciarSesion').addEventListener('click', () => {
+            modal.hide();
+            this.ejecutarInicioSesion();
+        });
+
+        modal.show();
+    }
+
+    /**
+     * Ejecutar inicio de sesión (después de confirmar)
+     */
+    ejecutarInicioSesion() {
+        const nombreUnidad = $('#selectUnidadAsistencia option:selected').text();
+        const nombreGrupo = $('#selectGrupoAsistencia option:selected').text();
 
         // Activar escáner
         this.activarEscaner();
@@ -220,7 +299,7 @@ class AsistenciaManager {
         // Cambiar botones
         $('#btnIniciarSesion').fadeOut();
         $('#btnFinalizarSesion').fadeIn();
-        $('#btnFinalizarSesionFinal').fadeIn(); // Mostrar también el botón al final
+        $('#btnFinalizarSesionFinal').fadeIn();
 
         // Mostrar mensaje
         this.mostrarFeedback('success', `
@@ -237,13 +316,96 @@ class AsistenciaManager {
      * Finalizar sesión de asistencia
      */
     async finalizarSesion() {
-        const confirmacion = confirm(
-            `¿Desea finalizar la sesión de asistencia?\n\n` +
-            `Se guardará el reporte con ${this.asistenciasSesionActual.length} asistencias registradas.`
-        );
+        // Mostrar modal de confirmación
+        this.mostrarModalFinalizarSesion();
+    }
 
-        if (!confirmacion) return;
+    /**
+     * Mostrar modal de confirmación para finalizar sesión
+     */
+    mostrarModalFinalizarSesion() {
+        // Limpiar modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalFinalizarSesion');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
 
+        const nombreUnidad = $('#selectUnidadAsistencia option:selected').text();
+        const nombreGrupo = $('#selectGrupoAsistencia option:selected').text();
+
+        const modalHTML = `
+            <div class="modal fade" id="modalFinalizarSesion" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title">
+                                <i class="fas fa-stop-circle"></i>
+                                Finalizar Toma de Asistencia
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-clipboard-check fa-4x text-warning"></i>
+                            </div>
+                            <h6 class="text-center mb-3">¿Está seguro de finalizar la sesión de asistencia?</h6>
+                            <div class="alert alert-info">
+                                <p class="mb-2"><strong>Materia:</strong> ${nombreUnidad}</p>
+                                <p class="mb-2"><strong>Grupo:</strong> ${nombreGrupo}</p>
+                                <p class="mb-0"><strong>Asistencias registradas:</strong> ${this.asistenciasSesionActual.length}</p>
+                            </div>
+                            <p class="text-muted small text-center">
+                                Los registros de asistencia se han guardado automáticamente.
+                                Podrás verlos en la sección "Mis Reportes".
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-warning" id="btnConfirmarFinalizarSesion">
+                                <i class="fas fa-check-circle"></i> Sí, Finalizar Sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Agregar modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Inicializar modal
+        const modalElement = document.getElementById('modalFinalizarSesion');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            modalElement.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
+        // Evento del botón de confirmar
+        document.getElementById('btnConfirmarFinalizarSesion').addEventListener('click', () => {
+            modal.hide();
+            this.ejecutarFinalizacionSesion();
+        });
+
+        modal.show();
+    }
+
+    /**
+     * Ejecutar finalización de sesión (después de confirmar)
+     */
+    ejecutarFinalizacionSesion() {
         // Desactivar escáner
         this.desactivarEscaner();
 
@@ -253,14 +415,14 @@ class AsistenciaManager {
 
         // Cambiar botones
         $('#btnFinalizarSesion').fadeOut();
-        $('#btnFinalizarSesionFinal').fadeOut(); // Ocultar también el botón del final
+        $('#btnFinalizarSesionFinal').fadeOut();
         $('#btnIniciarSesion').fadeIn();
 
-        // Guardar reporte (aquí se implementaría el guardado en base de datos)
-        // Por ahora solo mostraremos un mensaje
+        // Mostrar mensaje de éxito
         this.mostrarFeedback('success', `
             <h5 class="mb-2">✅ Sesión Finalizada</h5>
-            <p class="mb-0">Reporte guardado con ${this.asistenciasSesionActual.length} asistencias</p>
+            <p class="mb-0">Se registraron ${this.asistenciasSesionActual.length} asistencias correctamente</p>
+            <p class="mt-2 mb-0 small text-success">Puedes ver los reportes en la sección "Mis Reportes"</p>
         `);
 
         // Limpiar sesión actual y Set de estudiantes escaneados
