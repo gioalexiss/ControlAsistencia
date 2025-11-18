@@ -291,31 +291,34 @@ public class EstudianteService {
             // Generar imagen QR
             byte[] qrImage = qrCodeService.generarImagenQR(estudiante.getQrCode());
 
-            // Convertir a base64 para mostrar en el correo
-            String qrBase64 = java.util.Base64.getEncoder().encodeToString(qrImage);
-
             String htmlContent = String.format(
                 "<html>" +
-                "<body style='font-family: Arial, sans-serif; text-align: center;'>" +
-                "<h2>Hola %s,</h2>" +
-                "<p>Este es tu código QR personal para el registro de asistencia.</p>" +
-                "<div style='margin: 20px;'>" +
-                "<img src='data:image/png;base64,%s' alt='Código QR' style='width: 300px; height: 300px;'/>" +
+                "<body style='font-family: Arial, sans-serif; text-align: center; padding: 20px;'>" +
+                "<div style='max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 30px; border-radius: 10px;'>" +
+                "<h2 style='color: #1E90FF;'>Hola %s,</h2>" +
+                "<p style='font-size: 16px; color: #333;'>Este es tu código QR personal para el registro de asistencia.</p>" +
+                "<div style='margin: 20px 0; background-color: white; padding: 20px; border-radius: 8px;'>" +
+                "<img src='cid:qrImage' alt='Código QR' style='width: 300px; height: 300px; border: 2px solid #1E90FF; border-radius: 8px;'/>" +
                 "</div>" +
-                "<p><strong>Código:</strong> %s</p>" +
-                "<p><strong>Boleta:</strong> %s</p>" +
-                "<p>Guarda este código QR, lo necesitarás para registrar tu asistencia.</p>" +
-                "<hr>" +
-                "<p style='color: #666; font-size: 12px;'>Sistema de Control de Asistencia</p>" +
+                "<div style='background-color: white; padding: 15px; border-radius: 8px; margin-top: 20px;'>" +
+                "<p style='margin: 5px 0;'><strong>Código:</strong> <code style='background-color: #f0f0f0; padding: 5px 10px; border-radius: 4px;'>%s</code></p>" +
+                "<p style='margin: 5px 0;'><strong>Boleta:</strong> %s</p>" +
+                "</div>" +
+                "<p style='margin-top: 20px; color: #666;'>Guarda este código QR, lo necesitarás para registrar tu asistencia.</p>" +
+                "<hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>" +
+                "<p style='color: #999; font-size: 12px;'>Sistema de Control de Asistencia</p>" +
+                "</div>" +
                 "</body>" +
                 "</html>",
                 estudiante.getNombre(),
-                qrBase64,
                 estudiante.getQrCode(),
                 estudiante.getBoleta()
             );
 
             helper.setText(htmlContent, true);
+
+            // Adjuntar la imagen QR como inline usando Content-ID
+            helper.addInline("qrImage", new org.springframework.core.io.ByteArrayResource(qrImage), "image/png");
 
             mailSender.send(message);
         } catch (Exception e) {

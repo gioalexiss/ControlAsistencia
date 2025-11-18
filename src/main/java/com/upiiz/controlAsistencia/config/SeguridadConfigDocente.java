@@ -21,31 +21,47 @@ public class SeguridadConfigDocente {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // Rutas públicas (login, registro, assets)
                         .requestMatchers(
                                 "/",
-                                "/auth/**",
+                                "/auth/login",
+                                "/auth/register",
+                                "/auth/verify",
+                                "/auth/loginProcess",
                                 "/assets/**",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/favicon.ico",
-                                "/api/**",
+                                "/favicon.ico"
+                        ).permitAll()
+                        // Rutas protegidas - requieren autenticación
+                        .requestMatchers(
+                                "/auth/index",
                                 "/horario/**",
                                 "/grupos/**",
-                                "/estudiantes/**"
-                        ).permitAll()
+                                "/estudiantes/**",
+                                "/api/**"
+                        ).authenticated()
                         .anyRequest().authenticated()
                 )
-                .logout(logout -> logout
-                        .logoutUrl("/logout") // Coincide con tu formulario HTML
-                        .logoutSuccessUrl("/auth/login?logout=true") // URL después de cerrar sesión
-                        .invalidateHttpSession(true) // Invalidar sesión
-                        .deleteCookies("JSESSIONID") // Eliminar cookies
+                .formLogin(form -> form
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/loginProcess")
+                        .defaultSuccessUrl("/auth/index", true)
+                        .failureUrl("/auth/login?error=true")
                         .permitAll()
                 )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
-
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/auth/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                );
 
         return http.build();
     }
