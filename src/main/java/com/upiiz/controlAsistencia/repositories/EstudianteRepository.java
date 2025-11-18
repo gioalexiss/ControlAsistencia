@@ -17,4 +17,7 @@ public interface EstudianteRepository extends JpaRepository<EstudianteEntity, Lo
 
     // Buscar por correo
     Optional<EstudianteEntity> findByCorreo(String correo);
+
+    // Buscar por código QR
+    Optional<EstudianteEntity> findByQrCode(String qrCode);
 }
