@@ -234,6 +234,11 @@ class ReporteManager {
                             title="Descargar PDF">
                         <i class="fas fa-file-pdf"></i>
                     </button>
+                    <button class="btn btn-warning btn-sm btn-eliminar-reporte"
+                            data-reporte="${reporteDataEscaped}"
+                            title="Eliminar reporte">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </td>
         `;
@@ -564,7 +569,134 @@ class ReporteManager {
                 const reporte = JSON.parse(reporteData.replace(/&quot;/g, '"'));
                 this.descargarPDF(reporte);
             }
+
+            if (e.target.closest('.btn-eliminar-reporte')) {
+                const btn = e.target.closest('.btn-eliminar-reporte');
+                const reporteData = btn.getAttribute('data-reporte');
+                const reporte = JSON.parse(reporteData.replace(/&quot;/g, '"'));
+                this.mostrarModalEliminarReporte(reporte);
+            }
         });
+    }
+
+    /**
+     * Mostrar modal de confirmación para eliminar reporte
+     */
+    mostrarModalEliminarReporte(reporte) {
+        // Limpiar modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalEliminarReporte');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
+        const fecha = new Date(reporte.fecha + 'T00:00:00');
+        const fechaFormateada = fecha.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const modalHTML = `
+            <div class="modal fade" id="modalEliminarReporte" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-trash-alt"></i>
+                                Eliminar Reporte de Asistencia
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                            </div>
+                            <h6 class="text-center mb-3">¿Está seguro de eliminar este reporte?</h6>
+                            <div class="alert alert-info">
+                                <p class="mb-1"><strong>Fecha:</strong> ${fechaFormateada}</p>
+                                <p class="mb-1"><strong>Grupo:</strong> ${reporte.nombreGrupo}</p>
+                                <p class="mb-1"><strong>Materia:</strong> ${reporte.nombreUnidad}</p>
+                                <p class="mb-0"><strong>Total de registros:</strong> ${reporte.asistencias.length} asistencias</p>
+                            </div>
+                            <div class="alert alert-warning">
+                                <p class="mb-0"><i class="fas fa-info-circle"></i> <strong>Advertencia:</strong> Esto eliminará todos los registros de asistencia de esta sesión. Esta acción no se puede deshacer.</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarReporte">
+                                <i class="fas fa-trash"></i> Sí, Eliminar Reporte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modalElement = document.getElementById('modalEliminarReporte');
+        const modal = new bootstrap.Modal(modalElement);
+
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            modalElement.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
+        document.getElementById('btnConfirmarEliminarReporte').addEventListener('click', async () => {
+            modal.hide();
+            await this.eliminarReporte(reporte);
+        });
+
+        modal.show();
+    }
+
+    /**
+     * Eliminar reporte (elimina todas las asistencias de la sesión)
+     */
+    async eliminarReporte(reporte) {
+        try {
+            // Eliminar todas las asistencias del reporte
+            let errores = 0;
+            let eliminadas = 0;
+
+            for (const asistencia of reporte.asistencias) {
+                try {
+                    const response = await fetch(`/asistencia/${asistencia.id}`, { method: 'DELETE' });
+                    const resultado = await response.json();
+                    if (resultado.success) {
+                        eliminadas++;
+                    } else {
+                        errores++;
+                    }
+                } catch (error) {
+                    console.error(`Error al eliminar asistencia ${asistencia.id}:`, error);
+                    errores++;
+                }
+            }
+
+            if (errores === 0) {
+                alert(`✅ Reporte eliminado correctamente\n\n${eliminadas} registros de asistencia eliminados.`);
+            } else {
+                alert(`⚠️ Reporte eliminado parcialmente\n\n${eliminadas} registros eliminados\n${errores} errores encontrados`);
+            }
+
+            // Recargar los reportes
+            await this.cargarTodasAsistencias();
+
+        } catch (error) {
+            console.error('Error al eliminar reporte:', error);
+            alert('❌ Error al eliminar el reporte: ' + error.message);
+        }
     }
 
     /**

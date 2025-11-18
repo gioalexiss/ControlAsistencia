@@ -18,11 +18,8 @@ $(document).ready(function () {
     // ==== 3️⃣ CARGAR DATOS CUANDO SE MUESTRA LA SECCIÓN ====
     // Escuchar el evento personalizado disparado desde navegacion.js
     $(document).on('horarioSeccionMostrada', function() {
-        // Solo cargar si no se han cargado antes
-        if (!horariosYaCargados) {
-            cargarHorariosDesdeBackend();
-            horariosYaCargados = true;
-        }
+        // Siempre recargar para obtener los datos más recientes
+        cargarHorariosDesdeBackend();
     });
 
     $('#btnRegresarDashboard').click(function () {

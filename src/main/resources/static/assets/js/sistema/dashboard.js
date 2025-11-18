@@ -20,6 +20,7 @@ class DashboardManager {
         }
 
         await this.cargarEstadisticas();
+        await this.cargarAsistenciasSemestre();
         this.actualizarWidgets();
         await this.inicializarGraficas();
     }
@@ -37,6 +38,39 @@ class DashboardManager {
             }
         } catch (error) {
             console.error('Error al cargar estadísticas:', error);
+        }
+    }
+
+    /**
+     * Carga las asistencias del semestre actual
+     */
+    async cargarAsistenciasSemestre() {
+        try {
+            const response = await fetch(`/asistencia/todas/${this.docenteId}`);
+            const asistencias = await response.json();
+
+            // Filtrar asistencias del semestre actual (últimos 6 meses)
+            const hoy = new Date();
+            const inicioSemestre = new Date();
+            inicioSemestre.setMonth(hoy.getMonth() - 6);
+
+            const asistenciasSemestre = asistencias.filter(asistencia => {
+                const fechaAsistencia = new Date(asistencia.fechaHora);
+                return fechaAsistencia >= inicioSemestre && fechaAsistencia <= hoy;
+            });
+
+            // Guardar para uso en widgets
+            if (!this.estadisticas) {
+                this.estadisticas = {};
+            }
+            this.estadisticas.totalAsistenciasSemestre = asistenciasSemestre.length;
+
+        } catch (error) {
+            console.error('Error al cargar asistencias del semestre:', error);
+            if (!this.estadisticas) {
+                this.estadisticas = {};
+            }
+            this.estadisticas.totalAsistenciasSemestre = 0;
         }
     }
 
@@ -64,11 +98,10 @@ class DashboardManager {
             widgetUnidades.textContent = this.estadisticas.totalUnidades || 0;
         }
 
-        // Widget: Asistencias (simulado por ahora)
+        // Widget: Asistencias del semestre
         const widgetAsistencias = document.getElementById('widgetDashAsistencias');
         if (widgetAsistencias) {
-            // Por ahora usamos un valor simulado
-            widgetAsistencias.textContent = '0';
+            widgetAsistencias.textContent = this.estadisticas.totalAsistenciasSemestre || 0;
         }
     }
 

@@ -686,9 +686,7 @@ class AsistenciaManager {
         // Eliminar asistencia
         $(document).on('click', '.btnEliminarAsistencia', async function() {
             const id = $(this).data('id');
-            if (confirm('¿Está seguro de eliminar esta asistencia?')) {
-                await self.eliminarAsistencia(id);
-            }
+            await self.eliminarAsistencia(id);
         });
     }
 
@@ -705,7 +703,10 @@ class AsistenciaManager {
             console.log(`✅ ${asistencias.length} asistencias en ${fecha}`);
         } catch (error) {
             console.error('Error al cargar asistencias:', error);
-            alert('Error al cargar asistencias: ' + error.message);
+            this.mostrarFeedback('error', `
+                <h5 class="mb-2">❌ Error</h5>
+                <p class="mb-0">No se pudieron cargar las asistencias</p>
+            `);
         }
     }
 
