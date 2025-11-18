@@ -285,7 +285,7 @@ public class EstudianteService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(estudiante.correo);
+            helper.setTo(estudiante.getCorreo());
             helper.setSubject("Tu código QR de asistencia");
 
             // Generar imagen QR
