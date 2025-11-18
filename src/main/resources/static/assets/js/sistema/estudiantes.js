@@ -213,10 +213,10 @@ class EstudianteManager {
                             title="Ver grupos">
                         <i class="fas fa-users"></i>
                     </button>
-                    <button class="btn btn-warning btn-sm btn-editar"
+                    <button class="btn btn-danger btn-sm btn-eliminar"
                             data-estudiante-id="${estudiante.id}"
-                            title="Editar">
-                        <i class="fas fa-edit"></i>
+                            title="Eliminar">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </td>
@@ -347,10 +347,10 @@ class EstudianteManager {
                 this.verGruposEstudiante(estudianteId);
             }
 
-            if (e.target.closest('.btn-editar')) {
-                const btn = e.target.closest('.btn-editar');
+            if (e.target.closest('.btn-eliminar')) {
+                const btn = e.target.closest('.btn-eliminar');
                 const estudianteId = btn.getAttribute('data-estudiante-id');
-                this.editarEstudiante(estudianteId);
+                this.eliminarEstudiante(estudianteId);
             }
         });
 
@@ -495,7 +495,22 @@ class EstudianteManager {
                                 </tr>
                                 <tr>
                                     <th>Código QR:</th>
-                                    <td>${estudiante.qrCode ? '<span class="badge badge-success"><i class="fas fa-qrcode"></i> Generado</span>' : '<span class="badge badge-warning">No generado</span>'}</td>
+                                    <td>
+                                        ${estudiante.qrCode ? `
+                                            <span class="badge badge-success mb-2"><i class="fas fa-qrcode"></i> Generado</span>
+                                            <div class="text-center mt-2">
+                                                <img src="/estudiantes/${estudiante.id}/qr-image"
+                                                     alt="Código QR"
+                                                     class="img-fluid"
+                                                     style="max-width: 250px; border: 2px solid #ddd; padding: 10px; border-radius: 8px;"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                <div style="display: none;" class="alert alert-warning">
+                                                    Error al cargar imagen QR
+                                                </div>
+                                                <p class="mt-2"><small><code>${estudiante.qrCode}</code></small></p>
+                                            </div>
+                                        ` : '<span class="badge badge-warning">No generado</span>'}
+                                    </td>
                                 </tr>
                             </table>
                         </div>
@@ -537,19 +552,71 @@ class EstudianteManager {
     }
 
     /**
-     * Editar estudiante
+     * Eliminar estudiante
      */
-    editarEstudiante(estudianteId) {
-        alert(`Editar estudiante ${estudianteId} - Funcionalidad próximamente`);
+    async eliminarEstudiante(estudianteId) {
+        const estudiante = this.estudiantes.find(e => e.id == estudianteId);
+        if (!estudiante) {
+            this.mostrarError('Estudiante no encontrado');
+            return;
+        }
+
+        const nombreCompleto = `${estudiante.nombre} ${estudiante.apellido || ''}`.trim();
+        const confirmacion = confirm(
+            `¿Estás seguro de que deseas eliminar al estudiante ${nombreCompleto} (${estudiante.boleta})?\n\n` +
+            `Esta acción no se puede deshacer y el estudiante será removido de todos sus grupos.`
+        );
+
+        if (!confirmacion) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/estudiantes/${estudianteId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+
+            const resultado = await response.json();
+
+            if (resultado.success) {
+                alert(`Estudiante eliminado correctamente`);
+                // Recargar lista de estudiantes
+                await this.cargarEstudiantes();
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+
+        } catch (error) {
+            console.error('Error al eliminar estudiante:', error);
+            alert('Error al eliminar el estudiante: ' + error.message);
+        }
     }
 
     /**
      * Genera códigos QR masivamente para todos los estudiantes
      */
     async generarQRMasivo() {
-        if (!confirm('¿Deseas generar códigos QR únicos para todos los estudiantes?\n\nEsto puede tardar unos momentos.')) {
+        const confirmacion = confirm(
+            '¿Deseas generar códigos QR únicos para todos los estudiantes?\n\n' +
+            'Esto puede tardar unos momentos.'
+        );
+
+        if (!confirmacion) {
             return;
         }
+
+        // Preguntar si desea enviar correos
+        const enviarCorreo = confirm(
+            '¿Deseas enviar los códigos QR por correo electrónico a los estudiantes?\n\n' +
+            'Solo se enviarán a estudiantes que tengan correo registrado.'
+        );
 
         try {
             // Mostrar indicador de carga
@@ -558,7 +625,7 @@ class EstudianteManager {
             btnGenerarQR.disabled = true;
             btnGenerarQR.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
 
-            const response = await fetch(`/estudiantes/generar-qr-masivo/${this.docenteId}`, {
+            const response = await fetch(`/estudiantes/generar-qr-masivo/${this.docenteId}?enviarCorreo=${enviarCorreo}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

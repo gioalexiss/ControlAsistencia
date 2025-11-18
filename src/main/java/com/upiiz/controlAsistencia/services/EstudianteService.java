@@ -4,8 +4,11 @@ import com.upiiz.controlAsistencia.models.EstudianteEntity;
 import com.upiiz.controlAsistencia.models.GrupoEstudianteEntity;
 import com.upiiz.controlAsistencia.repositories.EstudianteRepository;
 import com.upiiz.controlAsistencia.repositories.GrupoEstudianteRepository;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.mail.internet.MimeMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +20,17 @@ public class EstudianteService {
 
     private final EstudianteRepository estudianteRepository;
     private final GrupoEstudianteRepository grupoEstudianteRepository;
+    private final QRCodeService qrCodeService;
+    private final JavaMailSender mailSender;
 
     public EstudianteService(EstudianteRepository estudianteRepository,
-                           GrupoEstudianteRepository grupoEstudianteRepository) {
+                           GrupoEstudianteRepository grupoEstudianteRepository,
+                           QRCodeService qrCodeService,
+                           JavaMailSender mailSender) {
         this.estudianteRepository = estudianteRepository;
         this.grupoEstudianteRepository = grupoEstudianteRepository;
+        this.qrCodeService = qrCodeService;
+        this.mailSender = mailSender;
     }
 
     @Transactional
@@ -200,7 +209,7 @@ public class EstudianteService {
      * Generar QR codes masivamente para todos los estudiantes de un docente
      */
     @Transactional
-    public java.util.Map<String, Object> generarQRMasivoParaDocente(Long docenteId) {
+    public java.util.Map<String, Object> generarQRMasivoParaDocente(Long docenteId, boolean enviarCorreo) {
         java.util.Map<String, Object> resultado = new java.util.HashMap<>();
 
         // Obtener todos los estudiantes del docente
@@ -214,6 +223,7 @@ public class EstudianteService {
 
         int generados = 0;
         int yaExistian = 0;
+        int correosEnviados = 0;
         List<String> errores = new ArrayList<>();
 
         for (EstudianteEntity estudiante : estudiantes) {
@@ -227,6 +237,16 @@ public class EstudianteService {
                 } else {
                     yaExistian++;
                 }
+
+                // Enviar correo si se solicita y el estudiante tiene correo
+                if (enviarCorreo && estudiante.getCorreo() != null && !estudiante.getCorreo().isEmpty()) {
+                    try {
+                        enviarQRPorCorreo(estudiante);
+                        correosEnviados++;
+                    } catch (Exception e) {
+                        errores.add("Error al enviar correo a " + estudiante.getBoleta() + ": " + e.getMessage());
+                    }
+                }
             } catch (Exception e) {
                 errores.add("Error al generar QR para " + estudiante.getBoleta() + ": " + e.getMessage());
             }
@@ -236,9 +256,14 @@ public class EstudianteService {
         resultado.put("totalEstudiantes", estudiantes.size());
         resultado.put("qrGenerados", generados);
         resultado.put("yaExistian", yaExistian);
+        resultado.put("correosEnviados", correosEnviados);
         resultado.put("errores", errores);
-        resultado.put("mensaje", String.format("Proceso completado: %d QR generados, %d ya existían",
-                                              generados, yaExistian));
+
+        String mensaje = String.format("Proceso completado: %d QR generados, %d ya existían", generados, yaExistian);
+        if (enviarCorreo) {
+            mensaje += String.format(", %d correos enviados", correosEnviados);
+        }
+        resultado.put("mensaje", mensaje);
 
         return resultado;
     }
@@ -250,6 +275,80 @@ public class EstudianteService {
         // Generar un código único basado en la boleta y un timestamp
         long timestamp = System.currentTimeMillis();
         return "QR-" + boleta + "-" + timestamp;
+    }
+
+    /**
+     * Enviar código QR por correo electrónico
+     */
+    private void enviarQRPorCorreo(EstudianteEntity estudiante) throws Exception {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(estudiante.correo);
+            helper.setSubject("Tu código QR de asistencia");
+
+            // Generar imagen QR
+            byte[] qrImage = qrCodeService.generarImagenQR(estudiante.getQrCode());
+
+            // Convertir a base64 para mostrar en el correo
+            String qrBase64 = java.util.Base64.getEncoder().encodeToString(qrImage);
+
+            String htmlContent = String.format(
+                "<html>" +
+                "<body style='font-family: Arial, sans-serif; text-align: center;'>" +
+                "<h2>Hola %s,</h2>" +
+                "<p>Este es tu código QR personal para el registro de asistencia.</p>" +
+                "<div style='margin: 20px;'>" +
+                "<img src='data:image/png;base64,%s' alt='Código QR' style='width: 300px; height: 300px;'/>" +
+                "</div>" +
+                "<p><strong>Código:</strong> %s</p>" +
+                "<p><strong>Boleta:</strong> %s</p>" +
+                "<p>Guarda este código QR, lo necesitarás para registrar tu asistencia.</p>" +
+                "<hr>" +
+                "<p style='color: #666; font-size: 12px;'>Sistema de Control de Asistencia</p>" +
+                "</body>" +
+                "</html>",
+                estudiante.getNombre(),
+                qrBase64,
+                estudiante.getQrCode(),
+                estudiante.getBoleta()
+            );
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new Exception("Error al enviar correo: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Buscar estudiante por ID
+     */
+    public Optional<EstudianteEntity> buscarPorId(Long id) {
+        return estudianteRepository.findById(id);
+    }
+
+    /**
+     * Eliminar estudiante
+     */
+    @Transactional
+    public boolean eliminarEstudiante(Long id) {
+        try {
+            if (estudianteRepository.existsById(id)) {
+                // Primero desvincular de todos los grupos
+                List<GrupoEstudianteEntity> vinculaciones = grupoEstudianteRepository.findByIdEstudiante(id);
+                grupoEstudianteRepository.deleteAll(vinculaciones);
+
+                // Luego eliminar el estudiante
+                estudianteRepository.deleteById(id);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar estudiante: " + e.getMessage());
+        }
     }
 
     // ========================================

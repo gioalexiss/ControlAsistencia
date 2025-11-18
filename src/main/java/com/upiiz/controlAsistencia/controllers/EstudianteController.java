@@ -4,9 +4,11 @@ import com.upiiz.controlAsistencia.models.EstudianteEntity;
 import com.upiiz.controlAsistencia.services.EstudianteService;
 import com.upiiz.controlAsistencia.services.PdfExtractorService;
 import com.upiiz.controlAsistencia.services.ExcelExtractorService;
+import com.upiiz.controlAsistencia.services.QRCodeService;
 import com.upiiz.controlAsistencia.services.EstudianteService.EstudianteDTO;
 import com.upiiz.controlAsistencia.services.EstudianteService.ResultadoCargaMasiva;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +25,16 @@ public class EstudianteController {
     private final EstudianteService estudianteService;
     private final PdfExtractorService pdfExtractorService;
     private final ExcelExtractorService excelExtractorService;
+    private final QRCodeService qrCodeService;
 
     public EstudianteController(EstudianteService estudianteService,
                                PdfExtractorService pdfExtractorService,
-                               ExcelExtractorService excelExtractorService) {
+                               ExcelExtractorService excelExtractorService,
+                               QRCodeService qrCodeService) {
         this.estudianteService = estudianteService;
         this.pdfExtractorService = pdfExtractorService;
         this.excelExtractorService = excelExtractorService;
+        this.qrCodeService = qrCodeService;
     }
 
     /**
@@ -277,14 +282,68 @@ public class EstudianteController {
      */
     @PostMapping("/generar-qr-masivo/{docenteId}")
     @ResponseBody
-    public ResponseEntity<?> generarQRMasivo(@PathVariable Long docenteId) {
+    public ResponseEntity<?> generarQRMasivo(
+            @PathVariable Long docenteId,
+            @RequestParam(defaultValue = "false") boolean enviarCorreo) {
         try {
-            Map<String, Object> resultado = estudianteService.generarQRMasivoParaDocente(docenteId);
+            Map<String, Object> resultado = estudianteService.generarQRMasivoParaDocente(docenteId, enviarCorreo);
             return ResponseEntity.ok(resultado);
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(crearRespuestaError("Error al generar QR masivo: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para obtener la imagen QR de un estudiante
+     * GET /estudiantes/{id}/qr-image
+     */
+    @GetMapping("/{id}/qr-image")
+    public ResponseEntity<byte[]> obtenerImagenQR(@PathVariable Long id) {
+        try {
+            EstudianteEntity estudiante = estudianteService.buscarPorId(id)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
+
+            if (estudiante.getQrCode() == null || estudiante.getQrCode().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] imagenQR = qrCodeService.generarImagenQR(estudiante.getQrCode());
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(imagenQR);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Endpoint para eliminar un estudiante
+     * DELETE /estudiantes/{id}
+     */
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> eliminarEstudiante(@PathVariable Long id) {
+        try {
+            boolean eliminado = estudianteService.eliminarEstudiante(id);
+
+            if (eliminado) {
+                Map<String, Object> respuesta = new HashMap<>();
+                respuesta.put("success", true);
+                respuesta.put("mensaje", "Estudiante eliminado correctamente");
+                return ResponseEntity.ok(respuesta);
+            } else {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(crearRespuestaError("Estudiante no encontrado"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al eliminar estudiante: " + e.getMessage()));
         }
     }
 
