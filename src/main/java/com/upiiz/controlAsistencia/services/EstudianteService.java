@@ -283,22 +283,25 @@ public class EstudianteService {
     private void enviarQRPorCorreo(EstudianteEntity estudiante) throws Exception {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
 
+            helper.setFrom("esantana.garcia13@gmail.com", "Sistema de Asistencia IPN");
             helper.setTo(estudiante.getCorreo());
-            helper.setSubject("Tu código QR de asistencia");
+            helper.setSubject("Tu código QR de asistencia - IPN");
 
             // Generar imagen QR
             byte[] qrImage = qrCodeService.generarImagenQR(estudiante.getQrCode());
 
             String htmlContent = String.format(
+                "<!DOCTYPE html>" +
                 "<html>" +
-                "<body style='font-family: Arial, sans-serif; text-align: center; padding: 20px;'>" +
+                "<head><meta charset='UTF-8'></head>" +
+                "<body style='font-family: Arial, sans-serif; text-align: center; padding: 20px; margin: 0;'>" +
                 "<div style='max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 30px; border-radius: 10px;'>" +
-                "<h2 style='color: #1E90FF;'>Hola %s,</h2>" +
-                "<p style='font-size: 16px; color: #333;'>Este es tu código QR personal para el registro de asistencia.</p>" +
+                "<h2 style='color: #1E90FF; margin-bottom: 20px;'>Hola %s,</h2>" +
+                "<p style='font-size: 16px; color: #333; margin-bottom: 20px;'>Este es tu código QR personal para el registro de asistencia.</p>" +
                 "<div style='margin: 20px 0; background-color: white; padding: 20px; border-radius: 8px;'>" +
-                "<img src='cid:qrImage' alt='Código QR' style='width: 300px; height: 300px; border: 2px solid #1E90FF; border-radius: 8px;'/>" +
+                "<img src='cid:qrImage' alt='Código QR' width='300' height='300' style='display: block; margin: 0 auto; border: 2px solid #1E90FF; border-radius: 8px;'/>" +
                 "</div>" +
                 "<div style='background-color: white; padding: 15px; border-radius: 8px; margin-top: 20px;'>" +
                 "<p style='margin: 5px 0;'><strong>Código:</strong> <code style='background-color: #f0f0f0; padding: 5px 10px; border-radius: 4px;'>%s</code></p>" +
@@ -306,7 +309,7 @@ public class EstudianteService {
                 "</div>" +
                 "<p style='margin-top: 20px; color: #666;'>Guarda este código QR, lo necesitarás para registrar tu asistencia.</p>" +
                 "<hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>" +
-                "<p style='color: #999; font-size: 12px;'>Sistema de Control de Asistencia</p>" +
+                "<p style='color: #999; font-size: 12px;'>Sistema de Control de Asistencia - IPN</p>" +
                 "</div>" +
                 "</body>" +
                 "</html>",
@@ -317,8 +320,15 @@ public class EstudianteService {
 
             helper.setText(htmlContent, true);
 
-            // Adjuntar la imagen QR como inline usando Content-ID
-            helper.addInline("qrImage", new org.springframework.core.io.ByteArrayResource(qrImage), "image/png");
+            // Adjuntar la imagen QR como recurso inline usando Content-ID
+            org.springframework.core.io.ByteArrayResource qrResource = new org.springframework.core.io.ByteArrayResource(qrImage) {
+                @Override
+                public String getFilename() {
+                    return "qr-code.png";
+                }
+            };
+
+            helper.addInline("qrImage", qrResource, "image/png");
 
             mailSender.send(message);
         } catch (Exception e) {
