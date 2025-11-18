@@ -344,6 +344,13 @@ public class EstudianteService {
     }
 
     /**
+     * Buscar estudiante por código QR
+     */
+    public Optional<EstudianteEntity> buscarPorCodigoQR(String codigoQR) {
+        return estudianteRepository.findByQrCode(codigoQR);
+    }
+
+    /**
      * Eliminar estudiante
      */
     @Transactional
