@@ -100,18 +100,22 @@ class GrupoManager {
 
         // Si el DataTable ya existe, destruirlo primero
         if ($.fn.DataTable.isDataTable(tabla)) {
-            tabla.DataTable().destroy();
+            tabla.DataTable().clear().destroy();
         }
 
-        // Crear nuevo DataTable
-        tabla.DataTable({
-            language: {
-                url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
-            },
-            pageLength: 10,
-            order: [[0, 'asc']],
-            responsive: true
-        });
+        // Pequeño delay para asegurar que el DOM se actualice
+        setTimeout(() => {
+            // Crear nuevo DataTable
+            tabla.DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                },
+                pageLength: 10,
+                order: [[0, 'asc']],
+                responsive: true,
+                destroy: true
+            });
+        }, 100);
     }
 
     /**
@@ -144,6 +148,8 @@ class GrupoManager {
                     <button class="btn btn-success btn-sm btn-importar-estudiantes"
                             data-grupo-id="${grupo.id}"
                             data-grupo-nombre="${grupo.nombreGrupo}"
+                            data-unidad-id="${unidad.id}"
+                            data-unidad-nombre="${unidad.nombreUnidad}"
                             title="Importar Estudiantes desde Excel">
                         <i class="fas fa-file-excel"></i> Importar Alumnos
                     </button>
@@ -221,7 +227,9 @@ class GrupoManager {
                 const btn = e.target.closest('.btn-importar-estudiantes');
                 const grupoId = btn.getAttribute('data-grupo-id');
                 const grupoNombre = btn.getAttribute('data-grupo-nombre');
-                this.mostrarModalImportarEstudiantes(grupoId, grupoNombre);
+                const unidadId = btn.getAttribute('data-unidad-id');
+                const unidadNombre = btn.getAttribute('data-unidad-nombre');
+                this.mostrarModalImportarEstudiantes(grupoId, grupoNombre, unidadId, unidadNombre);
             }
 
             if (e.target.closest('.btn-tomar-asistencia')) {
@@ -259,8 +267,13 @@ class GrupoManager {
     /**
      * Muestra el modal para importar estudiantes desde Excel
      */
-    mostrarModalImportarEstudiantes(grupoId, grupoNombre) {
-        this.grupoSeleccionado = { id: grupoId, nombre: grupoNombre };
+    mostrarModalImportarEstudiantes(grupoId, grupoNombre, unidadId, unidadNombre) {
+        this.grupoSeleccionado = {
+            id: grupoId,
+            nombre: grupoNombre,
+            unidadId: unidadId,
+            unidadNombre: unidadNombre
+        };
 
         // Limpiar todos los backdrops y modales anteriores
         document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
@@ -281,7 +294,7 @@ class GrupoManager {
                         <div class="modal-header bg-success text-white">
                             <h5 class="modal-title">
                                 <i class="fas fa-file-excel"></i>
-                                Importar Estudiantes - ${grupoNombre}
+                                Importar Estudiantes - ${grupoNombre} (${unidadNombre})
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
@@ -485,7 +498,7 @@ class GrupoManager {
         btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
         try {
-            const response = await fetch(`/estudiantes/guardar-desde-excel/${this.grupoSeleccionado.id}`, {
+            const response = await fetch(`/estudiantes/guardar-desde-excel/${this.grupoSeleccionado.id}/${this.grupoSeleccionado.unidadId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

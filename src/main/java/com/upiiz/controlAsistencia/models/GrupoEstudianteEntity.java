@@ -17,6 +17,9 @@ public class GrupoEstudianteEntity {
     @Column(name = "id_estudiante", nullable = false)
     private Long idEstudiante;
 
+    @Column(name = "id_unidad")
+    private Long idUnidad;
+
     @Column(name = "fecha_asignacion")
     private LocalDateTime fechaAsignacion;
 
@@ -27,6 +30,13 @@ public class GrupoEstudianteEntity {
     public GrupoEstudianteEntity(Long idGrupo, Long idEstudiante) {
         this.idGrupo = idGrupo;
         this.idEstudiante = idEstudiante;
+        this.fechaAsignacion = LocalDateTime.now();
+    }
+
+    public GrupoEstudianteEntity(Long idGrupo, Long idEstudiante, Long idUnidad) {
+        this.idGrupo = idGrupo;
+        this.idEstudiante = idEstudiante;
+        this.idUnidad = idUnidad;
         this.fechaAsignacion = LocalDateTime.now();
     }
 
@@ -61,5 +71,13 @@ public class GrupoEstudianteEntity {
 
     public void setFechaAsignacion(LocalDateTime fechaAsignacion) {
         this.fechaAsignacion = fechaAsignacion;
+    }
+
+    public Long getIdUnidad() {
+        return idUnidad;
+    }
+
+    public void setIdUnidad(Long idUnidad) {
+        this.idUnidad = idUnidad;
     }
 }

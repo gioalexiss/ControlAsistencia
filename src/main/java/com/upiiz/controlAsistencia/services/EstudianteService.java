@@ -127,10 +127,10 @@ public class EstudianteService {
     }
 
     /**
-     * Guardar estudiantes desde Excel y vincularlos a un grupo específico
+     * Guardar estudiantes desde Excel y vincularlos a un grupo y unidad específicos
      */
     @Transactional
-    public ResultadoCargaMasiva guardarEstudiantesDesdeExcelYVincular(List<EstudianteDTO> estudiantes, Long idGrupo) {
+    public ResultadoCargaMasiva guardarEstudiantesDesdeExcelYVincular(List<EstudianteDTO> estudiantes, Long idGrupo, Long idUnidad) {
         ResultadoCargaMasiva resultado = new ResultadoCargaMasiva();
 
         for (EstudianteDTO dto : estudiantes) {
@@ -158,9 +158,9 @@ public class EstudianteService {
                     resultado.agregarNuevo(dto.getBoleta());
                 }
 
-                // Vincular al grupo si no está ya vinculado
+                // Vincular al grupo y unidad si no está ya vinculado
                 if (!grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
-                    GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId());
+                    GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
                     grupoEstudianteRepository.save(vinculacion);
                 }
 
@@ -182,6 +182,13 @@ public class EstudianteService {
             .collect(Collectors.toList());
 
         return estudianteRepository.findAllById(idsEstudiantes);
+    }
+
+    /**
+     * Verificar si un estudiante pertenece a un grupo y unidad específicos
+     */
+    public boolean verificarEstudianteEnGrupoYUnidad(Long idEstudiante, Long idGrupo, Long idUnidad) {
+        return grupoEstudianteRepository.existsByIdEstudianteAndIdGrupoAndIdUnidad(idEstudiante, idGrupo, idUnidad);
     }
 
     /**
