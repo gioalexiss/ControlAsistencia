@@ -183,6 +183,7 @@ public class DocenteService implements DocenteRepository {
         if (!passwordEncoder.matches(password, docente.getPassword()))
             return "ERROR: Contraseña incorrecta.";
 
-        return "OK:" + docente.getId() + ":Inicio de sesión exitoso.";
+        // Incluir ID, nombre y correo para guardar en localStorage
+        return "OK:" + docente.getId() + ":" + docente.getNombre() + ":" + docente.getCorreo() + ":Inicio de sesión exitoso.";
     }
 }

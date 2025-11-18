@@ -24,10 +24,7 @@ public class SeguridadConfigDocente {
                         // Rutas públicas (login, registro, assets)
                         .requestMatchers(
                                 "/",
-                                "/auth/login",
-                                "/auth/register",
-                                "/auth/verify",
-                                "/auth/loginProcess",
+                                "/auth/**",
                                 "/assets/**",
                                 "/css/**",
                                 "/js/**",
@@ -36,20 +33,12 @@ public class SeguridadConfigDocente {
                         ).permitAll()
                         // Rutas protegidas - requieren autenticación
                         .requestMatchers(
-                                "/auth/index",
                                 "/horario/**",
                                 "/grupos/**",
                                 "/estudiantes/**",
                                 "/api/**"
                         ).authenticated()
                         .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/loginProcess")
-                        .defaultSuccessUrl("/auth/index", true)
-                        .failureUrl("/auth/login?error=true")
-                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -58,10 +47,8 @@ public class SeguridadConfigDocente {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)
-                );
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
