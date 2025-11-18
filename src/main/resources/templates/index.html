@@ -292,11 +292,11 @@
 										<a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 											<div class="header-info2 d-flex align-items-center">
 												<div class="header-media">
-													<img src="images/tab/1.jpg" alt="">
+													<i class="fas fa-user-circle fa-3x text-primary"></i>
 												</div>
 												<div class="header-info">
-													<h6>Thomas Fleming</h6>
-													<p>info@gmail.com</p>
+													<h6 id="nombreDocente">Cargando...</h6>
+													<p id="correoDocente">Cargando...</p>
 												</div>
 
 											</div>
@@ -1168,6 +1168,23 @@
 			// Configurar el worker de PDF.js
 			pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 		</script>
+
+		<!-- Script para cargar información del docente -->
+		<script>
+			$(document).ready(function() {
+				const docenteId = localStorage.getItem('docenteId');
+				if (docenteId) {
+					// Aquí puedes hacer una llamada al backend para obtener los datos completos
+					// Por ahora, usar datos de localStorage si están disponibles
+					const nombreDocente = localStorage.getItem('nombreDocente') || 'Docente';
+					const correoDocente = localStorage.getItem('correoDocente') || 'docente@ipn.mx';
+
+					$('#nombreDocente').text(nombreDocente);
+					$('#correoDocente').text(correoDocente);
+				}
+			});
+		</script>
+
 		<script src="/assets/js/sistema/horario.js"></script>
 		<script src="/assets/js/sistema/navegacion.js"></script>
 		<script src="/assets/js/sistema/pdf-processor.js"></script>
