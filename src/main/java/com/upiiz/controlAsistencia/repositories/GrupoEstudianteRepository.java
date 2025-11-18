@@ -24,9 +24,10 @@ public interface GrupoEstudianteRepository extends JpaRepository<GrupoEstudiante
     void deleteByIdGrupoAndIdEstudiante(Long idGrupo, Long idEstudiante);
 
     // Obtener todos los estudiantes de todos los grupos de un docente
-    @Query("SELECT ge FROM GrupoEstudianteEntity ge " +
-           "WHERE ge.idGrupo IN " +
-           "(SELECT g.id FROM GrupoModel g WHERE g.idUnidad IN " +
-           "(SELECT u.id FROM UnidadModel u WHERE u.idDocente = :docenteId))")
+    @Query(value = "SELECT ge.* FROM grupo_estudiante ge " +
+                   "WHERE ge.id_grupo IN " +
+                   "(SELECT g.id FROM grupos g WHERE g.id_unidad IN " +
+                   "(SELECT u.id FROM unidades u WHERE u.id_docente = :docenteId))",
+           nativeQuery = true)
     List<GrupoEstudianteEntity> findAllByDocenteId(@Param("docenteId") Long docenteId);
 }

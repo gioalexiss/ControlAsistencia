@@ -86,16 +86,32 @@ class GrupoManager {
             }
         });
 
-        // Inicializar DataTable si existe
-        if ($.fn.DataTable) {
-            $('#tablaGruposDinamica').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
-                },
-                pageLength: 10,
-                order: [[0, 'asc']]
-            });
+        // Inicializar o actualizar DataTable
+        this.inicializarDataTable();
+    }
+
+    /**
+     * Inicializa o actualiza el DataTable
+     */
+    inicializarDataTable() {
+        if (!$.fn.DataTable) return;
+
+        const tabla = $('#tablaGruposDinamica');
+
+        // Si el DataTable ya existe, destruirlo primero
+        if ($.fn.DataTable.isDataTable(tabla)) {
+            tabla.DataTable().destroy();
         }
+
+        // Crear nuevo DataTable
+        tabla.DataTable({
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+            },
+            pageLength: 10,
+            order: [[0, 'asc']],
+            responsive: true
+        });
     }
 
     /**
@@ -105,18 +121,9 @@ class GrupoManager {
         const tr = document.createElement('tr');
         tr.setAttribute('data-grupo-id', grupo.id);
 
-        // Formatear horarios
-        let horarioTexto = 'No definido';
-        if (grupo.horarios && grupo.horarios.length > 0) {
-            const dias = grupo.horarios.map(h => h.diaSemana).join('-');
-            const horas = `${grupo.horarios[0].horaInicio}-${grupo.horarios[0].horaFin}`;
-            horarioTexto = `${dias} ${horas}`;
-        }
-
         tr.innerHTML = `
             <td>${grupo.nombreGrupo || 'N/A'}</td>
             <td>${unidad.nombreUnidad || 'N/A'}</td>
-            <td>${horarioTexto}</td>
             <td>
                 <span class="badge badge-info" id="estudiantes-${grupo.id}">
                     <i class="fas fa-spinner fa-spin"></i>
@@ -222,7 +229,31 @@ class GrupoManager {
                 const grupoId = btn.getAttribute('data-grupo-id');
                 this.tomarAsistencia(grupoId);
             }
+
+            // Botón de actualizar tabla de grupos
+            if (e.target.closest('#btnActualizarGrupos')) {
+                this.refrescarGrupos();
+            }
         });
+    }
+
+    /**
+     * Refresca los datos de grupos
+     */
+    async refrescarGrupos() {
+        const btn = document.getElementById('btnActualizarGrupos');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+        }
+
+        await this.cargarGrupos();
+        await this.cargarEstadisticas();
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+        }
     }
 
     /**
@@ -230,6 +261,17 @@ class GrupoManager {
      */
     mostrarModalImportarEstudiantes(grupoId, grupoNombre) {
         this.grupoSeleccionado = { id: grupoId, nombre: grupoNombre };
+
+        // Limpiar todos los backdrops y modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalImportarEstudiantes');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
 
         // Crear modal dinámicamente
         const modalHTML = `
@@ -241,7 +283,7 @@ class GrupoManager {
                                 <i class="fas fa-file-excel"></i>
                                 Importar Estudiantes - ${grupoNombre}
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-info">
@@ -298,17 +340,25 @@ class GrupoManager {
             </div>
         `;
 
-        // Remover modal anterior si existe
-        const modalAnterior = document.getElementById('modalImportarEstudiantes');
-        if (modalAnterior) {
-            modalAnterior.remove();
-        }
-
         // Agregar modal al DOM
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         // Inicializar modal de Bootstrap
-        const modal = new bootstrap.Modal(document.getElementById('modalImportarEstudiantes'));
+        const modalElement = document.getElementById('modalImportarEstudiantes');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta completamente
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            // Limpiar backdrops
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            // Remover el modal del DOM
+            modalElement.remove();
+            // Asegurar que el body no tenga la clase modal-open
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
         modal.show();
 
         // Configurar eventos del modal
@@ -506,7 +556,7 @@ class GrupoManager {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-5">
+                    <td colspan="5" class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No hay grupos registrados</h5>
                         <p class="text-muted">Agrega tus horarios en la sección "Mi Horario" para comenzar</p>

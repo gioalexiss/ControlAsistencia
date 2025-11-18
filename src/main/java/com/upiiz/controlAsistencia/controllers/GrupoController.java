@@ -70,12 +70,15 @@ public class GrupoController {
     @ResponseBody
     public ResponseEntity<?> obtenerInfoGrupo(@PathVariable Long idGrupo) {
         try {
-            GrupoModel grupo = grupoService.findById(idGrupo);
-            if (grupo == null) {
+            var grupoOptional = grupoService.findById(idGrupo);
+
+            if (grupoOptional.isEmpty()) {
                 return ResponseEntity
                         .status(HttpStatus.NOT_FOUND)
                         .body(crearRespuestaError("Grupo no encontrado"));
             }
+
+            GrupoModel grupo = grupoOptional.get();
 
             // Obtener estadísticas del grupo
             int totalEstudiantes = estudianteService.obtenerEstudiantesPorGrupo(idGrupo).size();
