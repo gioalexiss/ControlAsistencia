@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -76,34 +77,39 @@ public class ExcelExtractorService {
                 if (boleta == null || boleta.trim().isEmpty()) {
                     continue; // Saltar filas sin boleta
                 }
+                boleta = limpiarTexto(boleta);
 
                 // Extraer nombre
                 String nombre = obtenerValorCelda(row, columnIndices.get("nombre"));
                 if (nombre == null || nombre.trim().isEmpty()) {
                     continue; // Saltar filas sin nombre
                 }
+                nombre = limpiarTexto(nombre);
 
                 // Extraer correo
                 String correo = obtenerValorCelda(row, columnIndices.get("correo"));
                 if (correo == null || correo.trim().isEmpty()) {
                     continue; // Saltar filas sin correo
                 }
+                correo = limpiarCorreo(correo);
 
-                // Validar formato de boleta y correo
-                if (!BOLETA_PATTERN.matcher(boleta.trim()).matches()) {
-                    System.out.println("Boleta inválida en fila " + (i + 1) + ": " + boleta);
+                // Validar formato de boleta
+                if (!BOLETA_PATTERN.matcher(boleta).matches()) {
+                    System.out.println("⚠️ Boleta inválida en fila " + (i + 1) + ": '" + boleta + "'");
                     continue;
                 }
 
-                if (!EMAIL_PATTERN.matcher(correo.trim()).matches()) {
-                    System.out.println("Correo inválido en fila " + (i + 1) + ": " + correo);
+                // Validar formato de correo
+                if (!EMAIL_PATTERN.matcher(correo).matches()) {
+                    System.out.println("⚠️ Correo inválido en fila " + (i + 1) + ": '" + correo + "' (original: '" + obtenerValorCelda(row, columnIndices.get("correo")) + "')");
                     continue;
                 }
 
-                estudiante.put("boleta", boleta.trim());
-                estudiante.put("nombre", nombre.trim());
-                estudiante.put("correo", correo.trim().toLowerCase());
+                estudiante.put("boleta", boleta);
+                estudiante.put("nombre", nombre);
+                estudiante.put("correo", correo);
 
+                System.out.println("✅ Fila " + (i + 1) + ": " + boleta + " | " + nombre + " | " + correo);
                 estudiantes.add(estudiante);
             }
 
@@ -113,6 +119,7 @@ public class ExcelExtractorService {
             }
         }
 
+        System.out.println("📊 Total de estudiantes extraídos: " + estudiantes.size());
         return estudiantes;
     }
 
@@ -125,14 +132,17 @@ public class ExcelExtractorService {
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             Cell cell = headerRow.getCell(i);
             if (cell != null) {
-                String header = cell.getStringCellValue().toLowerCase().trim();
+                String header = obtenerValorCelda(headerRow, i);
+                if (header != null) {
+                    header = limpiarTexto(header).toLowerCase();
 
-                if (header.contains("boleta") || header.contains("matricula")) {
-                    indices.put("boleta", i);
-                } else if (header.contains("nombre")) {
-                    indices.put("nombre", i);
-                } else if (header.contains("correo") || header.contains("email") || header.contains("mail")) {
-                    indices.put("correo", i);
+                    if (header.contains("boleta") || header.contains("matricula")) {
+                        indices.put("boleta", i);
+                    } else if (header.contains("nombre")) {
+                        indices.put("nombre", i);
+                    } else if (header.contains("correo") || header.contains("email") || header.contains("mail")) {
+                        indices.put("correo", i);
+                    }
                 }
             }
         }
@@ -167,10 +177,122 @@ public class ExcelExtractorService {
             case BOOLEAN:
                 return String.valueOf(cell.getBooleanCellValue());
             case FORMULA:
-                return cell.getCellFormula();
+                // Intentar obtener el valor calculado de la fórmula
+                try {
+                    return cell.getStringCellValue();
+                } catch (IllegalStateException e) {
+                    // Si falla, intentar obtener como número
+                    try {
+                        double numValue = cell.getNumericCellValue();
+                        if (numValue == Math.floor(numValue)) {
+                            return String.valueOf((long) numValue);
+                        }
+                        return String.valueOf(numValue);
+                    } catch (Exception ex) {
+                        return null;
+                    }
+                }
             default:
                 return null;
         }
+    }
+
+    /**
+     * Limpia el texto eliminando caracteres invisibles, espacios extras y normalizando
+     */
+    private String limpiarTexto(String texto) {
+        if (texto == null) return null;
+
+        // Eliminar espacios al inicio y final
+        texto = texto.trim();
+
+        // Normalizar caracteres Unicode (eliminar acentos si es necesario para comparaciones)
+        texto = Normalizer.normalize(texto, Normalizer.Form.NFC);
+
+        // Eliminar caracteres de control y espacios invisibles
+        texto = texto.replaceAll("[\\p{C}\\p{Z}&&[^ ]]", "");
+
+        // Reemplazar múltiples espacios por uno solo
+        texto = texto.replaceAll("\\s+", " ");
+
+        // Eliminar espacios antes y después de puntos, arrobas, etc.
+        texto = texto.replaceAll("\\s+@\\s+", "@");
+        texto = texto.replaceAll("\\s+\\.\\s+", ".");
+
+        return texto;
+    }
+
+    /**
+     * Limpia y normaliza un correo electrónico
+     */
+    private String limpiarCorreo(String correo) {
+        if (correo == null) return null;
+
+        // Limpiar texto base
+        correo = limpiarTexto(correo);
+
+        // Convertir a minúsculas (los correos no distinguen mayúsculas/minúsculas)
+        correo = correo.toLowerCase();
+
+        // Eliminar todos los espacios en blanco del correo
+        correo = correo.replaceAll("\\s+", "");
+
+        // Correcciones comunes de confusión de caracteres en correos
+        // Estas correcciones solo se aplican en partes específicas para evitar cambios incorrectos
+
+        // Separar el correo en partes: usuario@dominio
+        String[] partes = correo.split("@");
+        if (partes.length == 2) {
+            String usuario = partes[0];
+            String dominio = partes[1];
+
+            // En dominios comunes, corregir confusiones típicas
+            if (dominio.contains("gmai") || dominio.contains("hotmai") || dominio.contains("yahoo") ||
+                dominio.contains("outlook") || dominio.contains("alumn") || dominio.contains("ipn")) {
+
+                // Correcciones específicas para dominios conocidos
+                dominio = corregirDominioComun(dominio);
+            }
+
+            correo = usuario + "@" + dominio;
+        }
+
+        return correo;
+    }
+
+    /**
+     * Corrige errores comunes en dominios de correo
+     */
+    private String corregirDominioComun(String dominio) {
+        // Dominios comunes mal escritos
+        Map<String, String> correccionesDominios = new HashMap<>();
+        correccionesDominios.put("gmai1.com", "gmail.com");
+        correccionesDominios.put("gmai1", "gmail");
+        correccionesDominios.put("hotmai1.com", "hotmail.com");
+        correccionesDominios.put("hotmai1", "hotmail");
+        correccionesDominios.put("a1umno", "alumno");
+        correccionesDominios.put("a1umnos", "alumnos");
+
+        // Aplicar correcciones
+        for (Map.Entry<String, String> entry : correccionesDominios.entrySet()) {
+            dominio = dominio.replace(entry.getKey(), entry.getValue());
+        }
+
+        // Correcciones de confusión i/l en dominios específicos
+        // Solo en contextos donde sabemos que debe ser "l"
+        if (dominio.contains("gmai") && !dominio.contains("gmail")) {
+            dominio = dominio.replace("gmai", "gmail");
+        }
+        if (dominio.contains("hotmai") && !dominio.contains("hotmail")) {
+            dominio = dominio.replace("hotmai", "hotmail");
+        }
+
+        // Corregir "a1umno" a "alumno" (confusión de l con 1)
+        if (dominio.matches(".*a[1i]umn.*")) {
+            dominio = dominio.replaceAll("a[1i]umn", "alumn");
+        }
+
+        return dominio;
     }
 
     /**
