@@ -100,12 +100,49 @@ class EstudianteManager {
             return;
         }
 
-        // Si DataTable ya está inicializado, destruirlo temporalmente
+        // Si DataTable ya está inicializado, solo actualizar datos
         if (this.dataTable) {
-            this.dataTable.destroy();
-            this.dataTable = null;
+            this.dataTable.clear();
+
+            if (this.estudiantesFiltrados.length > 0) {
+                this.estudiantesFiltrados.forEach((estudiante, index) => {
+                    const nombreCompleto = `${estudiante.nombre} ${estudiante.apellido || ''}`.trim();
+                    const estadoBadge = estudiante.estado === 'activo'
+                        ? '<span class="badge badge-success">Activo</span>'
+                        : '<span class="badge badge-secondary">Inactivo</span>';
+
+                    this.dataTable.row.add([
+                        index + 1,
+                        `<strong>${estudiante.boleta}</strong>`,
+                        nombreCompleto,
+                        estudiante.correo || 'No registrado',
+                        estadoBadge,
+                        `<div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-primary btn-sm btn-ver-grupos" data-estudiante-id="${estudiante.id}" title="Ver grupos">
+                                <i class="fas fa-users"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm btn-editar" data-estudiante-id="${estudiante.id}" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>`
+                    ]);
+                });
+            }
+
+            this.dataTable.draw();
+
+            // Actualizar contador
+            const contador = document.getElementById('contadorEstudiantes');
+            if (contador) {
+                contador.textContent = this.estudiantesFiltrados.length;
+            }
+            return;
         }
 
+        // Primera inicialización
         tbody.innerHTML = '';
 
         if (this.estudiantesFiltrados.length === 0) {
@@ -324,6 +361,14 @@ class EstudianteManager {
                 this.cargarEstudiantes();
             });
         }
+
+        // Botón de generar QR masivo
+        const btnGenerarQR = document.getElementById('btnGenerarQRMasivo');
+        if (btnGenerarQR) {
+            btnGenerarQR.addEventListener('click', () => {
+                this.generarQRMasivo();
+            });
+        }
     }
 
     /**
@@ -496,6 +541,70 @@ class EstudianteManager {
      */
     editarEstudiante(estudianteId) {
         alert(`Editar estudiante ${estudianteId} - Funcionalidad próximamente`);
+    }
+
+    /**
+     * Genera códigos QR masivamente para todos los estudiantes
+     */
+    async generarQRMasivo() {
+        if (!confirm('¿Deseas generar códigos QR únicos para todos los estudiantes?\n\nEsto puede tardar unos momentos.')) {
+            return;
+        }
+
+        try {
+            // Mostrar indicador de carga
+            const btnGenerarQR = document.getElementById('btnGenerarQRMasivo');
+            const textoOriginal = btnGenerarQR.innerHTML;
+            btnGenerarQR.disabled = true;
+            btnGenerarQR.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+
+            const response = await fetch(`/estudiantes/generar-qr-masivo/${this.docenteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+
+            const resultado = await response.json();
+
+            // Restaurar botón
+            btnGenerarQR.disabled = false;
+            btnGenerarQR.innerHTML = textoOriginal;
+
+            if (resultado.success) {
+                // Mostrar resultado
+                let mensaje = resultado.mensaje + '\n\n';
+                mensaje += `Total de estudiantes: ${resultado.totalEstudiantes}\n`;
+                mensaje += `QR generados: ${resultado.qrGenerados}\n`;
+                mensaje += `Ya existían: ${resultado.yaExistian}`;
+
+                if (resultado.errores && resultado.errores.length > 0) {
+                    mensaje += '\n\nErrores:\n' + resultado.errores.join('\n');
+                }
+
+                alert(mensaje);
+
+                // Recargar lista de estudiantes
+                await this.cargarEstudiantes();
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+
+        } catch (error) {
+            console.error('Error al generar QR masivo:', error);
+            alert('Error al generar códigos QR: ' + error.message);
+
+            // Restaurar botón
+            const btnGenerarQR = document.getElementById('btnGenerarQRMasivo');
+            if (btnGenerarQR) {
+                btnGenerarQR.disabled = false;
+                btnGenerarQR.innerHTML = '<i class="fas fa-qrcode"></i> Generar QR Masivo';
+            }
+        }
     }
 
     /**
