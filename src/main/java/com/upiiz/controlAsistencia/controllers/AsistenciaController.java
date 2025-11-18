@@ -54,6 +54,25 @@ public class AsistenciaController {
 
             EstudianteEntity estudiante = estudianteOpt.get();
 
+            // Verificar si el estudiante pertenece al grupo y unidad seleccionados
+            if (grupoId != null && unidadId != null) {
+                boolean perteneceAlGrupo = estudianteService.verificarEstudianteEnGrupoYUnidad(
+                    estudiante.getId(), grupoId, unidadId
+                );
+
+                if (!perteneceAlGrupo) {
+                    return ResponseEntity.ok(Map.of(
+                        "success", false,
+                        "mensaje", "El estudiante NO está asignado a este grupo y materia",
+                        "tipo", "error",
+                        "estudiante", Map.of(
+                            "nombre", estudiante.getNombre(),
+                            "boleta", estudiante.getBoleta()
+                        )
+                    ));
+                }
+            }
+
             // Verificar si ya registró asistencia hoy en esta unidad
             LocalDate hoy = LocalDate.now();
             if (unidadId != null) {

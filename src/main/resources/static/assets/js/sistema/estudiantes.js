@@ -35,17 +35,34 @@ class EstudianteManager {
     }
 
     /**
-     * Carga la lista de grupos del docente
+     * Carga la lista de grupos del docente desde el horario registrado
      */
     async cargarGrupos() {
         try {
-            const response = await fetch(`/grupos/docente/${this.docenteId}`);
+            // Obtener el horario completo que incluye todas las unidades y sus grupos
+            const response = await fetch(`/horario/obtener/${this.docenteId}`);
 
             if (!response.ok) {
-                throw new Error('Error al cargar grupos');
+                throw new Error('Error al cargar horario');
             }
 
-            this.grupos = await response.json();
+            const unidades = await response.json();
+
+            // Extraer todos los grupos de todas las unidades
+            this.grupos = [];
+            unidades.forEach(unidad => {
+                if (unidad.grupos && unidad.grupos.length > 0) {
+                    unidad.grupos.forEach(grupo => {
+                        this.grupos.push({
+                            id: grupo.id,
+                            nombreGrupo: grupo.nombreGrupo,
+                            nombreMateria: unidad.nombreUnidad,
+                            idUnidad: unidad.id
+                        });
+                    });
+                }
+            });
+
             this.poblarSelectGrupos();
         } catch (error) {
             console.error('Error al cargar grupos:', error);
@@ -53,7 +70,7 @@ class EstudianteManager {
     }
 
     /**
-     * Llena el select de grupos con los datos obtenidos
+     * Llena el select de grupos con los datos obtenidos del horario
      */
     poblarSelectGrupos() {
         const selectGrupo = document.getElementById('selectGrupoEstudiante');
@@ -62,11 +79,11 @@ class EstudianteManager {
         // Limpiar opciones existentes excepto la primera
         selectGrupo.innerHTML = '<option value="">Todos los grupos</option>';
 
-        // Agregar opciones de grupos
+        // Agregar opciones de grupos ordenados por materia
         this.grupos.forEach(grupo => {
             const option = document.createElement('option');
             option.value = grupo.id;
-            option.textContent = `${grupo.nombreGrupo} - ${grupo.nombreMateria || 'Sin materia'}`;
+            option.textContent = `${grupo.nombreGrupo} - ${grupo.nombreMateria}`;
             selectGrupo.appendChild(option);
         });
     }

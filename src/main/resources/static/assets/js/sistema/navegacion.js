@@ -54,8 +54,14 @@ $(document).ready(function() {
         mostrarSeccion('#contentReportes', this);
     });
 
-    // NOTA: El handler de #linkMiHorario se maneja en horario.js
-    // para incluir la lógica de carga de datos
+    // IMPORTANTE: El handler de #linkMiHorario también se maneja aquí para la navegación
+    // La carga de datos específica se maneja en horario.js
+    $('#linkMiHorario').click(function(e){
+        e.preventDefault();
+        mostrarSeccion('#contentMiHorario', this);
+        // Disparar evento personalizado para que horario.js cargue datos si es necesario
+        $(document).trigger('horarioSeccionMostrada');
+    });
 
     // Inicializa mostrando el panel principal con clase active
     mostrarSeccion('#dashboardPrincipal', '#linkDashboard');

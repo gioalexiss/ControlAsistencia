@@ -20,6 +20,9 @@ public interface GrupoEstudianteRepository extends JpaRepository<GrupoEstudiante
     // Verificar si un estudiante ya está en un grupo
     boolean existsByIdGrupoAndIdEstudiante(Long idGrupo, Long idEstudiante);
 
+    // Verificar si un estudiante está en un grupo y unidad específicos
+    boolean existsByIdEstudianteAndIdGrupoAndIdUnidad(Long idEstudiante, Long idGrupo, Long idUnidad);
+
     // Eliminar un estudiante de un grupo
     void deleteByIdGrupoAndIdEstudiante(Long idGrupo, Long idEstudiante);
 

@@ -15,28 +15,9 @@ $(document).ready(function () {
     let unidades = [];     // todas las unidades cargadas desde backend
     let horariosYaCargados = false; // Bandera para evitar cargas múltiples
 
-    // ==== 3️⃣ MOSTRAR Y OCULTAR SECCIONES ====
-    $('#linkMiHorario').click(function (e) {
-        e.preventDefault();
-
-        // Ocultar todas las secciones
-        $('#dashboardPrincipal, #contentMisGrupos, #contentMisEstudiantes, #contentReportes, #contentMiHorario').hide();
-
-        // Remover la clase 'active' de todos los links del menú
-        $('#menu a').removeClass('active');
-
-        // Cambiar todos los iconos SVG a color gris
-        $('#menu .svg-icon-path').attr('stroke', '#888888');
-
-        // Agregar la clase 'active' al link seleccionado
-        $(this).addClass('active');
-
-        // Cambiar los iconos SVG del link activo a color azul
-        $(this).find('.svg-icon-path').attr('stroke', '#1E90FF');
-
-        // Mostrar la sección de horario
-        $('#contentMiHorario').fadeIn();
-
+    // ==== 3️⃣ CARGAR DATOS CUANDO SE MUESTRA LA SECCIÓN ====
+    // Escuchar el evento personalizado disparado desde navegacion.js
+    $(document).on('horarioSeccionMostrada', function() {
         // Solo cargar si no se han cargado antes
         if (!horariosYaCargados) {
             cargarHorariosDesdeBackend();

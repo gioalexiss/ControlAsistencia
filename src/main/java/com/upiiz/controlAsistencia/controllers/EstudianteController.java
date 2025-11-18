@@ -200,13 +200,14 @@ public class EstudianteController {
     }
 
     /**
-     * Endpoint para guardar estudiantes desde Excel y vincularlos a un grupo
-     * POST /estudiantes/guardar-desde-excel/{idGrupo}
+     * Endpoint para guardar estudiantes desde Excel y vincularlos a un grupo y unidad
+     * POST /estudiantes/guardar-desde-excel/{idGrupo}/{idUnidad}
      */
-    @PostMapping("/guardar-desde-excel/{idGrupo}")
+    @PostMapping("/guardar-desde-excel/{idGrupo}/{idUnidad}")
     @ResponseBody
     public ResponseEntity<?> guardarEstudiantesDesdeExcel(
             @PathVariable Long idGrupo,
+            @PathVariable Long idUnidad,
             @RequestBody List<EstudianteDTO> estudiantes) {
         try {
             // Validar que la lista no esté vacía
@@ -216,8 +217,8 @@ public class EstudianteController {
                         .body(crearRespuestaError("La lista de estudiantes está vacía"));
             }
 
-            // Guardar estudiantes y vincularlos al grupo
-            ResultadoCargaMasiva resultado = estudianteService.guardarEstudiantesDesdeExcelYVincular(estudiantes, idGrupo);
+            // Guardar estudiantes y vincularlos al grupo y unidad
+            ResultadoCargaMasiva resultado = estudianteService.guardarEstudiantesDesdeExcelYVincular(estudiantes, idGrupo, idUnidad);
 
             // Preparar respuesta
             Map<String, Object> respuesta = new HashMap<>();

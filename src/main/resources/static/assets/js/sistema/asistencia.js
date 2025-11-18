@@ -10,6 +10,8 @@ class AsistenciaManager {
         this.ultimoEscaneo = null;
         this.soundSuccess = null;
         this.soundError = null;
+        this.sesionActiva = false;
+        this.asistenciasSesionActual = [];
     }
 
     async init() {
@@ -33,7 +35,32 @@ class AsistenciaManager {
         // Crear sonidos de feedback
         this.crearSonidosFeedback();
 
+        // Desactivar el input de QR inicialmente
+        this.desactivarEscaner();
+
         console.log('✅ AsistenciaManager inicializado correctamente');
+    }
+
+    /**
+     * Desactivar el escáner QR
+     */
+    desactivarEscaner() {
+        const input = $('#inputCodigoQR');
+        input.prop('disabled', true);
+        input.attr('placeholder', 'Seleccione una materia y grupo para iniciar...');
+        this.sesionActiva = false;
+    }
+
+    /**
+     * Activar el escáner QR
+     */
+    activarEscaner() {
+        const input = $('#inputCodigoQR');
+        input.prop('disabled', false);
+        input.attr('placeholder', 'Enfoque aquí y escanee el código QR...');
+        input.focus();
+        this.sesionActiva = true;
+        this.asistenciasSesionActual = [];
     }
 
     /**
@@ -142,10 +169,105 @@ class AsistenciaManager {
     }
 
     /**
+     * Verificar si se han seleccionado materia y grupo
+     */
+    verificarSeleccionCompleta() {
+        if (this.unidadSeleccionada && this.grupoSeleccionado) {
+            $('#btnIniciarSesion').fadeIn();
+        } else {
+            $('#btnIniciarSesion').fadeOut();
+            $('#btnFinalizarSesion').fadeOut();
+            if (this.sesionActiva) {
+                this.desactivarEscaner();
+            }
+        }
+    }
+
+    /**
+     * Iniciar sesión de toma de asistencia
+     */
+    iniciarSesion() {
+        // Obtener nombre de la unidad y grupo
+        const nombreUnidad = $('#selectUnidadAsistencia option:selected').text();
+        const nombreGrupo = $('#selectGrupoAsistencia option:selected').text();
+
+        const confirmacion = confirm(
+            `¿Desea iniciar la toma de asistencia?\n\n` +
+            `Materia: ${nombreUnidad}\n` +
+            `Grupo: ${nombreGrupo}`
+        );
+
+        if (!confirmacion) return;
+
+        // Activar escáner
+        this.activarEscaner();
+
+        // Deshabilitar los selectores
+        $('#selectUnidadAsistencia').prop('disabled', true);
+        $('#selectGrupoAsistencia').prop('disabled', true);
+
+        // Cambiar botones
+        $('#btnIniciarSesion').fadeOut();
+        $('#btnFinalizarSesion').fadeIn();
+
+        // Mostrar mensaje
+        this.mostrarFeedback('success', `
+            <h5 class="mb-2">✅ Sesión Iniciada</h5>
+            <p class="mb-1"><strong>Materia:</strong> ${nombreUnidad}</p>
+            <p class="mb-0"><strong>Grupo:</strong> ${nombreGrupo}</p>
+            <p class="mt-2 mb-0 small">Ya puede comenzar a escanear códigos QR</p>
+        `);
+
+        console.log('✅ Sesión de asistencia iniciada');
+    }
+
+    /**
+     * Finalizar sesión de asistencia
+     */
+    async finalizarSesion() {
+        const confirmacion = confirm(
+            `¿Desea finalizar la sesión de asistencia?\n\n` +
+            `Se guardará el reporte con ${this.asistenciasSesionActual.length} asistencias registradas.`
+        );
+
+        if (!confirmacion) return;
+
+        // Desactivar escáner
+        this.desactivarEscaner();
+
+        // Habilitar selectores
+        $('#selectUnidadAsistencia').prop('disabled', false);
+        $('#selectGrupoAsistencia').prop('disabled', false);
+
+        // Cambiar botones
+        $('#btnFinalizarSesion').fadeOut();
+        $('#btnIniciarSesion').fadeIn();
+
+        // Guardar reporte (aquí se implementaría el guardado en base de datos)
+        // Por ahora solo mostraremos un mensaje
+        this.mostrarFeedback('success', `
+            <h5 class="mb-2">✅ Sesión Finalizada</h5>
+            <p class="mb-0">Reporte guardado con ${this.asistenciasSesionActual.length} asistencias</p>
+        `);
+
+        // Limpiar sesión actual
+        this.asistenciasSesionActual = [];
+
+        console.log('✅ Sesión de asistencia finalizada');
+    }
+
+    /**
      * Procesar código QR escaneado
      */
     async procesarCodigoQR(codigoQR) {
         console.log('🔍 Procesando código QR:', codigoQR);
+
+        // Verificar que hay una sesión activa
+        if (!this.sesionActiva) {
+            this.mostrarFeedback('error', 'Debe iniciar una sesión antes de escanear códigos QR');
+            this.reproducirSonido('error');
+            return;
+        }
 
         // Evitar escaneos duplicados muy rápidos (menos de 3 segundos)
         const ahora = Date.now();
@@ -175,10 +297,12 @@ class AsistenciaManager {
 
             if (resultado.success) {
                 // Éxito
+                this.asistenciasSesionActual.push(resultado.asistencia);
                 this.mostrarFeedback('success', `
                     <h5 class="mb-2">✅ Asistencia Registrada</h5>
                     <p class="mb-1"><strong>${resultado.estudiante.nombre}</strong></p>
                     <p class="mb-0">Boleta: ${resultado.estudiante.boleta}</p>
+                    <p class="mt-2 mb-0 small text-success">Total en sesión: ${this.asistenciasSesionActual.length}</p>
                 `, resultado.estudiante);
                 this.reproducirSonido('success');
                 await this.cargarAsistenciasHoy(); // Recargar lista
@@ -323,12 +447,24 @@ class AsistenciaManager {
         $('#selectUnidadAsistencia').on('change', function() {
             self.unidadSeleccionada = $(this).val() || null;
             console.log('Unidad seleccionada:', self.unidadSeleccionada);
+            self.verificarSeleccionCompleta();
         });
 
         // Cambio de grupo
         $('#selectGrupoAsistencia').on('change', function() {
             self.grupoSeleccionado = $(this).val() || null;
             console.log('Grupo seleccionado:', self.grupoSeleccionado);
+            self.verificarSeleccionCompleta();
+        });
+
+        // Botón Iniciar Sesión
+        $('#btnIniciarSesion').on('click', function() {
+            self.iniciarSesion();
+        });
+
+        // Botón Finalizar Sesión
+        $('#btnFinalizarSesion').on('click', function() {
+            self.finalizarSesion();
         });
 
         // Filtrar por fecha
