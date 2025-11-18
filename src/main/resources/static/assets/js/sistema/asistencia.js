@@ -12,6 +12,8 @@ class AsistenciaManager {
         this.soundError = null;
         this.sesionActiva = false;
         this.asistenciasSesionActual = [];
+        this.unidadesCompletas = [];
+        this.estudiantesEscaneadosEnSesion = new Set(); // Para evitar duplicados
     }
 
     async init() {
@@ -26,11 +28,13 @@ class AsistenciaManager {
 
         // Inicializar componentes
         await this.cargarUnidades();
-        await this.cargarGrupos();
         await this.cargarAsistenciasHoy();
         this.inicializarEventos();
         this.configurarInputQR();
         this.establecerFechaHoy();
+
+        // Deshabilitar selector de grupos inicialmente
+        $('#selectGrupoAsistencia').prop('disabled', true);
 
         // Crear sonidos de feedback
         this.crearSonidosFeedback();
@@ -61,6 +65,7 @@ class AsistenciaManager {
         input.focus();
         this.sesionActiva = true;
         this.asistenciasSesionActual = [];
+        this.estudiantesEscaneadosEnSesion.clear(); // Limpiar la lista de escaneados
     }
 
     /**
@@ -71,41 +76,47 @@ class AsistenciaManager {
             const response = await fetch(`/horario/obtener/${this.docenteId}`);
             if (!response.ok) throw new Error('Error al cargar unidades');
 
-            const unidades = await response.json();
+            this.unidadesCompletas = await response.json();
             const select = $('#selectUnidadAsistencia');
             select.empty();
-            select.append('<option value="">Seleccione una unidad (materia)</option>');
+            select.append('<option value="">Seleccione una materia</option>');
 
-            unidades.forEach(unidad => {
+            this.unidadesCompletas.forEach(unidad => {
                 select.append(`<option value="${unidad.id}">${unidad.nombreUnidad}</option>`);
             });
 
-            console.log(`📚 ${unidades.length} unidades cargadas`);
+            console.log(`📚 ${this.unidadesCompletas.length} unidades cargadas`);
         } catch (error) {
             console.error('Error al cargar unidades:', error);
         }
     }
 
     /**
-     * Cargar los grupos del docente
+     * Cargar los grupos de una unidad específica
      */
-    async cargarGrupos() {
-        try {
-            const response = await fetch(`/grupos/docente/${this.docenteId}`);
-            if (!response.ok) throw new Error('Error al cargar grupos');
+    cargarGruposPorUnidad(unidadId) {
+        const select = $('#selectGrupoAsistencia');
+        select.empty();
+        select.append('<option value="">Seleccione un grupo</option>');
 
-            const grupos = await response.json();
-            const select = $('#selectGrupoAsistencia');
-            select.empty();
-            select.append('<option value="">Seleccione un grupo (opcional)</option>');
+        if (!unidadId) {
+            select.prop('disabled', true);
+            return;
+        }
 
-            grupos.forEach(grupo => {
+        // Buscar la unidad seleccionada
+        const unidad = this.unidadesCompletas.find(u => u.id == unidadId);
+
+        if (unidad && unidad.grupos && unidad.grupos.length > 0) {
+            select.prop('disabled', false);
+            unidad.grupos.forEach(grupo => {
                 select.append(`<option value="${grupo.id}">${grupo.nombreGrupo}</option>`);
             });
-
-            console.log(`👥 ${grupos.length} grupos cargados`);
-        } catch (error) {
-            console.error('Error al cargar grupos:', error);
+            console.log(`👥 ${unidad.grupos.length} grupos cargados para la unidad ${unidad.nombreUnidad}`);
+        } else {
+            select.prop('disabled', true);
+            select.append('<option value="">No hay grupos para esta materia</option>');
+            console.warn('No se encontraron grupos para esta unidad');
         }
     }
 
@@ -209,6 +220,7 @@ class AsistenciaManager {
         // Cambiar botones
         $('#btnIniciarSesion').fadeOut();
         $('#btnFinalizarSesion').fadeIn();
+        $('#btnFinalizarSesionFinal').fadeIn(); // Mostrar también el botón al final
 
         // Mostrar mensaje
         this.mostrarFeedback('success', `
@@ -241,6 +253,7 @@ class AsistenciaManager {
 
         // Cambiar botones
         $('#btnFinalizarSesion').fadeOut();
+        $('#btnFinalizarSesionFinal').fadeOut(); // Ocultar también el botón del final
         $('#btnIniciarSesion').fadeIn();
 
         // Guardar reporte (aquí se implementaría el guardado en base de datos)
@@ -250,8 +263,9 @@ class AsistenciaManager {
             <p class="mb-0">Reporte guardado con ${this.asistenciasSesionActual.length} asistencias</p>
         `);
 
-        // Limpiar sesión actual
+        // Limpiar sesión actual y Set de estudiantes escaneados
         this.asistenciasSesionActual = [];
+        this.estudiantesEscaneadosEnSesion.clear();
 
         console.log('✅ Sesión de asistencia finalizada');
     }
@@ -279,6 +293,17 @@ class AsistenciaManager {
 
         this.ultimoEscaneo = ahora;
 
+        // Verificar si este código QR ya fue escaneado en esta sesión
+        if (this.estudiantesEscaneadosEnSesion.has(codigoQR)) {
+            this.mostrarFeedback('error', `
+                <h5 class="mb-2">❌ Error: Escaneo Duplicado</h5>
+                <p class="mb-0">Este estudiante ya fue registrado en esta sesión</p>
+                <p class="mt-2 mb-0 small text-muted">Código: ${codigoQR}</p>
+            `);
+            this.reproducirSonido('error');
+            return;
+        }
+
         try {
             // Registrar asistencia
             const response = await fetch('/asistencia/registrar', {
@@ -296,7 +321,8 @@ class AsistenciaManager {
             const resultado = await response.json();
 
             if (resultado.success) {
-                // Éxito
+                // Éxito - Agregar a la lista de escaneados
+                this.estudiantesEscaneadosEnSesion.add(codigoQR);
                 this.asistenciasSesionActual.push(resultado.asistencia);
                 this.mostrarFeedback('success', `
                     <h5 class="mb-2">✅ Asistencia Registrada</h5>
@@ -447,6 +473,13 @@ class AsistenciaManager {
         $('#selectUnidadAsistencia').on('change', function() {
             self.unidadSeleccionada = $(this).val() || null;
             console.log('Unidad seleccionada:', self.unidadSeleccionada);
+
+            // Resetear grupo seleccionado
+            self.grupoSeleccionado = null;
+
+            // Cargar grupos de la unidad seleccionada
+            self.cargarGruposPorUnidad(self.unidadSeleccionada);
+
             self.verificarSeleccionCompleta();
         });
 
@@ -462,8 +495,13 @@ class AsistenciaManager {
             self.iniciarSesion();
         });
 
-        // Botón Finalizar Sesión
+        // Botón Finalizar Sesión (panel superior)
         $('#btnFinalizarSesion').on('click', function() {
+            self.finalizarSesion();
+        });
+
+        // Botón Finalizar Sesión (al final de la tabla)
+        $('#btnFinalizarSesionFinal').on('click', function() {
             self.finalizarSesion();
         });
 

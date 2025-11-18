@@ -20,6 +20,21 @@ class GrupoManager {
             return;
         }
 
+        // Mostrar indicador de carga
+        const tbody = document.getElementById('tbodyGrupos');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando grupos...</p>
+                    </td>
+                </tr>
+            `;
+        }
+
         await this.cargarGrupos();
         await this.cargarEstadisticas();
         this.configurarEventListeners();
@@ -237,31 +252,7 @@ class GrupoManager {
                 const grupoId = btn.getAttribute('data-grupo-id');
                 this.tomarAsistencia(grupoId);
             }
-
-            // Botón de actualizar tabla de grupos
-            if (e.target.closest('#btnActualizarGrupos')) {
-                this.refrescarGrupos();
-            }
         });
-    }
-
-    /**
-     * Refresca los datos de grupos
-     */
-    async refrescarGrupos() {
-        const btn = document.getElementById('btnActualizarGrupos');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
-        }
-
-        await this.cargarGrupos();
-        await this.cargarEstadisticas();
-
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-        }
     }
 
     /**

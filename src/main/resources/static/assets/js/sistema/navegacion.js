@@ -29,6 +29,10 @@ $(document).ready(function() {
     $('#linkMisGrupos').click(function(e){
         e.preventDefault();
         mostrarSeccion('#contentMisGrupos', this);
+        // Inicializar y cargar grupos automáticamente
+        if (window.grupoManager && typeof window.grupoManager.init === 'function') {
+            window.grupoManager.init();
+        }
     });
 
     $('#linkMisEstudiantes').click(function(e){
