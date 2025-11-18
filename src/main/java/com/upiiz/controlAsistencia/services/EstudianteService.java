@@ -76,17 +76,10 @@ public class EstudianteService {
         EstudianteEntity estudiante = new EstudianteEntity();
         estudiante.setBoleta(dto.getBoleta());
 
-        // Separar nombre completo en nombre y apellido
+        // Guardar nombre completo directamente
         String nombreCompleto = dto.getNombre();
-        String[] partes = nombreCompleto.split("\\s+", 2);
-
-        if (partes.length >= 2) {
-            estudiante.setNombre(partes[0]);
-            estudiante.setApellido(partes[1]);
-        } else {
-            estudiante.setNombre(nombreCompleto);
-            estudiante.setApellido("");
-        }
+        estudiante.setNombre(nombreCompleto); // Nombre completo
+        estudiante.setApellido(""); // Ya no se usa
 
         estudiante.setCorreo(dto.getCorreo());
         estudiante.setEstado(EstudianteEntity.Estado.activo);

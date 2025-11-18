@@ -14,10 +14,11 @@ public class EstudianteEntity {
     @Column(name = "boleta", unique = true, nullable = false, length = 50)
     private String boleta;
 
-    @Column(name = "nombre", nullable = false, length = 100)
-    private String nombre;
+    @Column(name = "nombre", nullable = false, length = 200)
+    private String nombre; // Nombre completo del estudiante
 
-    @Column(name = "apellido", nullable = false, length = 100)
+    @Column(name = "apellido", length = 100)
+    @Deprecated // Ya no se usa, se mantiene por compatibilidad con BD
     private String apellido;
 
     @Column(name = "correo", length = 150)
@@ -42,11 +43,11 @@ public class EstudianteEntity {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Constructor con parámetros
-    public EstudianteEntity(String boleta, String nombre, String apellido, String correo) {
+    // Constructor con parámetros (nombre completo)
+    public EstudianteEntity(String boleta, String nombreCompleto, String correo) {
         this.boleta = boleta;
-        this.nombre = nombre;
-        this.apellido = apellido;
+        this.nombre = nombreCompleto; // Nombre completo
+        this.apellido = ""; // Ya no se usa
         this.correo = correo;
         this.estado = Estado.activo;
         this.createdAt = LocalDateTime.now();
