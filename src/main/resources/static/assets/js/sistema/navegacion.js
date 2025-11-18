@@ -56,6 +56,10 @@ $(document).ready(function() {
     $('#linkReportes').click(function(e){
         e.preventDefault();
         mostrarSeccion('#contentReportes', this);
+        // Inicializar gestor de reportes si existe
+        if (window.reporteManager && typeof window.reporteManager.init === 'function') {
+            window.reporteManager.init();
+        }
     });
 
     // IMPORTANTE: El handler de #linkMiHorario también se maneja aquí para la navegación

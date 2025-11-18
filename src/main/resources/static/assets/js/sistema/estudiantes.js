@@ -134,17 +134,9 @@ class EstudianteManager {
                         nombreCompleto,
                         estudiante.correo || 'No registrado',
                         estadoBadge,
-                        `<div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-primary btn-sm btn-ver-grupos" data-estudiante-id="${estudiante.id}" title="Ver grupos">
-                                <i class="fas fa-users"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm btn-editar" data-estudiante-id="${estudiante.id}" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>`
+                        `<button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
+                            <i class="fas fa-eye"></i> Ver Información
+                        </button>`
                     ]);
                 });
             }
@@ -219,23 +211,11 @@ class EstudianteManager {
             <td>${estudiante.correo || 'No registrado'}</td>
             <td class="text-center">${estadoBadge}</td>
             <td class="text-center">
-                <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-info btn-sm btn-ver-detalle"
-                            data-estudiante-id="${estudiante.id}"
-                            title="Ver detalles">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-primary btn-sm btn-ver-grupos"
-                            data-estudiante-id="${estudiante.id}"
-                            title="Ver grupos">
-                        <i class="fas fa-users"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm btn-eliminar"
-                            data-estudiante-id="${estudiante.id}"
-                            title="Eliminar">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                <button class="btn btn-info btn-sm btn-ver-detalle"
+                        data-estudiante-id="${estudiante.id}"
+                        title="Ver detalles">
+                    <i class="fas fa-eye"></i> Ver Información
+                </button>
             </td>
         `;
 
@@ -356,18 +336,6 @@ class EstudianteManager {
                 const btn = e.target.closest('.btn-ver-detalle');
                 const estudianteId = btn.getAttribute('data-estudiante-id');
                 this.verDetalleEstudiante(estudianteId);
-            }
-
-            if (e.target.closest('.btn-ver-grupos')) {
-                const btn = e.target.closest('.btn-ver-grupos');
-                const estudianteId = btn.getAttribute('data-estudiante-id');
-                this.verGruposEstudiante(estudianteId);
-            }
-
-            if (e.target.closest('.btn-eliminar')) {
-                const btn = e.target.closest('.btn-eliminar');
-                const estudianteId = btn.getAttribute('data-estudiante-id');
-                this.eliminarEstudiante(estudianteId);
             }
         });
 
