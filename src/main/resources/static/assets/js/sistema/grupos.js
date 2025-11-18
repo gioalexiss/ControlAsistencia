@@ -113,24 +113,21 @@ class GrupoManager {
 
         const tabla = $('#tablaGruposDinamica');
 
-        // Si el DataTable ya existe, destruirlo primero
+        // Si el DataTable ya existe, destruirlo primero (sin clear para preservar datos)
         if ($.fn.DataTable.isDataTable(tabla)) {
-            tabla.DataTable().clear().destroy();
+            tabla.DataTable().destroy();
         }
 
-        // Pequeño delay para asegurar que el DOM se actualice
-        setTimeout(() => {
-            // Crear nuevo DataTable
-            tabla.DataTable({
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
-                },
-                pageLength: 10,
-                order: [[0, 'asc']],
-                responsive: true,
-                destroy: true
-            });
-        }, 100);
+        // Crear nuevo DataTable inmediatamente (el DOM ya está listo)
+        tabla.DataTable({
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+            },
+            pageLength: 10,
+            order: [[0, 'asc']],
+            responsive: true,
+            destroy: true
+        });
     }
 
     /**
@@ -154,21 +151,14 @@ class GrupoManager {
                 </span>
             </td>
             <td>
-                <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-primary btn-sm btn-tomar-asistencia"
-                            data-grupo-id="${grupo.id}"
-                            title="Tomar Asistencia">
-                        <i class="fas fa-check-circle"></i> Tomar Asistencia
-                    </button>
-                    <button class="btn btn-success btn-sm btn-importar-estudiantes"
-                            data-grupo-id="${grupo.id}"
-                            data-grupo-nombre="${grupo.nombreGrupo}"
-                            data-unidad-id="${unidad.id}"
-                            data-unidad-nombre="${unidad.nombreUnidad}"
-                            title="Importar Estudiantes desde Excel">
-                        <i class="fas fa-file-excel"></i> Importar Alumnos
-                    </button>
-                </div>
+                <button class="btn btn-success btn-sm btn-importar-estudiantes"
+                        data-grupo-id="${grupo.id}"
+                        data-grupo-nombre="${grupo.nombreGrupo}"
+                        data-unidad-id="${unidad.id}"
+                        data-unidad-nombre="${unidad.nombreUnidad}"
+                        title="Importar Estudiantes desde Excel">
+                    <i class="fas fa-file-excel"></i> Importar Alumnos
+                </button>
             </td>
         `;
 
