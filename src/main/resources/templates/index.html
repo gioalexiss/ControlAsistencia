@@ -1004,55 +1004,45 @@
 									<div class="card-body">
 										<div class="alert alert-info">
 											<i class="fas fa-info-circle"></i>
-											Aquí puedes ver todas las asistencias registradas. Usa los filtros para buscar por grupo o rango de fechas.
+											Aquí puedes ver todos los reportes de asistencia agrupados por sesión. Cada reporte contiene la lista completa de estudiantes que asistieron.
 										</div>
 
 										<!-- Filtros -->
 										<div class="row mb-4">
-											<div class="col-md-4">
-												<label class="form-label">Grupo (opcional)</label>
+											<div class="col-md-10">
+												<label class="form-label">Filtrar por Grupo (opcional)</label>
 												<select class="form-select" id="selectGrupoReporte">
 													<option value="">Todos los grupos</option>
 												</select>
 											</div>
-											<div class="col-md-3">
-												<label class="form-label">Fecha Inicio (opcional)</label>
-												<input type="date" class="form-control" id="fechaInicioReporte">
-											</div>
-											<div class="col-md-3">
-												<label class="form-label">Fecha Fin (opcional)</label>
-												<input type="date" class="form-control" id="fechaFinReporte">
-											</div>
 											<div class="col-md-2">
 												<label class="form-label">&nbsp;</label>
-												<button class="btn btn-primary w-100" id="btnGenerarReporte">
+												<button class="btn btn-primary w-100" id="btnFiltrarReporte">
 													<i class="fas fa-filter"></i> Filtrar
 												</button>
 											</div>
 										</div>
 
-										<!-- Tabla de resultados -->
+										<!-- Tabla de reportes -->
 										<div class="table-responsive">
-											<table class="table table-striped table-bordered" id="tablaReporte">
+											<table class="table table-striped table-bordered" id="tablaReportes">
 												<thead class="table-dark">
 													<tr>
 														<th>#</th>
 														<th>Fecha</th>
-														<th>Hora</th>
-														<th>Boleta</th>
-														<th>Nombre</th>
 														<th>Grupo</th>
 														<th>Materia</th>
-														<th>Estado</th>
+														<th>Total Alumnos</th>
+														<th>Acciones</th>
 													</tr>
 												</thead>
-												<tbody id="tbodyReporte">
+												<tbody id="tbodyReportes">
 													<tr>
-														<td colspan="8" class="text-center py-5">
+														<td colspan="6" class="text-center py-5">
 															<div class="spinner-border text-primary" role="status">
 																<span class="visually-hidden">Cargando...</span>
 															</div>
-															<p class="mt-2 text-muted">Cargando asistencias...</p>
+															<p class="mt-2 text-muted">Cargando reportes...</p>
 														</td>
 													</tr>
 												</tbody>

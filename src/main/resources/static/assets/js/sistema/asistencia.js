@@ -713,19 +713,108 @@ class AsistenciaManager {
      * Eliminar una asistencia
      */
     async eliminarAsistencia(id) {
+        this.mostrarModalEliminarAsistencia(id);
+    }
+
+    /**
+     * Mostrar modal de confirmación para eliminar asistencia
+     */
+    mostrarModalEliminarAsistencia(id) {
+        // Limpiar modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalEliminarAsistencia');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
+        const modalHTML = `
+            <div class="modal fade" id="modalEliminarAsistencia" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-trash-alt"></i>
+                                Eliminar Registro de Asistencia
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                            </div>
+                            <h6 class="text-center mb-3">¿Está seguro de eliminar este registro de asistencia?</h6>
+                            <div class="alert alert-warning">
+                                <p class="mb-0"><i class="fas fa-info-circle"></i> <strong>Advertencia:</strong> Esta acción no se puede deshacer.</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Agregar modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Inicializar modal
+        const modalElement = document.getElementById('modalEliminarAsistencia');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            modalElement.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
+        // Evento del botón de confirmar
+        document.getElementById('btnConfirmarEliminar').addEventListener('click', async () => {
+            modal.hide();
+            await this.ejecutarEliminacionAsistencia(id);
+        });
+
+        modal.show();
+    }
+
+    /**
+     * Ejecutar eliminación de asistencia (después de confirmar)
+     */
+    async ejecutarEliminacionAsistencia(id) {
         try {
             const response = await fetch(`/asistencia/${id}`, { method: 'DELETE' });
             const resultado = await response.json();
 
             if (resultado.success) {
-                alert('✅ Asistencia eliminada correctamente');
+                this.mostrarFeedback('success', `
+                    <h5 class="mb-2">✅ Asistencia Eliminada</h5>
+                    <p class="mb-0">El registro ha sido eliminado correctamente</p>
+                `);
                 await this.cargarAsistenciasHoy();
             } else {
-                alert('❌ Error: ' + resultado.mensaje);
+                this.mostrarFeedback('error', `
+                    <h5 class="mb-2">❌ Error al Eliminar</h5>
+                    <p class="mb-0">${resultado.mensaje}</p>
+                `);
             }
         } catch (error) {
             console.error('Error al eliminar asistencia:', error);
-            alert('Error al eliminar asistencia: ' + error.message);
+            this.mostrarFeedback('error', `
+                <h5 class="mb-2">❌ Error de Conexión</h5>
+                <p class="mb-0">${error.message}</p>
+            `);
         }
     }
 

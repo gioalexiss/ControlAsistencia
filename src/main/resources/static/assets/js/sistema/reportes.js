@@ -1,13 +1,14 @@
 /**
  * Gestor de Reportes de Asistencia
- * Maneja la visualización y filtrado de reportes de asistencia
+ * Maneja reportes agrupados por sesión (grupo + materia + fecha)
  */
 
 class ReporteManager {
     constructor() {
         this.docenteId = localStorage.getItem('docenteId');
         this.asistencias = [];
-        this.asistenciasFiltradas = [];
+        this.reportes = []; // Reportes agrupados por sesión
+        this.reportesFiltrados = [];
         this.grupos = [];
         this.dataTable = null;
     }
@@ -80,7 +81,7 @@ class ReporteManager {
     }
 
     /**
-     * Cargar todas las asistencias del docente
+     * Cargar todas las asistencias y agrupar por sesión
      */
     async cargarTodasAsistencias() {
         try {
@@ -88,10 +89,11 @@ class ReporteManager {
             if (!response.ok) throw new Error('Error al cargar asistencias');
 
             this.asistencias = await response.json();
-            this.asistenciasFiltradas = [...this.asistencias];
+            this.agruparPorSesion();
+            this.reportesFiltrados = [...this.reportes];
             this.renderizarTabla();
 
-            console.log(`✅ ${this.asistencias.length} asistencias cargadas`);
+            console.log(`✅ ${this.asistencias.length} asistencias cargadas, ${this.reportes.length} sesiones encontradas`);
         } catch (error) {
             console.error('Error al cargar asistencias:', error);
             this.mostrarError('Error al cargar las asistencias');
@@ -99,48 +101,61 @@ class ReporteManager {
     }
 
     /**
-     * Aplicar filtros a las asistencias
+     * Agrupar asistencias por sesión (grupo + materia + fecha)
+     */
+    agruparPorSesion() {
+        const sesionesMap = new Map();
+
+        this.asistencias.forEach(asistencia => {
+            const fecha = new Date(asistencia.fechaHora);
+            const fechaKey = fecha.toISOString().split('T')[0]; // Solo la fecha YYYY-MM-DD
+            const grupoId = asistencia.grupoId || 'sin-grupo';
+            const unidadId = asistencia.unidadId || 'sin-unidad';
+
+            // Clave única para cada sesión: fecha + grupo + unidad
+            const key = `${fechaKey}-${grupoId}-${unidadId}`;
+
+            if (!sesionesMap.has(key)) {
+                sesionesMap.set(key, {
+                    fecha: fechaKey,
+                    grupoId: grupoId,
+                    unidadId: unidadId,
+                    nombreGrupo: asistencia.nombreGrupo || 'Sin grupo',
+                    nombreUnidad: asistencia.nombreUnidad || 'Sin materia',
+                    asistencias: []
+                });
+            }
+
+            sesionesMap.get(key).asistencias.push(asistencia);
+        });
+
+        // Convertir Map a Array y ordenar por fecha descendente
+        this.reportes = Array.from(sesionesMap.values())
+            .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    }
+
+    /**
+     * Aplicar filtro por grupo
      */
     aplicarFiltros() {
-        let asistenciasFiltradas = [...this.asistencias];
-
-        // Filtro por grupo
         const grupoSeleccionado = document.getElementById('selectGrupoReporte').value;
-        if (grupoSeleccionado) {
-            asistenciasFiltradas = asistenciasFiltradas.filter(
-                a => a.grupoId == grupoSeleccionado
+
+        if (!grupoSeleccionado) {
+            this.reportesFiltrados = [...this.reportes];
+        } else {
+            this.reportesFiltrados = this.reportes.filter(
+                r => r.grupoId == grupoSeleccionado
             );
         }
 
-        // Filtro por rango de fechas
-        const fechaInicio = document.getElementById('fechaInicioReporte').value;
-        const fechaFin = document.getElementById('fechaFinReporte').value;
-
-        if (fechaInicio) {
-            const fechaInicioObj = new Date(fechaInicio + 'T00:00:00');
-            asistenciasFiltradas = asistenciasFiltradas.filter(a => {
-                const fechaAsistencia = new Date(a.fechaHora);
-                return fechaAsistencia >= fechaInicioObj;
-            });
-        }
-
-        if (fechaFin) {
-            const fechaFinObj = new Date(fechaFin + 'T23:59:59');
-            asistenciasFiltradas = asistenciasFiltradas.filter(a => {
-                const fechaAsistencia = new Date(a.fechaHora);
-                return fechaAsistencia <= fechaFinObj;
-            });
-        }
-
-        this.asistenciasFiltradas = asistenciasFiltradas;
         this.renderizarTabla();
     }
 
     /**
-     * Renderizar tabla de asistencias
+     * Renderizar tabla de reportes
      */
     renderizarTabla() {
-        const tbody = document.getElementById('tbodyReporte');
+        const tbody = document.getElementById('tbodyReportes');
         if (!tbody) return;
 
         // Destruir DataTable si existe
@@ -151,62 +166,76 @@ class ReporteManager {
 
         tbody.innerHTML = '';
 
-        if (this.asistenciasFiltradas.length === 0) {
+        if (this.reportesFiltrados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-5">
+                    <td colspan="6" class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No hay asistencias registradas</h5>
-                        <p class="text-muted">Comienza a registrar asistencias desde la sección "Tomar Asistencia"</p>
+                        <h5 class="text-muted">No hay reportes disponibles</h5>
+                        <p class="text-muted">Los reportes se generan automáticamente al registrar asistencias</p>
                     </td>
                 </tr>
             `;
             return;
         }
 
-        this.asistenciasFiltradas.forEach((asistencia, index) => {
-            const tr = this.crearFilaAsistencia(asistencia, index + 1);
+        this.reportesFiltrados.forEach((reporte, index) => {
+            const tr = this.crearFilaReporte(reporte, index + 1);
             tbody.appendChild(tr);
         });
 
-        // Inicializar DataTable
+        // Inicializar DataTable (sin clear para preservar datos)
         setTimeout(() => {
             this.inicializarDataTable();
         }, 100);
     }
 
     /**
-     * Crear fila de asistencia
+     * Crear fila de reporte
      */
-    crearFilaAsistencia(asistencia, numero) {
+    crearFilaReporte(reporte, numero) {
         const tr = document.createElement('tr');
 
-        const fecha = new Date(asistencia.fechaHora);
+        const fecha = new Date(reporte.fecha + 'T00:00:00');
         const fechaFormateada = fecha.toLocaleDateString('es-MX', {
             year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-        const horaFormateada = fecha.toLocaleTimeString('es-MX', {
-            hour: '2-digit',
-            minute: '2-digit'
+            month: 'long',
+            day: 'numeric'
         });
 
-        const tipoBadge = asistencia.tipoAsistencia === 'PRESENTE'
-            ? '<span class="badge bg-success">PRESENTE</span>'
-            : asistencia.tipoAsistencia === 'RETARDO'
-                ? '<span class="badge bg-warning">RETARDO</span>'
-                : '<span class="badge bg-danger">FALTA</span>';
+        const totalAlumnos = reporte.asistencias.length;
+
+        // Serializar el reporte para pasarlo a las funciones
+        const reporteData = JSON.stringify(reporte);
+        const reporteDataEscaped = reporteData.replace(/"/g, '&quot;');
 
         tr.innerHTML = `
             <td class="text-center">${numero}</td>
             <td>${fechaFormateada}</td>
-            <td>${horaFormateada}</td>
-            <td><strong>${asistencia.boletaEstudiante || 'N/A'}</strong></td>
-            <td>${asistencia.nombreEstudiante || 'N/A'}</td>
-            <td>${asistencia.nombreGrupo || 'Sin grupo'}</td>
-            <td>${asistencia.nombreUnidad || 'Sin materia'}</td>
-            <td class="text-center">${tipoBadge}</td>
+            <td><strong>${reporte.nombreGrupo}</strong></td>
+            <td>${reporte.nombreUnidad}</td>
+            <td class="text-center">
+                <span class="badge bg-primary">${totalAlumnos} alumnos</span>
+            </td>
+            <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-info btn-sm btn-ver-detalle"
+                            data-reporte="${reporteDataEscaped}"
+                            title="Ver lista de alumnos">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-success btn-sm btn-descargar-excel"
+                            data-reporte="${reporteDataEscaped}"
+                            title="Descargar Excel">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm btn-descargar-pdf"
+                            data-reporte="${reporteDataEscaped}"
+                            title="Descargar PDF">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                </div>
+            </td>
         `;
 
         return tr;
@@ -224,7 +253,7 @@ class ReporteManager {
         }
 
         try {
-            this.dataTable = $('#tablaReporte').DataTable({
+            this.dataTable = $('#tablaReportes').DataTable({
                 language: {
                     "sProcessing": "Procesando...",
                     "sLengthMenu": "Mostrar _MENU_ registros",
@@ -241,42 +270,9 @@ class ReporteManager {
                         "sPrevious": "Anterior"
                     }
                 },
-                pageLength: 25,
-                order: [[1, 'desc'], [2, 'desc']], // Ordenar por fecha y hora descendente
-                dom: 'Bfrtip',
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i class="fas fa-file-excel"></i> Exportar a Excel',
-                        className: 'btn btn-success btn-sm',
-                        title: 'Reporte de Asistencias',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="fas fa-file-pdf"></i> Exportar a PDF',
-                        className: 'btn btn-danger btn-sm',
-                        title: 'Reporte de Asistencias',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                        },
-                        orientation: 'landscape',
-                        pageSize: 'LEGAL'
-                    },
-                    {
-                        extend: 'print',
-                        text: '<i class="fas fa-print"></i> Imprimir',
-                        className: 'btn btn-info btn-sm',
-                        title: 'Reporte de Asistencias',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                        }
-                    }
-                ],
-                retrieve: true,
-                stateSave: false
+                pageLength: 10,
+                order: [[1, 'desc']], // Ordenar por fecha descendente
+                destroy: true
             });
         } catch (error) {
             console.error('Error al inicializar DataTable:', error);
@@ -285,9 +281,259 @@ class ReporteManager {
     }
 
     /**
+     * Ver detalle del reporte (lista de alumnos)
+     */
+    verDetalleReporte(reporte) {
+        // Limpiar modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalDetalleReporte');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
+        const fecha = new Date(reporte.fecha + 'T00:00:00');
+        const fechaFormateada = fecha.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Generar lista de estudiantes
+        let listaEstudiantes = '';
+        reporte.asistencias.forEach((asistencia, index) => {
+            const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            listaEstudiantes += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${asistencia.boletaEstudiante}</td>
+                    <td>${asistencia.nombreEstudiante}</td>
+                    <td>${hora}</td>
+                    <td><span class="badge bg-success">${asistencia.tipoAsistencia}</span></td>
+                </tr>
+            `;
+        });
+
+        const modalHTML = `
+            <div class="modal fade" id="modalDetalleReporte" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-clipboard-list"></i>
+                                Detalle del Reporte
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <p class="mb-1"><strong>Fecha:</strong> ${fechaFormateada}</p>
+                                <p class="mb-1"><strong>Grupo:</strong> ${reporte.nombreGrupo}</p>
+                                <p class="mb-0"><strong>Materia:</strong> ${reporte.nombreUnidad}</p>
+                            </div>
+                            <h6>Lista de Alumnos (${reporte.asistencias.length})</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Boleta</th>
+                                            <th>Nombre</th>
+                                            <th>Hora</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${listaEstudiantes}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modalElement = document.getElementById('modalDetalleReporte');
+        const modal = new bootstrap.Modal(modalElement);
+
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            modalElement.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
+        modal.show();
+    }
+
+    /**
+     * Descargar reporte como Excel
+     */
+    descargarExcel(reporte) {
+        // Crear tabla HTML
+        let html = `
+            <table>
+                <tr>
+                    <th colspan="5" style="text-align:center; font-size:16px; font-weight:bold;">
+                        Reporte de Asistencia
+                    </th>
+                </tr>
+                <tr>
+                    <th>Fecha:</th>
+                    <td colspan="4">${reporte.fecha}</td>
+                </tr>
+                <tr>
+                    <th>Grupo:</th>
+                    <td colspan="4">${reporte.nombreGrupo}</td>
+                </tr>
+                <tr>
+                    <th>Materia:</th>
+                    <td colspan="4">${reporte.nombreUnidad}</td>
+                </tr>
+                <tr><td colspan="5">&nbsp;</td></tr>
+                <tr style="background-color:#4472C4; color:white; font-weight:bold;">
+                    <th>#</th>
+                    <th>Boleta</th>
+                    <th>Nombre</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+                </tr>
+        `;
+
+        reporte.asistencias.forEach((asistencia, index) => {
+            const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${asistencia.boletaEstudiante}</td>
+                    <td>${asistencia.nombreEstudiante}</td>
+                    <td>${hora}</td>
+                    <td>${asistencia.tipoAsistencia}</td>
+                </tr>
+            `;
+        });
+
+        html += '</table>';
+
+        // Convertir a blob y descargar
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Reporte_${reporte.nombreGrupo}_${reporte.fecha}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Descargar reporte como PDF
+     */
+    descargarPDF(reporte) {
+        // Usar window.print() con una página personalizada
+        const fecha = new Date(reporte.fecha + 'T00:00:00');
+        const fechaFormateada = fecha.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        let listaEstudiantes = '';
+        reporte.asistencias.forEach((asistencia, index) => {
+            const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            listaEstudiantes += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${asistencia.boletaEstudiante}</td>
+                    <td>${asistencia.nombreEstudiante}</td>
+                    <td>${hora}</td>
+                    <td>${asistencia.tipoAsistencia}</td>
+                </tr>
+            `;
+        });
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Reporte de Asistencia</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h1 { text-align: center; color: #333; }
+                    .info { margin: 20px 0; }
+                    .info p { margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #4472C4; color: white; }
+                    @media print {
+                        body { margin: 0; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Reporte de Asistencia</h1>
+                <div class="info">
+                    <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+                    <p><strong>Grupo:</strong> ${reporte.nombreGrupo}</p>
+                    <p><strong>Materia:</strong> ${reporte.nombreUnidad}</p>
+                    <p><strong>Total de Alumnos:</strong> ${reporte.asistencias.length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Boleta</th>
+                            <th>Nombre</th>
+                            <th>Hora</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${listaEstudiantes}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+        }, 250);
+    }
+
+    /**
      * Configurar event listeners
      */
     configurarEventListeners() {
+        // Botón filtrar
+        const btnFiltrar = document.getElementById('btnFiltrarReporte');
+        if (btnFiltrar) {
+            btnFiltrar.addEventListener('click', () => {
+                this.aplicarFiltros();
+            });
+        }
+
         // Filtro por grupo
         const selectGrupo = document.getElementById('selectGrupoReporte');
         if (selectGrupo) {
@@ -296,29 +542,29 @@ class ReporteManager {
             });
         }
 
-        // Botón generar reporte (aplicar filtros)
-        const btnGenerar = document.getElementById('btnGenerarReporte');
-        if (btnGenerar) {
-            btnGenerar.addEventListener('click', () => {
-                this.aplicarFiltros();
-            });
-        }
+        // Event delegation para botones de acción
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-ver-detalle')) {
+                const btn = e.target.closest('.btn-ver-detalle');
+                const reporteData = btn.getAttribute('data-reporte');
+                const reporte = JSON.parse(reporteData.replace(/&quot;/g, '"'));
+                this.verDetalleReporte(reporte);
+            }
 
-        // Filtros de fecha
-        const fechaInicio = document.getElementById('fechaInicioReporte');
-        const fechaFin = document.getElementById('fechaFinReporte');
+            if (e.target.closest('.btn-descargar-excel')) {
+                const btn = e.target.closest('.btn-descargar-excel');
+                const reporteData = btn.getAttribute('data-reporte');
+                const reporte = JSON.parse(reporteData.replace(/&quot;/g, '"'));
+                this.descargarExcel(reporte);
+            }
 
-        if (fechaInicio) {
-            fechaInicio.addEventListener('change', () => {
-                this.aplicarFiltros();
-            });
-        }
-
-        if (fechaFin) {
-            fechaFin.addEventListener('change', () => {
-                this.aplicarFiltros();
-            });
-        }
+            if (e.target.closest('.btn-descargar-pdf')) {
+                const btn = e.target.closest('.btn-descargar-pdf');
+                const reporteData = btn.getAttribute('data-reporte');
+                const reporte = JSON.parse(reporteData.replace(/&quot;/g, '"'));
+                this.descargarPDF(reporte);
+            }
+        });
     }
 
     /**
