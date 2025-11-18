@@ -21,24 +21,9 @@ public class SeguridadConfigDocente {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas (login, registro, assets)
-                        .requestMatchers(
-                                "/",
-                                "/auth/**",
-                                "/assets/**",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/favicon.ico"
-                        ).permitAll()
-                        // Rutas protegidas - requieren autenticación
-                        .requestMatchers(
-                                "/horario/**",
-                                "/grupos/**",
-                                "/estudiantes/**",
-                                "/api/**"
-                        ).authenticated()
-                        .anyRequest().authenticated()
+                        // Todas las rutas son públicas ya que usamos autenticación personalizada con localStorage
+                        // La validación del docenteId se hace en el backend a través de los parámetros de las peticiones
+                        .anyRequest().permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
