@@ -2,7 +2,7 @@ $(document).ready(function() {
 
     function mostrarSeccion(seccionID, linkActivo) {
         // Oculta todas las secciones
-        $('#dashboardPrincipal, #contentMisGrupos, #contentMisEstudiantes, #contentReportes, #contentMiHorario').hide();
+        $('#dashboardPrincipal, #contentMisGrupos, #contentMisEstudiantes, #contentTomarAsistencia, #contentReportes, #contentMiHorario').hide();
 
         // Remueve la clase 'active' de todos los links del menú
         $('#menu a').removeClass('active');
@@ -37,6 +37,15 @@ $(document).ready(function() {
         // Inicializar gestor de estudiantes si existe
         if (window.estudianteManager && typeof window.estudianteManager.init === 'function') {
             window.estudianteManager.init();
+        }
+    });
+
+    $('#linkTomarAsistencia').click(function(e){
+        e.preventDefault();
+        mostrarSeccion('#contentTomarAsistencia', this);
+        // Inicializar gestor de asistencia si existe
+        if (window.asistenciaManager && typeof window.asistenciaManager.init === 'function') {
+            window.asistenciaManager.init();
         }
     });
 
