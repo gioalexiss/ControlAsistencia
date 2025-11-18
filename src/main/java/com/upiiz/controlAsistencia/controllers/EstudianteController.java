@@ -272,6 +272,23 @@ public class EstudianteController {
     }
 
     /**
+     * Endpoint para generar QR codes masivamente para todos los estudiantes de un docente
+     * POST /estudiantes/generar-qr-masivo/{docenteId}
+     */
+    @PostMapping("/generar-qr-masivo/{docenteId}")
+    @ResponseBody
+    public ResponseEntity<?> generarQRMasivo(@PathVariable Long docenteId) {
+        try {
+            Map<String, Object> resultado = estudianteService.generarQRMasivoParaDocente(docenteId);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al generar QR masivo: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Método auxiliar para crear respuestas de error
      */
     private Map<String, Object> crearRespuestaError(String mensaje) {

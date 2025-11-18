@@ -196,6 +196,62 @@ public class EstudianteService {
         grupoEstudianteRepository.deleteByIdGrupoAndIdEstudiante(idGrupo, idEstudiante);
     }
 
+    /**
+     * Generar QR codes masivamente para todos los estudiantes de un docente
+     */
+    @Transactional
+    public java.util.Map<String, Object> generarQRMasivoParaDocente(Long docenteId) {
+        java.util.Map<String, Object> resultado = new java.util.HashMap<>();
+
+        // Obtener todos los estudiantes del docente
+        List<EstudianteEntity> estudiantes = obtenerEstudiantesPorDocente(docenteId);
+
+        if (estudiantes.isEmpty()) {
+            resultado.put("success", false);
+            resultado.put("mensaje", "No hay estudiantes registrados para este docente");
+            return resultado;
+        }
+
+        int generados = 0;
+        int yaExistian = 0;
+        List<String> errores = new ArrayList<>();
+
+        for (EstudianteEntity estudiante : estudiantes) {
+            try {
+                if (estudiante.getQrCode() == null || estudiante.getQrCode().isEmpty()) {
+                    // Generar QR code único basado en la boleta
+                    String qrCode = generarCodigoQR(estudiante.getBoleta());
+                    estudiante.setQrCode(qrCode);
+                    estudianteRepository.save(estudiante);
+                    generados++;
+                } else {
+                    yaExistian++;
+                }
+            } catch (Exception e) {
+                errores.add("Error al generar QR para " + estudiante.getBoleta() + ": " + e.getMessage());
+            }
+        }
+
+        resultado.put("success", true);
+        resultado.put("totalEstudiantes", estudiantes.size());
+        resultado.put("qrGenerados", generados);
+        resultado.put("yaExistian", yaExistian);
+        resultado.put("errores", errores);
+        resultado.put("mensaje", String.format("Proceso completado: %d QR generados, %d ya existían",
+                                              generados, yaExistian));
+
+        return resultado;
+    }
+
+    /**
+     * Generar código QR único para un estudiante
+     */
+    private String generarCodigoQR(String boleta) {
+        // Generar un código único basado en la boleta y un timestamp
+        long timestamp = System.currentTimeMillis();
+        return "QR-" + boleta + "-" + timestamp;
+    }
+
     // ========================================
     // CLASES INTERNAS
     // ========================================
