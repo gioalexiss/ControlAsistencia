@@ -248,10 +248,13 @@ public class ExcelExtractorService {
 
             // En dominios comunes, corregir confusiones típicas
             if (dominio.contains("gmai") || dominio.contains("hotmai") || dominio.contains("yahoo") ||
-                dominio.contains("outlook") || dominio.contains("alumn") || dominio.contains("ipn")) {
+                dominio.contains("outlook") || dominio.contains("outloo") || dominio.contains("alumn") || dominio.contains("ipn")) {
 
                 // Correcciones específicas para dominios conocidos
                 dominio = corregirDominioComun(dominio);
+
+                // Corregir el usuario si hay patrones sospechosos
+                usuario = corregirUsuarioCorreo(usuario, dominio);
             }
 
             correo = usuario + "@" + dominio;
@@ -270,6 +273,8 @@ public class ExcelExtractorService {
         correccionesDominios.put("gmai1", "gmail");
         correccionesDominios.put("hotmai1.com", "hotmail.com");
         correccionesDominios.put("hotmai1", "hotmail");
+        correccionesDominios.put("outloo.com", "outlook.com");
+        correccionesDominios.put("outloo", "outlook");
         correccionesDominios.put("a1umno", "alumno");
         correccionesDominios.put("a1umnos", "alumnos");
 
@@ -293,6 +298,40 @@ public class ExcelExtractorService {
         }
 
         return dominio;
+    }
+
+    /**
+     * Intenta corregir confusiones comunes de l/i en nombres de usuario
+     * Solo aplica correcciones cuando hay alta probabilidad de error
+     */
+    private String corregirUsuarioCorreo(String usuario, String dominio) {
+        if (usuario == null || usuario.isEmpty()) return usuario;
+
+        String usuarioOriginal = usuario;
+
+        // Si el dominio es outlook y el usuario tiene "ie" seguido de "cito/cita",
+        // probablemente sea "le" (ej: "soiecito" -> "solecito")
+        if (dominio.contains("outlook") || dominio.contains("hotmail") || dominio.contains("gmail")) {
+            // Patrón: vocal + ie + cit[oa] → probablemente sea vocal + le + cit[oa]
+            // Ejemplos: "soiecito" -> "solecito", "mariecita" -> "marlecita" (aunque este último podría ser incorrecto)
+            // Para ser más seguros, solo corregir patrones muy específicos
+
+            // Caso: [vocal]ie + cito/cita → [vocal]le + cito/cita
+            usuario = usuario.replaceAll("([aeiou])ie(cit[oa])", "$1le$2");
+
+            // Caso: [consonante]ie + cito/cita donde tiene sentido (ej: "soie" -> "sole")
+            // Solo aplicar en nombres comunes que sabemos que usan "l"
+            if (usuario.matches(".*soie.*")) {
+                usuario = usuario.replace("soie", "sole");
+            }
+        }
+
+        // Si se hizo algún cambio, loggear para transparencia
+        if (!usuario.equals(usuarioOriginal)) {
+            System.out.println("🔄 Corrección de usuario: '" + usuarioOriginal + "' → '" + usuario + "'");
+        }
+
+        return usuario;
     }
 
     /**
