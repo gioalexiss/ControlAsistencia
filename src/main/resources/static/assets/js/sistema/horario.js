@@ -18,7 +18,23 @@ $(document).ready(function () {
     // ==== 3️⃣ MOSTRAR Y OCULTAR SECCIONES ====
     $('#linkMiHorario').click(function (e) {
         e.preventDefault();
-        $('#dashboardPrincipal').hide();
+
+        // Ocultar todas las secciones
+        $('#dashboardPrincipal, #contentMisGrupos, #contentMisEstudiantes, #contentReportes, #contentMiHorario').hide();
+
+        // Remover la clase 'active' de todos los links del menú
+        $('#menu a').removeClass('active');
+
+        // Cambiar todos los iconos SVG a color gris
+        $('#menu .svg-icon-path').attr('stroke', '#888888');
+
+        // Agregar la clase 'active' al link seleccionado
+        $(this).addClass('active');
+
+        // Cambiar los iconos SVG del link activo a color azul
+        $(this).find('.svg-icon-path').attr('stroke', '#1E90FF');
+
+        // Mostrar la sección de horario
         $('#contentMiHorario').fadeIn();
 
         // Solo cargar si no se han cargado antes

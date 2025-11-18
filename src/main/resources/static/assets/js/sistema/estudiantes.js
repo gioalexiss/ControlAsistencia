@@ -8,7 +8,10 @@ class EstudianteManager {
         this.docenteId = localStorage.getItem('docenteId');
         this.estudiantes = [];
         this.estudiantesFiltrados = [];
+        this.grupos = [];
+        this.grupoSeleccionado = '';
         this.dataTable = null;
+        this.inicializado = false;
     }
 
     /**
@@ -20,8 +23,52 @@ class EstudianteManager {
             return;
         }
 
+        // Evitar inicialización múltiple
+        if (this.inicializado) {
+            return;
+        }
+
+        await this.cargarGrupos();
         await this.cargarEstudiantes();
         this.configurarEventListeners();
+        this.inicializado = true;
+    }
+
+    /**
+     * Carga la lista de grupos del docente
+     */
+    async cargarGrupos() {
+        try {
+            const response = await fetch(`/grupos/docente/${this.docenteId}`);
+
+            if (!response.ok) {
+                throw new Error('Error al cargar grupos');
+            }
+
+            this.grupos = await response.json();
+            this.poblarSelectGrupos();
+        } catch (error) {
+            console.error('Error al cargar grupos:', error);
+        }
+    }
+
+    /**
+     * Llena el select de grupos con los datos obtenidos
+     */
+    poblarSelectGrupos() {
+        const selectGrupo = document.getElementById('selectGrupoEstudiante');
+        if (!selectGrupo) return;
+
+        // Limpiar opciones existentes excepto la primera
+        selectGrupo.innerHTML = '<option value="">Todos los grupos</option>';
+
+        // Agregar opciones de grupos
+        this.grupos.forEach(grupo => {
+            const option = document.createElement('option');
+            option.value = grupo.id;
+            option.textContent = `${grupo.nombreGrupo} - ${grupo.nombreMateria || 'Sin materia'}`;
+            selectGrupo.appendChild(option);
+        });
     }
 
     /**
@@ -36,8 +83,7 @@ class EstudianteManager {
             }
 
             this.estudiantes = await response.json();
-            this.estudiantesFiltrados = [...this.estudiantes];
-            this.renderizarTabla();
+            this.aplicarFiltros();
         } catch (error) {
             console.error('Error al cargar estudiantes:', error);
             this.mostrarError('Error al cargar los estudiantes');
@@ -185,7 +231,16 @@ class EstudianteManager {
         const inputBusqueda = document.getElementById('inputBuscarEstudiante');
         if (inputBusqueda) {
             inputBusqueda.addEventListener('input', (e) => {
-                this.filtrarEstudiantes(e.target.value);
+                this.aplicarFiltros();
+            });
+        }
+
+        // Filtro por grupo
+        const selectGrupo = document.getElementById('selectGrupoEstudiante');
+        if (selectGrupo) {
+            selectGrupo.addEventListener('change', (e) => {
+                this.grupoSeleccionado = e.target.value;
+                this.aplicarFiltros();
             });
         }
 
@@ -193,7 +248,7 @@ class EstudianteManager {
         const selectEstado = document.getElementById('selectEstadoEstudiante');
         if (selectEstado) {
             selectEstado.addEventListener('change', (e) => {
-                this.filtrarPorEstado(e.target.value);
+                this.aplicarFiltros();
             });
         }
 
@@ -228,15 +283,30 @@ class EstudianteManager {
     }
 
     /**
-     * Filtra estudiantes por texto de búsqueda
+     * Aplica todos los filtros activos
      */
-    filtrarEstudiantes(texto) {
-        const textoLower = texto.toLowerCase().trim();
+    async aplicarFiltros() {
+        let estudiantesFiltrados = [...this.estudiantes];
 
-        if (textoLower === '') {
-            this.estudiantesFiltrados = [...this.estudiantes];
-        } else {
-            this.estudiantesFiltrados = this.estudiantes.filter(est => {
+        // Filtro por grupo
+        if (this.grupoSeleccionado) {
+            try {
+                const response = await fetch(`/estudiantes/grupo/${this.grupoSeleccionado}`);
+                if (response.ok) {
+                    const estudiantesDelGrupo = await response.json();
+                    const idsEstudiantesGrupo = new Set(estudiantesDelGrupo.map(e => e.id));
+                    estudiantesFiltrados = estudiantesFiltrados.filter(est => idsEstudiantesGrupo.has(est.id));
+                }
+            } catch (error) {
+                console.error('Error al filtrar por grupo:', error);
+            }
+        }
+
+        // Filtro por texto de búsqueda
+        const inputBusqueda = document.getElementById('inputBuscarEstudiante');
+        if (inputBusqueda && inputBusqueda.value.trim() !== '') {
+            const textoLower = inputBusqueda.value.toLowerCase().trim();
+            estudiantesFiltrados = estudiantesFiltrados.filter(est => {
                 const nombreCompleto = `${est.nombre} ${est.apellido || ''}`.toLowerCase();
                 return est.boleta.toLowerCase().includes(textoLower) ||
                        nombreCompleto.includes(textoLower) ||
@@ -244,20 +314,29 @@ class EstudianteManager {
             });
         }
 
+        // Filtro por estado
+        const selectEstado = document.getElementById('selectEstadoEstudiante');
+        if (selectEstado && selectEstado.value !== 'todos') {
+            const estado = selectEstado.value;
+            estudiantesFiltrados = estudiantesFiltrados.filter(est => est.estado === estado);
+        }
+
+        this.estudiantesFiltrados = estudiantesFiltrados;
         this.renderizarTabla();
     }
 
     /**
-     * Filtra estudiantes por estado
+     * Filtra estudiantes por texto de búsqueda (legacy - ahora usa aplicarFiltros)
+     */
+    filtrarEstudiantes(texto) {
+        this.aplicarFiltros();
+    }
+
+    /**
+     * Filtra estudiantes por estado (legacy - ahora usa aplicarFiltros)
      */
     filtrarPorEstado(estado) {
-        if (estado === 'todos') {
-            this.estudiantesFiltrados = [...this.estudiantes];
-        } else {
-            this.estudiantesFiltrados = this.estudiantes.filter(est => est.estado === estado);
-        }
-
-        this.renderizarTabla();
+        this.aplicarFiltros();
     }
 
     /**

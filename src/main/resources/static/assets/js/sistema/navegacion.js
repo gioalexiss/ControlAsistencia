@@ -34,6 +34,10 @@ $(document).ready(function() {
     $('#linkMisEstudiantes').click(function(e){
         e.preventDefault();
         mostrarSeccion('#contentMisEstudiantes', this);
+        // Inicializar gestor de estudiantes si existe
+        if (window.estudianteManager && typeof window.estudianteManager.init === 'function') {
+            window.estudianteManager.init();
+        }
     });
 
     $('#linkReportes').click(function(e){
@@ -41,10 +45,8 @@ $(document).ready(function() {
         mostrarSeccion('#contentReportes', this);
     });
 
-    $('#linkMiHorario').click(function(e){
-        e.preventDefault();
-        mostrarSeccion('#contentMiHorario', this);
-    });
+    // NOTA: El handler de #linkMiHorario se maneja en horario.js
+    // para incluir la lógica de carga de datos
 
     // Inicializa mostrando el panel principal con clase active
     mostrarSeccion('#dashboardPrincipal', '#linkDashboard');
