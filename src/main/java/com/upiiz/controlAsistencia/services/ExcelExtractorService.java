@@ -57,11 +57,13 @@ public class ExcelExtractorService {
             Map<String, Integer> columnIndices = identificarColumnas(headerRow);
 
             // Validar que se encontraron las columnas necesarias
-            if (!columnIndices.containsKey("boleta") ||
-                !columnIndices.containsKey("nombre") ||
-                !columnIndices.containsKey("correo")) {
+            boolean tieneNombre = columnIndices.containsKey("nombreCompleto") ||
+                                 columnIndices.containsKey("nombre") ||
+                                 (columnIndices.containsKey("apellidoPaterno") && columnIndices.containsKey("apellidoMaterno"));
+
+            if (!columnIndices.containsKey("boleta") || !tieneNombre || !columnIndices.containsKey("correo")) {
                 throw new IllegalArgumentException(
-                    "El archivo Excel debe contener las columnas: Boleta, Nombre y Correo"
+                    "El archivo Excel debe contener las columnas: Boleta, Nombre (o Apellidos + Nombre) y Correo"
                 );
             }
 
@@ -79,12 +81,12 @@ public class ExcelExtractorService {
                 }
                 boleta = limpiarTexto(boleta);
 
-                // Extraer nombre
-                String nombre = obtenerValorCelda(row, columnIndices.get("nombre"));
-                if (nombre == null || nombre.trim().isEmpty()) {
+                // Extraer nombre completo (combinando apellidos y nombre si están separados)
+                String nombreCompleto = extraerNombreCompleto(row, columnIndices);
+                if (nombreCompleto == null || nombreCompleto.trim().isEmpty()) {
                     continue; // Saltar filas sin nombre
                 }
-                nombre = limpiarTexto(nombre);
+                nombreCompleto = limpiarTexto(nombreCompleto);
 
                 // Extraer correo
                 String correo = obtenerValorCelda(row, columnIndices.get("correo"));
@@ -106,10 +108,10 @@ public class ExcelExtractorService {
                 }
 
                 estudiante.put("boleta", boleta);
-                estudiante.put("nombre", nombre);
+                estudiante.put("nombre", nombreCompleto);
                 estudiante.put("correo", correo);
 
-                System.out.println("✅ Fila " + (i + 1) + ": " + boleta + " | " + nombre + " | " + correo);
+                System.out.println("✅ Fila " + (i + 1) + ": " + boleta + " | " + nombreCompleto + " | " + correo);
                 estudiantes.add(estudiante);
             }
 
@@ -125,6 +127,7 @@ public class ExcelExtractorService {
 
     /**
      * Identifica las columnas del Excel buscando los encabezados
+     * Soporta múltiples formatos: nombre completo en una columna o apellidos/nombre separados
      */
     private Map<String, Integer> identificarColumnas(Row headerRow) {
         Map<String, Integer> indices = new HashMap<>();
@@ -138,8 +141,21 @@ public class ExcelExtractorService {
 
                     if (header.contains("boleta") || header.contains("matricula")) {
                         indices.put("boleta", i);
-                    } else if (header.contains("nombre")) {
-                        indices.put("nombre", i);
+                    } else if (header.contains("apellido") && header.contains("paterno")) {
+                        indices.put("apellidoPaterno", i);
+                    } else if (header.contains("apellido") && header.contains("materno")) {
+                        indices.put("apellidoMaterno", i);
+                    } else if (header.contains("apellido") && !header.contains("paterno") && !header.contains("materno")) {
+                        // Columna "Apellido" o "Apellidos" sin especificar tipo
+                        indices.put("apellidos", i);
+                    } else if (header.contains("nombre") && !header.contains("completo")) {
+                        // Solo guardar si no hay apellidos ya identificados
+                        if (!indices.containsKey("nombre")) {
+                            indices.put("nombre", i);
+                        }
+                    } else if (header.contains("nombre") && header.contains("completo")) {
+                        // Priorizar "Nombre Completo" sobre nombre separado
+                        indices.put("nombreCompleto", i);
                     } else if (header.contains("correo") || header.contains("email") || header.contains("mail")) {
                         indices.put("correo", i);
                     }
@@ -148,6 +164,82 @@ public class ExcelExtractorService {
         }
 
         return indices;
+    }
+
+    /**
+     * Extrae el nombre completo del estudiante combinando apellidos y nombre si están separados
+     * Soporta varios formatos:
+     * - Nombre Completo (una sola columna)
+     * - Apellido Paterno + Apellido Materno + Nombre
+     * - Apellidos + Nombre
+     * - Solo Nombre
+     */
+    private String extraerNombreCompleto(Row row, Map<String, Integer> columnIndices) {
+        // Prioridad 1: Si existe columna "Nombre Completo", usarla directamente
+        if (columnIndices.containsKey("nombreCompleto")) {
+            String nombreCompleto = obtenerValorCelda(row, columnIndices.get("nombreCompleto"));
+            if (nombreCompleto != null && !nombreCompleto.trim().isEmpty()) {
+                return nombreCompleto.trim();
+            }
+        }
+
+        // Prioridad 2: Combinar Apellido Paterno + Apellido Materno + Nombre
+        if (columnIndices.containsKey("apellidoPaterno") && columnIndices.containsKey("apellidoMaterno")) {
+            StringBuilder nombreCompleto = new StringBuilder();
+
+            String apellidoPaterno = obtenerValorCelda(row, columnIndices.get("apellidoPaterno"));
+            if (apellidoPaterno != null && !apellidoPaterno.trim().isEmpty()) {
+                nombreCompleto.append(apellidoPaterno.trim());
+            }
+
+            String apellidoMaterno = obtenerValorCelda(row, columnIndices.get("apellidoMaterno"));
+            if (apellidoMaterno != null && !apellidoMaterno.trim().isEmpty()) {
+                if (nombreCompleto.length() > 0) nombreCompleto.append(" ");
+                nombreCompleto.append(apellidoMaterno.trim());
+            }
+
+            if (columnIndices.containsKey("nombre")) {
+                String nombre = obtenerValorCelda(row, columnIndices.get("nombre"));
+                if (nombre != null && !nombre.trim().isEmpty()) {
+                    if (nombreCompleto.length() > 0) nombreCompleto.append(" ");
+                    nombreCompleto.append(nombre.trim());
+                }
+            }
+
+            if (nombreCompleto.length() > 0) {
+                return nombreCompleto.toString();
+            }
+        }
+
+        // Prioridad 3: Combinar Apellidos + Nombre
+        if (columnIndices.containsKey("apellidos") && columnIndices.containsKey("nombre")) {
+            StringBuilder nombreCompleto = new StringBuilder();
+
+            String apellidos = obtenerValorCelda(row, columnIndices.get("apellidos"));
+            if (apellidos != null && !apellidos.trim().isEmpty()) {
+                nombreCompleto.append(apellidos.trim());
+            }
+
+            String nombre = obtenerValorCelda(row, columnIndices.get("nombre"));
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                if (nombreCompleto.length() > 0) nombreCompleto.append(" ");
+                nombreCompleto.append(nombre.trim());
+            }
+
+            if (nombreCompleto.length() > 0) {
+                return nombreCompleto.toString();
+            }
+        }
+
+        // Prioridad 4: Solo usar columna "Nombre" (podría contener el nombre completo)
+        if (columnIndices.containsKey("nombre")) {
+            String nombre = obtenerValorCelda(row, columnIndices.get("nombre"));
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                return nombre.trim();
+            }
+        }
+
+        return null;
     }
 
     /**
