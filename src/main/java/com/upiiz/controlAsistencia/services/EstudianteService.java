@@ -291,27 +291,57 @@ public class EstudianteService {
             byte[] qrImage = qrCodeService.generarImagenQR(estudiante.getQrCode());
 
             String htmlContent = String.format(
-                "<!DOCTYPE html>" +
-                "<html>" +
-                "<head><meta charset='UTF-8'></head>" +
-                "<body style='font-family: Arial, sans-serif; text-align: center; padding: 20px; margin: 0;'>" +
-                "<div style='max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 30px; border-radius: 10px;'>" +
-                "<h2 style='color: #1E90FF; margin-bottom: 20px;'>Hola %s,</h2>" +
-                "<p style='font-size: 16px; color: #333; margin-bottom: 20px;'>Este es tu código QR personal para el registro de asistencia.</p>" +
-                "<div style='margin: 20px 0; background-color: white; padding: 20px; border-radius: 8px;'>" +
-                "<img src='cid:qrImage' alt='Código QR' width='300' height='300' style='display: block; margin: 0 auto; border: 2px solid #1E90FF; border-radius: 8px;'/>" +
-                "</div>" +
-                "<div style='background-color: white; padding: 15px; border-radius: 8px; margin-top: 20px;'>" +
-                "<p style='margin: 5px 0;'><strong>Código:</strong> <code style='background-color: #f0f0f0; padding: 5px 10px; border-radius: 4px;'>%s</code></p>" +
-                "<p style='margin: 5px 0;'><strong>Boleta:</strong> %s</p>" +
-                "</div>" +
-                "<p style='margin-top: 20px; color: #666;'>Guarda este código QR, lo necesitarás para registrar tu asistencia.</p>" +
-                "<hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>" +
-                "<p style='color: #999; font-size: 12px;'>Sistema de Control de Asistencia - IPN</p>" +
-                "</div>" +
-                "</body>" +
-                "</html>",
-                estudiante.getNombre(),
+                    "<!DOCTYPE html>" +
+                            "<html>" +
+                            "<head><meta charset='UTF-8'></head>" +
+                            "<body style='font-family: Arial, sans-serif; padding: 25px; margin: 0; background-color: #F5F5F5;'>" +
+
+                            "<div style='max-width: 650px; margin: 0 auto; background-color: #FFFFFF; padding: 35px; " +
+                            "border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.15); border: 1px solid #D9D9D9;'>" +
+
+// LOGO
+                            "<div style='text-align: center; margin-bottom: 25px;'>" +
+                            "<img src='https://sociedadtecnologiaydeontologia.wordpress.com/wp-content/uploads/2019/01/logotipo_ipn.png?w=640' " +
+                            "alt='IPN' width='140' style='display:block; margin:auto;'>" +
+                            "</div>" +
+
+// TÍTULO
+                            "<h2 style='color: #8B0A50; margin-bottom: 10px; text-align: center; font-size: 26px; font-weight: 700;'>Instituto Politécnico Nacional</h2>" +
+                            "<p style='text-align:center; color:#555; margin-bottom:30px; font-size:15px;'>Unidad Profesional Interdisciplinaria de Ingeniería Campus Zacatecas</p>" +
+
+// SALUDO
+                            "<h3 style='color: #8B0A50; margin-bottom: 10px; text-align: center;'>Hola %s,</h3>" +
+                            "<p style='font-size: 16px; color: #333; text-align: center;'>Este es tu código QR personal para el control de asistencia.</p>" +
+
+// QR
+                            "<div style='text-align: center; padding: 20px; background-color: #F4E8EC; border-radius: 10px; border-left: 6px solid #8B0A50; margin: 25px 0;'>" +
+                            "<img src='cid:qrImage' alt='Código QR' width='260' height='260' " +
+                            "style='display:block; margin:auto; border: 3px solid #8B0A50; border-radius: 10px;'>" +
+                            "</div>" +
+
+// DATOS
+                            "<div style='background-color: #FAFAFA; padding: 18px; border-radius: 10px; border: 1px solid #E0E0E0;'>" +
+                            "<p style='margin: 10px 0; font-size: 15px;'><strong style='color: #8B0A50;'>Código:</strong> " +
+                            "<code style='background-color: #EDEDED; padding: 6px 12px; border-radius: 5px; font-size: 15px;'>%s</code></p>" +
+
+                            "<p style='margin: 10px 0; font-size: 15px;'><strong style='color: #8B0A50;'>Boleta:</strong> %s</p>" +
+                            "</div>" +
+
+// NOTA
+                            "<p style='margin-top: 25px; color: #444; text-align: center; font-size: 14px;'>Guarda este código QR, lo necesitarás para registrar tu asistencia.</p>" +
+
+                            "<hr style='border: none; border-top: 1px solid #D6C4C9; margin: 30px 0;'>" +
+
+// FOOTER
+                            "<p style='color: #8B0A50; font-size: 13px; text-align: center; font-weight: bold;'>Sistema de Control de Asistencia - IPN</p>" +
+                            "<p style='color: #999; font-size: 12px; text-align: center;'>Este mensaje fue generado automáticamente, por favor no responder.</p>" +
+
+                            "</div>" +
+                            "</body>" +
+                            "</html>"
+                    ,
+
+                    estudiante.getNombre(),
                 estudiante.getQrCode(),
                 estudiante.getBoleta()
             );
