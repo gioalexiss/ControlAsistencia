@@ -91,13 +91,11 @@ public class EstudianteService {
      * Actualiza los datos de un estudiante existente
      */
     private void actualizarDatos(EstudianteEntity estudiante, EstudianteDTO dto) {
-        // Separar nombre completo
+        // Guardar nombre completo directamente (igual que en crearDesdeDTO)
         String nombreCompleto = dto.getNombre();
-        String[] partes = nombreCompleto.split("\\s+", 2);
-
-        if (partes.length >= 2) {
-            estudiante.setNombre(partes[0]);
-            estudiante.setApellido(partes[1]);
+        if (nombreCompleto != null && !nombreCompleto.trim().isEmpty()) {
+            estudiante.setNombre(nombreCompleto.trim()); // Nombre completo
+            estudiante.setApellido(""); // Ya no se usa, mantener vacío
         }
 
         if (dto.getCorreo() != null && !dto.getCorreo().isEmpty()) {
