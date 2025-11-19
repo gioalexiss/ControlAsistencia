@@ -9617,9 +9617,9 @@ label {
   .mb-xxl-4 {
     margin-bottom: 1.5rem !important; } }
 
-/* Editable */
+/* Editable - Preloader IPN */
 #preloader {
-  background-color: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
   padding: 0;
   margin: 0;
   height: 100%;
@@ -9628,34 +9628,100 @@ label {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center; }
-  #preloader .lds-ripple {
-    display: inline-block;
-    position: relative;
-    width: 80px;
-    height: 80px; }
-  #preloader .lds-ripple div {
-    position: absolute;
-    border: 4px solid var(--primary);
-    opacity: 1;
-    border-radius: 50%;
-    animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite; }
-  #preloader .lds-ripple div:nth-child(2) {
-    animation-delay: -0.5s; }
+  justify-content: center;
+  flex-direction: column; }
 
-@keyframes lds-ripple {
-  0% {
-    top: 36px;
-    left: 36px;
-    width: 0;
-    height: 0;
+/* Contenedor del loader IPN */
+.ipn-loader {
+  text-align: center;
+  position: relative; }
+
+/* Logo IPN */
+.ipn-logo {
+  margin-bottom: 30px; }
+
+/* Letras IPN */
+.ipn-letters {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px; }
+
+.ipn-letters span {
+  font-size: 72px;
+  font-weight: 900;
+  font-family: 'Arial Black', sans-serif;
+  color: #822433;
+  /* Color guinda del IPN */
+  text-shadow: 3px 3px 6px rgba(130, 36, 51, 0.3);
+  animation: ipn-letter-pulse 1.5s ease-in-out infinite;
+  display: inline-block; }
+
+.letter-i {
+  animation-delay: 0s; }
+
+.letter-p {
+  animation-delay: 0.2s; }
+
+.letter-n {
+  animation-delay: 0.4s; }
+
+/* Subtítulo */
+.ipn-subtitle {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  animation: ipn-fade 2s ease-in-out infinite; }
+
+/* Spinner de carga */
+.ipn-spinner {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px; }
+
+.spinner-segment {
+  width: 12px;
+  height: 40px;
+  background: linear-gradient(180deg, #822433 0%, #a52a3a 100%);
+  border-radius: 6px;
+  animation: ipn-spinner-bounce 1.2s ease-in-out infinite; }
+
+.spinner-segment:nth-child(1) {
+  animation-delay: 0s; }
+
+.spinner-segment:nth-child(2) {
+  animation-delay: 0.15s; }
+
+.spinner-segment:nth-child(3) {
+  animation-delay: 0.3s; }
+
+/* Animación de pulsación de letras */
+@keyframes ipn-letter-pulse {
+  0%, 100% {
+    transform: scale(1);
     opacity: 1; }
-  100% {
-    top: 0px;
-    left: 0px;
-    width: 72px;
-    height: 72px;
-    opacity: 0; } }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8; } }
+
+/* Animación de fade del subtítulo */
+@keyframes ipn-fade {
+  0%, 100% {
+    opacity: 0.5; }
+  50% {
+    opacity: 1; } }
+
+/* Animación de rebote del spinner */
+@keyframes ipn-spinner-bounce {
+  0%, 80%, 100% {
+    transform: scaleY(0.6);
+    opacity: 0.6; }
+  40% {
+    transform: scaleY(1);
+    opacity: 1; } }
 
 [data-theme-version="dark"] #preloader {
   background-color: #1E1E1E; }
