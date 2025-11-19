@@ -41,23 +41,25 @@ class GrupoManager {
     }
 
     /**
-     * Carga todos los grupos del docente
+     * Carga todos los grupos del docente desde el horario
+     * Usa el mismo endpoint que horario.js para garantizar datos consistentes
      */
     async cargarGrupos() {
         try {
-            const response = await fetch(`/grupos/docente/${this.docenteId}`);
-            const data = await response.json();
+            const response = await fetch(`/horario/obtener/${this.docenteId}`);
 
-            if (data.success) {
-                this.grupos = data.unidades || [];
-                this.renderizarGrupos();
-            } else {
-                console.warn('No se encontraron grupos');
-                this.mostrarMensajeSinGrupos();
+            if (!response.ok) {
+                throw new Error('Error al cargar horario');
             }
+
+            const unidades = await response.json();
+            this.grupos = unidades || [];
+
+            console.log(`📚 Grupos cargados: ${this.grupos.length} unidades desde horario`);
+            this.renderizarGrupos();
         } catch (error) {
             console.error('Error al cargar grupos:', error);
-            this.mostrarError('Error al cargar los grupos');
+            this.mostrarMensajeSinGrupos();
         }
     }
 

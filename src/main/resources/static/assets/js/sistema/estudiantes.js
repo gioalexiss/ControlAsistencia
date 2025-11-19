@@ -123,7 +123,7 @@ class EstudianteManager {
 
             if (this.estudiantesFiltrados.length > 0) {
                 this.estudiantesFiltrados.forEach((estudiante, index) => {
-                    const nombreCompleto = `${estudiante.nombre} ${estudiante.apellido || ''}`.trim();
+                    const nombreCompleto = estudiante.nombre; // Ya contiene el nombre completo
                     const estadoBadge = estudiante.estado === 'activo'
                         ? '<span class="badge badge-success">Activo</span>'
                         : '<span class="badge badge-secondary">Inactivo</span>';
@@ -201,8 +201,8 @@ class EstudianteManager {
             ? '<span class="badge badge-success">Activo</span>'
             : '<span class="badge badge-secondary">Inactivo</span>';
 
-        // Formatear nombre completo
-        const nombreCompleto = `${estudiante.nombre} ${estudiante.apellido || ''}`.trim();
+        // El nombre ya contiene el nombre completo
+        const nombreCompleto = estudiante.nombre;
 
         tr.innerHTML = `
             <td class="text-center">${numero}</td>
@@ -381,7 +381,7 @@ class EstudianteManager {
         if (inputBusqueda && inputBusqueda.value.trim() !== '') {
             const textoLower = inputBusqueda.value.toLowerCase().trim();
             estudiantesFiltrados = estudiantesFiltrados.filter(est => {
-                const nombreCompleto = `${est.nombre} ${est.apellido || ''}`.toLowerCase();
+                const nombreCompleto = est.nombre.toLowerCase(); // Ya contiene el nombre completo
                 return est.boleta.toLowerCase().includes(textoLower) ||
                        nombreCompleto.includes(textoLower) ||
                        (est.correo && est.correo.toLowerCase().includes(textoLower));
@@ -459,12 +459,8 @@ class EstudianteManager {
                                     <td><strong>${estudiante.boleta}</strong></td>
                                 </tr>
                                 <tr>
-                                    <th>Nombre:</th>
+                                    <th>Nombre Completo:</th>
                                     <td>${estudiante.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Apellido:</th>
-                                    <td>${estudiante.apellido || 'N/A'}</td>
                                 </tr>
                                 <tr>
                                     <th>Correo:</th>
@@ -546,7 +542,7 @@ class EstudianteManager {
             return;
         }
 
-        const nombreCompleto = `${estudiante.nombre} ${estudiante.apellido || ''}`.trim();
+        const nombreCompleto = estudiante.nombre; // Ya contiene el nombre completo
         const confirmacion = confirm(
             `¿Estás seguro de que deseas eliminar al estudiante ${nombreCompleto} (${estudiante.boleta})?\n\n` +
             `Esta acción no se puede deshacer y el estudiante será removido de todos sus grupos.`
