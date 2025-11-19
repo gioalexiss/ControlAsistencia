@@ -172,6 +172,137 @@ $(document).ready(function () {
         actualizarTablaHoras();
     });
 
+    // ==== 7️⃣ MODAL DE CONFIRMACIÓN PARA GUARDAR GRUPO ====
+    function mostrarModalConfirmacionGrupo(grupo, semestre, horarios) {
+        // Limpiar modales anteriores
+        $('.modal-backdrop').remove();
+        const modalAnterior = document.getElementById('modalConfirmarGrupo');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) modalInstance.dispose();
+            $(modalAnterior).remove();
+        }
+
+        // Generar tabla de horarios para el modal
+        let horariosHTML = '';
+        horarios.forEach(h => {
+            horariosHTML += `
+                <tr>
+                    <td>${h.dia}</td>
+                    <td>${h.inicio}</td>
+                    <td>${h.fin}</td>
+                    <td><span class="badge ${h.tipo === 'Teórica' ? 'bg-primary' : 'bg-success'}">${h.tipo}</span></td>
+                </tr>`;
+        });
+
+        const modalHTML = `
+            <div class="modal fade" id="modalConfirmarGrupo" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Confirmar Guardar Grupo
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Estás a punto de guardar el siguiente grupo:
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <strong><i class="fas fa-users me-2"></i>Grupo:</strong>
+                                            <span class="text-primary fs-5">${grupo}</span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong><i class="fas fa-calendar-alt me-2"></i>Semestre:</strong>
+                                            <span class="text-primary fs-5">${semestre}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="mb-3"><i class="fas fa-clock me-2"></i>Horarios del grupo:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Día</th>
+                                            <th>Hora Inicio</th>
+                                            <th>Hora Fin</th>
+                                            <th>Tipo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${horariosHTML}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                El grupo se agregará a la lista temporal. Recuerda hacer clic en <strong>"Guardar Unidad Completa"</strong> para guardar en la base de datos.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </button>
+                            <button type="button" class="btn btn-success" id="btnConfirmarGuardarGrupo">
+                                <i class="fas fa-check me-2"></i>Confirmar y Guardar Grupo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        $('body').append(modalHTML);
+        const modalElement = document.getElementById('modalConfirmarGrupo');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Limpiar al cerrar
+        $(modalElement).on('hidden.bs.modal', function () {
+            $('.modal-backdrop').remove();
+            $(modalElement).remove();
+            $('body').removeClass('modal-open');
+            $('body').css('overflow', '');
+            $('body').css('padding-right', '');
+        });
+
+        // Manejar confirmación
+        $('#btnConfirmarGuardarGrupo').on('click', function () {
+            const tipo = horarios[0].tipo || 'N/A';
+            gruposTemp.push({ grupo, tipo, semestre, horarios: [...horarios] });
+
+            horariosTemp = [];
+            actualizarTablaHoras();
+            actualizarTablaGrupos();
+
+            $('#grupo').val('');
+            $('#semestre').val('');
+            $('#tipoHorario').val('');
+
+            modal.hide();
+
+            // Mostrar mensaje de éxito con SweetAlert o Toast
+            const successHTML = `
+                <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999; min-width: 300px;" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>¡Grupo guardado exitosamente!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+            $('body').append(successHTML);
+            setTimeout(() => $('.alert-success').fadeOut(() => $('.alert-success').remove()), 3000);
+        });
+
+        modal.show();
+    }
+
     // ==== 7️⃣ GUARDAR GRUPO ====
     $('#btnGuardarGrupo').click(function () {
         const grupo = $('#grupo').val().trim();
@@ -186,16 +317,8 @@ $(document).ready(function () {
             return;
         }
 
-        const tipo = horariosTemp[0].tipo || 'N/A';
-        gruposTemp.push({ grupo, tipo, semestre, horarios: [...horariosTemp] });
-
-        horariosTemp = [];
-        actualizarTablaHoras();
-        actualizarTablaGrupos();
-
-        $('#grupo').val('');
-        $('#semestre').val('');
-        $('#tipoHorario').val('');
+        // Mostrar modal de confirmación en lugar de guardar directamente
+        mostrarModalConfirmacionGrupo(grupo, semestre, horariosTemp);
     });
 
     function actualizarTablaGrupos() {
@@ -239,47 +362,201 @@ $(document).ready(function () {
         actualizarTablaGrupos();
     });
 
+    // ==== 8️⃣ MODAL DE CONFIRMACIÓN PARA GUARDAR UNIDAD COMPLETA ====
+    function mostrarModalConfirmacionUnidad(nombreUnidad, grupos) {
+        // Limpiar modales anteriores
+        $('.modal-backdrop').remove();
+        const modalAnterior = document.getElementById('modalConfirmarUnidad');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) modalInstance.dispose();
+            $(modalAnterior).remove();
+        }
+
+        // Generar HTML de grupos y horarios
+        let gruposHTML = '';
+        grupos.forEach((g, index) => {
+            let horariosHTML = '';
+            g.horarios.forEach(h => {
+                horariosHTML += `
+                    <tr>
+                        <td>${h.dia}</td>
+                        <td>${h.inicio}</td>
+                        <td>${h.fin}</td>
+                        <td><span class="badge ${h.tipo === 'Teórica' ? 'bg-primary' : 'bg-success'}">${h.tipo}</span></td>
+                    </tr>`;
+            });
+
+            gruposHTML += `
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="fas fa-users text-primary me-2"></i>
+                                <strong>Grupo ${g.grupo}</strong>
+                            </span>
+                            <span class="badge bg-info">
+                                <i class="fas fa-calendar me-1"></i>
+                                Semestre ${g.semestre}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 25%">Día</th>
+                                        <th style="width: 25%">Inicio</th>
+                                        <th style="width: 25%">Fin</th>
+                                        <th style="width: 25%">Tipo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${horariosHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        const modalHTML = `
+            <div class="modal fade" id="modalConfirmarUnidad" tabindex="-1">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-save me-2"></i>
+                                Confirmar Guardar Unidad Completa
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Estás a punto de guardar la siguiente unidad en la base de datos:
+                            </div>
+
+                            <div class="card mb-3 border-primary">
+                                <div class="card-body bg-light">
+                                    <h5 class="text-primary mb-0">
+                                        <i class="fas fa-book me-2"></i>
+                                        ${nombreUnidad}
+                                    </h5>
+                                    <small class="text-muted">
+                                        <i class="fas fa-layer-group me-1"></i>
+                                        ${grupos.length} grupo${grupos.length !== 1 ? 's' : ''} incluido${grupos.length !== 1 ? 's' : ''}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <h6 class="mb-3">
+                                <i class="fas fa-list me-2"></i>
+                                Grupos y Horarios:
+                            </h6>
+
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                ${gruposHTML}
+                            </div>
+
+                            <div class="alert alert-success mt-3 mb-0">
+                                <i class="fas fa-database me-2"></i>
+                                Esta información se guardará permanentemente en la base de datos.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btnConfirmarGuardarUnidad">
+                                <i class="fas fa-save me-2"></i>Confirmar y Guardar en Base de Datos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        $('body').append(modalHTML);
+        const modalElement = document.getElementById('modalConfirmarUnidad');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Limpiar al cerrar
+        $(modalElement).on('hidden.bs.modal', function () {
+            $('.modal-backdrop').remove();
+            $(modalElement).remove();
+            $('body').removeClass('modal-open');
+            $('body').css('overflow', '');
+            $('body').css('padding-right', '');
+        });
+
+        // Manejar confirmación
+        $('#btnConfirmarGuardarUnidad').on('click', async function () {
+            // Deshabilitar botón para evitar doble clic
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
+
+            const data = {
+                docenteId: idDocente,
+                unidad: nombreUnidad,
+                grupos: grupos.map(g => ({
+                    grupo: g.grupo,
+                    semestre: g.semestre,
+                    tipo: g.tipo,
+                    horarios: g.horarios
+                }))
+            };
+
+            try {
+                const res = await fetch('/horario/guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const resultado = await res.text();
+
+                if (resultado.startsWith('OK:')) {
+                    modal.hide();
+
+                    // Mostrar mensaje de éxito
+                    const successHTML = `
+                        <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999; min-width: 350px;" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>¡Horario guardado correctamente en la base de datos!</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>`;
+                    $('body').append(successHTML);
+                    setTimeout(() => $('.alert-success').fadeOut(() => $('.alert-success').remove()), 4000);
+
+                    // Limpiar formulario
+                    gruposTemp = [];
+                    horariosTemp = [];
+                    actualizarTablaGrupos();
+                    actualizarTablaHoras();
+                    $('#formUnidad')[0].reset();
+                    horariosYaCargados = false;
+                    cargarHorariosDesdeBackend();
+                } else {
+                    alert('❌ Error: ' + resultado);
+                    $(this).prop('disabled', false).html('<i class="fas fa-save me-2"></i>Confirmar y Guardar en Base de Datos');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Error de conexión al guardar unidad');
+                $(this).prop('disabled', false).html('<i class="fas fa-save me-2"></i>Confirmar y Guardar en Base de Datos');
+            }
+        });
+
+        modal.show();
+    }
+
     // ==== 8️⃣ GUARDAR UNIDAD EN BD ====
-    $('#btnGuardarUnidad').click(async function () {
+    $('#btnGuardarUnidad').click(function () {
         const unidad = $('#unidad').val().trim();
         if (!unidad) { alert('Escribe el nombre de la unidad.'); return; }
         if (gruposTemp.length === 0) { alert('Agrega al menos un grupo.'); return; }
 
-        const data = {
-            docenteId: idDocente,
-            unidad,
-            grupos: gruposTemp.map(g => ({
-                grupo: g.grupo,
-                semestre: g.semestre,
-                tipo: g.tipo,
-                horarios: g.horarios
-            }))
-        };
-
-        try {
-            const res = await fetch('/horario/guardar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const resultado = await res.text();
-
-            if (resultado.startsWith('OK:')) {
-                alert('✅ Horario guardado correctamente');
-                gruposTemp = [];
-                horariosTemp = [];
-                actualizarTablaGrupos();
-                actualizarTablaHoras();
-                $('#formUnidad')[0].reset();
-                horariosYaCargados = false; // Resetear bandera para recargar
-                cargarHorariosDesdeBackend();
-            } else {
-                alert('❌ Error: ' + resultado);
-            }
-        } catch (err) {
-            console.error(err);
-            alert('❌ Error de conexión al guardar unidad');
-        }
+        // Mostrar modal de confirmación en lugar de guardar directamente
+        mostrarModalConfirmacionUnidad(unidad, gruposTemp);
     });
 
     // ==== 9️⃣ CARGAR UNIDADES DESDE BD ====
