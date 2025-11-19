@@ -130,11 +130,65 @@ public class EmailService {
     }
 
     public void enviarCodigo(String destino, String codigo) {
-        SimpleMailMessage mensaje = new SimpleMailMessage();
-        mensaje.setTo(destino);
-        mensaje.setSubject("Código de verificación - Control de Asistencia IPN");
-        mensaje.setText("Tu código de verificación es: " + codigo + "\n\nExpira en 10 minutos.\n\nSi no solicitaste este código, ignora este mensaje.");
-        mailSender.send(mensaje);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(destino);
+            helper.setSubject("Código de verificación - Control de Asistencia IPN");
+
+            String htmlTemplate = """
+                <html>
+                <head>
+                    <meta charset='UTF-8'>
+                    <style>
+                        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 0; margin: 0; }
+                        .container { max-width: 600px; margin: 20px auto; background: #ffffff;
+                                     border-radius: 12px; overflow: hidden;
+                                     box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                        .header { background: #6B0026; color: white; padding: 25px; text-align: center; }
+                        .header h1 { margin: 0; font-size: 22px; }
+                        .content { padding: 25px; color: #333; }
+                        .code-box { background: #8A0042; color: white; padding: 15px;
+                                    text-align: center; font-size: 28px; font-weight: bold;
+                                    border-radius: 8px; margin: 20px 0; letter-spacing: 4px; }
+                        .footer { text-align: center; font-size: 12px; padding: 15px;
+                                  color: #777; background: #f1e7ea; }
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>Control de Asistencia · IPN</h1>
+                        </div>
+
+                        <div class='content'>
+                            <p>Hola,</p>
+                            <p>Tu código de verificación es:</p>
+
+                            <div class='code-box'>%s</div>
+
+                            <p>Este código expira en <b>10 minutos</b>.</p>
+                            <p>Si no solicitaste este código, puedes ignorar este mensaje.</p>
+                        </div>
+
+                        <div class='footer'>
+                            © 2025 Instituto Politécnico Nacional — Mensaje automático
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """;
+
+            String html = String.format(htmlTemplate, codigo);
+
+            helper.setText(html, true); // true = HTML
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
 }

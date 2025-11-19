@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Alumnos</title>
+    <title>Politecnico - IPN Zacatecas</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,6 @@
         }
 
         body {
-            /* Fondo con imagen */
             background-image: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjFMNm0myCY3C1b7LRLHEsi5_00c4kiHqwRe-7_1At5x6sNm0S1tTJj1UtIBs2pH2Wa3iFIbtOE3JDIQ6r17HKb-Mp0Gg8_tISwmw1xKzSWJJlA_9FUaQxo2YrdVqjl55u1suOERB3tE_0/s1600/IMG_9465.JPG');
             background-size: cover;
             background-position: center;
@@ -27,404 +26,333 @@
             position: relative;
         }
 
-        /* Botón rojo para dashboard */
+        /* Capa overlay para mejorar legibilidad */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        /* Botón rojo de registro */
         .dashboard-btn {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: linear-gradient(to right, #d32f2f, #f44336);
+            background: linear-gradient(to right, #8B0A50, #C2185B);
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             z-index: 1000;
-            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
-            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(139, 10, 80, 0.35);
+            transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
         }
-
         .dashboard-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(to right, #C2185B, #8B0A50);
+            box-shadow: 0 6px 16px rgba(139, 10, 80, 0.45);
+        }
+        .dashboard-btn:active {
+            transform: translateY(0);
+        }
+
+
+        .registro-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(211, 47, 47, 0.5);
             background: linear-gradient(to right, #f44336, #d32f2f);
         }
 
-        .dashboard-btn:active {
+        .registro-btn:active {
             transform: translateY(0);
         }
 
         .container {
             width: 100%;
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #8B0A50;
+            padding: 8px;
+            background: white;
+            box-shadow: 0 8px 20px rgba(139, 10, 80, 0.3);
+        }
+
+        .institution-name {
+            color: #8B0A50;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .institution-subtitle {
+            color: #333;
+            font-size: 1.4rem;
+            font-weight: 400;
+            line-height: 1.7;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+        }
+
+        .separator {
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(to right, transparent, #8B0A50, transparent);
+            margin: 35px auto;
+            border-radius: 2px;
+        }
+
+        .motto {
+            color: #555;
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-top: 30px;
+            padding: 15px;
+            border-left: 3px solid #8B0A50;
+            background: rgba(139, 10, 80, 0.05);
+            border-radius: 0 8px 8px 0;
             max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Efectos y animaciones */
+        .logo-img {
+            transition: all 0.4s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.08) rotate(5deg);
+            box-shadow: 0 12px 25px rgba(139, 10, 80, 0.4);
+        }
+
+        .institution-name {
+            position: relative;
+            display: inline-block;
+        }
+
+        .institution-name::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 10%;
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #8B0A50, transparent);
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+
+        .institution-name:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 25px;
+            }
+
+            .institution-name {
+                font-size: 2.2rem;
+            }
+
+            .institution-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .logo-img {
+                width: 120px;
+                height: 120px;
+            }
+
+            .registro-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .institution-name {
+                font-size: 1.9rem;
+            }
+
+            .institution-subtitle {
+                font-size: 1.1rem;
+                padding: 0 10px;
+            }
+
+            .logo-img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .motto {
+                font-size: 1rem;
+            }
+
+            .registro-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
+        footer {
+            width: 100%;
+            margin-top: 40px;
+            padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            color: white;
+            text-align: center;
             position: relative;
             z-index: 2;
         }
 
-        .register-box {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .footer-content {
+            max-width: 900px;
+            margin: auto;
         }
 
-        h1 {
-            color: #8B0A50; /* Color guinda */
+        .footer-title {
+            font-size: 1.3rem;
+            font-weight: 600;
             margin-bottom: 10px;
-            font-size: 28px;
         }
 
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 16px;
+        .footer-text {
+            margin: 5px 0;
+            font-size: 1rem;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
+        .footer-link {
+            color: #ff8ba7;
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #444;
-            font-weight: 600;
+        .footer-link:hover {
+            text-decoration: underline;
         }
 
-        input, select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-            background-color: rgba(255, 255, 255, 0.9);
+        .social-icons {
+            margin: 15px 0;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: #8B0A50; /* Color guinda */
-            box-shadow: 0 0 0 2px rgba(139, 10, 80, 0.2);
-            background-color: white;
-        }
-
-        .btn {
-            background: linear-gradient(to right, #8B0A50, #A62C63); /* Gradiente guinda */
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+        .social-icon {
+            width: 35px;
+            height: 35px;
+            margin: 0 10px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+            transition: transform 0.2s ease;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.3s;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 10, 80, 0.4);
-            background: linear-gradient(to right, #A62C63, #8B0A50);
+        .social-icon:hover {
+            transform: scale(1.12);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .footer-rights {
+            font-size: 0.9rem;
+            margin-top: 15px;
+            opacity: 0.8;
         }
 
-        .message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .qr-container {
-            margin-top: 20px;
-            display: none;
-            text-align: center;
-        }
-
-        #qrCode {
-            margin: 0 auto;
-        }
-
-        .footer {
-            margin-top: 20px;
-            color: #777;
-            font-size: 14px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #8B0A50; /* Color guinda */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Instrucciones para cambiar la imagen */
-        .instructions {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 12px;
-            max-width: 300px;
-            z-index: 3;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .instructions h3 {
-            margin-bottom: 8px;
-            color: #8B0A50; /* Color guinda */
-        }
     </style>
 </head>
 <body>
-<!-- Botón rojo para dashboard -->
-<a href="/auth/login" class="dashboard-btn">Soy Docente</a>
+<a href="/auth/login" class="dashboard-btn">Iniciar sesión</a>
+
 
 <div class="container">
-    <div class="register-box">
-        <h1>Registro de Alumno</h1>
-        <p class="subtitle">Completa tus datos para registrarte</p>
-
-        <form id="registerForm">
-            <div class="form-group">
-                <label for="nombre">Nombre completo</label>
-                <input type="text" id="nombre" name="nombre" required>
-            </div>
-
-            <div class="form-group">
-                <label for="carrera">Carrera</label>
-                <select id="carrera" name="carrera" required>
-                    <option value="">Selecciona una carrera</option>
-                    <option value="Sistemas Computacionales">Ingeniería en Sistemas Computacionales</option>
-                    <option value="Inteligencia Artificial">Inteligencia Artificial</option>
-                    <option value="Metalúrgica">Ingeniería Metalúrgica</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="grado">Grado</label>
-                <select id="grado" name="grado" required>
-                    <option value="">Selecciona un grado</option>
-                    <option value="1">1°</option>
-                    <option value="2">2°</option>
-                    <option value="3">3°</option>
-                    <option value="4">4°</option>
-                    <option value="5">5°</option>
-                    <option value="6">6°</option>
-                    <option value="7">7°</option>
-                    <option value="8">8°</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="grupo">Grupo</label>
-                <select id="grupo" name="grupo" required>
-                    <option value="">Selecciona un grupo</option>
-                    <option value="A">Grupo A</option>
-                    <option value="B">Grupo B</option>
-                    <option value="C">Grupo C</option>
-                    <option value="D">Grupo D</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="materia">Materia</label>
-                <select id="materia" name="materia" required>
-                    <option value="">Selecciona una materia</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="correo">Correo electrónico</label>
-                <input type="email" id="correo" name="correo" required>
-            </div>
-
-            <div class="form-group">
-                <label for="boleta">Número de Boleta</label>
-                <input type="text" id="boleta" name="boleta" required>
-            </div>
-
-            <button type="submit" class="btn">Registrarse</button>
-        </form>
-
-        <div id="message" class="message"></div>
-
-        <div class="qr-container" id="qrContainer">
-            <h3>Código QR Generado</h3>
-            <div id="qrCode"></div>
-            <p class="footer">El código QR ha sido enviado a tu correo electrónico</p>
-        </div>
+    <div class="logo">
+        <!-- Logo del Politécnico -->
+        <img src="https://sociedadtecnologiaydeontologia.wordpress.com/wp-content/uploads/2019/01/logotipo_ipn.png?w=640" alt="Logo IPN" class="logo-img">
     </div>
+
+    <h1 class="institution-name">Instituto Politécnico Nacional</h1>
+
+    <div class="separator"></div>
+
+    <p class="institution-subtitle">
+        Unidad Profesional Interdisciplinaria de Ingeniería Campus Zacatecas IPN
+    </p>
+
+    <p class="motto">
+        "La Técnica al Servicio de la Patria"
+    </p>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-title">Instituto Politécnico Nacional • UPIIZ Zacatecas</p>
+
+            <p class="footer-text">
+                Teléfono: <a href="tel:4929245678" class="footer-link"> 55 5729 6000 </a>
+            </p>
+
+            <p class="footer-text">
+                Ext: <a href="EXT:4929245678" class="footer-link">83522</a>
+            </p>
+
+            <p class="footer-text">
+                Página oficial:
+                <a href="https://www.zacatecas.ipn.mx/" target="_blank" class="footer-link">
+                    https://www.zacatecas.ipn.mx
+                </a>
+            </p>
+
+            <div class="social-icons">
+                <a href="https://www.facebook.com/IPNZacatecas/?locale=es_LA" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" class="social-icon">
+                </a>
+                <a href="https://www.instagram.com/ipn_zacatecas/?hl=es" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" class="social-icon">
+                </a>
+            </div>
+
+            <p class="footer-rights">
+                © 2025 Instituto Politécnico Nacional — Todos los derechos reservados.
+            </p>
+        </div>
+    </footer>
+
 </div>
 
-<script>
-    // Datos de materias según carrera y grado
-    const materiasPorCarrera = {
-        "Sistemas Computacionales": {
-            1: ["Fundamentos de Programación", "Matemáticas discretas","Comunicación oral y escrita", "Calculo","Análisis vectorial"],
-            2: ["Algoritmos y estructura de datos", "Algebra lineal", "Mecánica y electromagnetismo","Calculo aplicado","Ingeniería ética y sociedad","Fundamentos económicos"],
-            3: ["Bases de Datos", "Análisis y diseño de algoritmos", "Paradigmas de programación","Ecuaciones diferenciales","Fundamentos de diseño digital","Circuitos eléctricos","Finanzas empresariales"],
-            4: ["Teoría de la computación", "Probabilidad y estadística", "Matemáticas avanzadas para la ingería","Diseño de sistemas digitales","Electrónica analógica"," Tecnologías para el desarrollo de aplicaciones web","Sistemas operativos"],
-            5: ["Compiladores", "Procesamiento digital de señales","Arquitectura de computadoras","Instrumentación y control","Análisis y diseño de sistemas","Redes de computadoras","Formulación y evaluación de proyectos informáticos"],
-            6: ["Inteligencia artificial", "Sistemas en chip", "Método cuantitativos para la toma de decisiones","Optativa A","Optativa B","Ingeniería de software"],
-            7: ["Trabajo terminal 1", "Sistemas distribuidos", "Optativa A2","Optativa B2","Desarrollo de aplicaciones móviles nativas","Administración de servicios en red"],
-            8: ["Trabajo terminal 2", "Liderazgo personal", "Gestión empresarial ","Desarrollo de habilidades sociales para la alta dirección"]
-        },
-        "IA": {
-            1: ["Fundamentos de Programación", "Matemáticas discretas","Comunicación oral y escrita", "Calculo","Mecánica y electromagnetismo","Fundamentos económicos "],
-            2: ["Algebra lineal","Cálculo multivariable","Fundamentos de diseño digital","Ingeniería ética y sociedad","Finanzas empresariales"],
-            3: ["Análisis y diseño de algoritmos", "Paradigmas de la programación", "Base de datos","Diseño de sistemas digitales","Liderazgo personal "],
-            4: ["Fundamentos de inteligencia artificial", "probabilidad y estadística", "Matemáticas avanzadas para la ingeniería"],
-            5: ["Aprendizaje de maquina", "Vision artificial", "Teoría de la computación","Procesamiento de señales","Algoritmos bioinspirados","Tecnologías de lenguaje natural"],
-            6: ["Cómputo paralelo", "Redes neuronales y aprendizaje profundo", "Ingeniería de software para sistemas inteligentes","Metodología de la investigación y divulgación científica","Optativa A","Optativa B"],
-            7: ["Trabajo terminal 1","Reconocimiento de voz","Formulación y evaluación de proyectos informáticos","Optativa C","Optativa D"],
-            8: ["Trabajo terminal 2","Gestión empresarial","Estacia profesional","Desarrollo de habilidades sociales para la alta dirección"]
-        },
-        "Metalúrgica": {
-            1: ["Introducción a la Metalurgia", "Química General", "Matemáticas I"],
-            2: ["Física I", "Cristalografía", "Procesos Metalúrgicos I"],
-            3: ["Termodinámica", "Metalografía", "Química Analítica"],
-            4: ["Tratamientos Térmicos", "Corrosión", "Mecánica de Materiales"],
-            5: ["Fundición", "Soldadura", "Ensayos No Destructivos"],
-            6: ["Metalurgia Extractiva", "Proyecto Metalúrgico", "Control de Calidad"]
-        }
-    };
 
-    const carreraSelect = document.getElementById("carrera");
-    const gradoSelect = document.getElementById("grado");
-    const materiaSelect = document.getElementById("materia");
-
-    // Cuando cambia carrera o grado → actualizar materias
-    function actualizarMaterias() {
-        const carrera = carreraSelect.value;
-        const grado = gradoSelect.value;
-
-        materiaSelect.innerHTML = "<option value=''>Selecciona una materia</option>";
-
-        if (carrera && grado && materiasPorCarrera[carrera] && materiasPorCarrera[carrera][grado]) {
-            materiasPorCarrera[carrera][grado].forEach(materia => {
-                const option = document.createElement("option");
-                option.value = materia;
-                option.textContent = materia;
-                materiaSelect.appendChild(option);
-            });
-        }
-    }
-
-    carreraSelect.addEventListener("change", actualizarMaterias);
-    gradoSelect.addEventListener("change", actualizarMaterias);
-
-    // CÓDIGO PARA EL REGISTRO
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('registerForm');
-        const messageDiv = document.getElementById('message');
-        const qrContainer = document.getElementById('qrContainer');
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'loading';
-        loadingDiv.innerHTML = '<div class="spinner"></div><p>Procesando registro...</p>';
-        form.appendChild(loadingDiv);
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            // Obtener datos del formulario
-            const alumno = {
-                nombre: document.getElementById('nombre').value,
-                carrera: document.getElementById('carrera').value,
-                grado: document.getElementById('grado').value,
-                materia: document.getElementById('materia').value,
-                correo: document.getElementById('correo').value,
-                grupo: document.getElementById('grupo').value,
-                boleta: document.getElementById('boleta').value
-            };
-
-            // Validar que se haya seleccionado una materia
-            if (!alumno.materia) {
-                showMessage('Por favor selecciona una materia', 'error');
-                return;
-            }
-
-            // Mostrar loading
-            loadingDiv.style.display = 'block';
-            messageDiv.style.display = 'none';
-            qrContainer.style.display = 'none';
-
-            try {
-                const response = await fetch('/api/registrar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(alumno)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showMessage(result.mensaje, 'success');
-                    qrContainer.style.display = 'block';
-                    form.reset();
-                    // Resetear también las materias
-                    actualizarMaterias();
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error de conexión: ' + error.message, 'error');
-            } finally {
-                loadingDiv.style.display = 'none';
-            }
-        });
-
-        function showMessage(text, type) {
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
-
-            // Auto-ocultar mensaje después de 5 segundos
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-    });
-</script>
 </body>
 </html>
