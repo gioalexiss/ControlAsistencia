@@ -109,14 +109,26 @@ class GrupoManager {
             return;
         }
 
-        this.grupos.forEach(unidad => {
+        console.log('🔍 Renderizando grupos:', this.grupos);
+
+        let totalGruposRenderizados = 0;
+
+        this.grupos.forEach((unidad, indexUnidad) => {
+            console.log(`📖 Unidad ${indexUnidad}:`, unidad.nombreUnidad, 'Grupos:', unidad.grupos);
+
             if (unidad.grupos && unidad.grupos.length > 0) {
-                unidad.grupos.forEach(grupo => {
+                unidad.grupos.forEach((grupo, indexGrupo) => {
+                    console.log(`  👥 Renderizando grupo ${indexGrupo}:`, grupo);
                     const fila = this.crearFilaGrupo(grupo, unidad);
                     tbody.appendChild(fila);
+                    totalGruposRenderizados++;
                 });
+            } else {
+                console.warn(`⚠️ Unidad "${unidad.nombreUnidad}" no tiene grupos`);
             }
         });
+
+        console.log(`✅ Total grupos renderizados: ${totalGruposRenderizados}`);
 
         // Inicializar o actualizar DataTable
         this.inicializarDataTable();
@@ -243,12 +255,6 @@ class GrupoManager {
      * Configura los event listeners
      */
     configurarEventListeners() {
-        // Botón de actualizar grupos
-        const btnActualizar = document.getElementById('btnActualizarGrupos');
-        if (btnActualizar) {
-            btnActualizar.addEventListener('click', () => this.actualizarGrupos());
-        }
-
         // Event delegation para botones de importar estudiantes
         document.addEventListener('click', (e) => {
             if (e.target.closest('.btn-importar-estudiantes')) {
@@ -266,47 +272,6 @@ class GrupoManager {
                 this.tomarAsistencia(grupoId);
             }
         });
-    }
-
-    /**
-     * Actualiza los grupos (recarga desde el servidor)
-     */
-    async actualizarGrupos() {
-        const btnActualizar = document.getElementById('btnActualizarGrupos');
-        if (btnActualizar) {
-            // Cambiar icono a spinner
-            const iconoOriginal = btnActualizar.innerHTML;
-            btnActualizar.disabled = true;
-            btnActualizar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
-
-            try {
-                await this.cargarGrupos();
-                await this.cargarEstadisticas();
-
-                // Mostrar notificación de éxito
-                const successHTML = `
-                    <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999; min-width: 300px;" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong>¡Grupos actualizados exitosamente!</strong>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>`;
-                document.body.insertAdjacentHTML('beforeend', successHTML);
-                setTimeout(() => {
-                    const alertElement = document.querySelector('.alert-success');
-                    if (alertElement) {
-                        alertElement.classList.remove('show');
-                        setTimeout(() => alertElement.remove(), 150);
-                    }
-                }, 3000);
-            } catch (error) {
-                console.error('Error al actualizar grupos:', error);
-                alert('Error al actualizar los grupos');
-            } finally {
-                // Restaurar botón
-                btnActualizar.disabled = false;
-                btnActualizar.innerHTML = iconoOriginal;
-            }
-        }
     }
 
     /**
