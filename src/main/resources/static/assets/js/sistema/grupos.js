@@ -138,17 +138,27 @@ class GrupoManager {
      * Inicializa o actualiza el DataTable
      */
     inicializarDataTable() {
-        if (!$.fn.DataTable) return;
+        if (!$.fn.DataTable) {
+            console.warn('⚠️ DataTable no está disponible');
+            return;
+        }
 
         const tabla = $('#tablaGruposDinamica');
+        const tbody = document.getElementById('tbodyGrupos');
 
-        // Si el DataTable ya existe, destruirlo primero (sin clear para preservar datos)
+        console.log('🔧 Inicializando DataTable...');
+        console.log('  📊 Filas en tbody antes de DataTable:', tbody ? tbody.children.length : 0);
+        console.log('  📋 HTML del tbody:', tbody ? tbody.innerHTML.substring(0, 200) : 'tbody no encontrado');
+
+        // Si el DataTable ya existe, destruirlo primero
         if ($.fn.DataTable.isDataTable(tabla)) {
+            console.log('  🗑️ Destruyendo DataTable existente');
             tabla.DataTable().destroy();
         }
 
         // Crear nuevo DataTable inmediatamente (el DOM ya está listo)
-        tabla.DataTable({
+        console.log('  ✨ Creando nuevo DataTable');
+        const dt = tabla.DataTable({
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
             },
@@ -157,6 +167,8 @@ class GrupoManager {
             responsive: true,
             destroy: true
         });
+
+        console.log('  ✅ DataTable creado, filas visibles:', dt.rows().count());
     }
 
     /**
