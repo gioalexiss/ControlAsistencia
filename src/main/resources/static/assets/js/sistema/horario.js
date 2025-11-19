@@ -535,6 +535,9 @@ $(document).ready(function () {
                     $('#formUnidad')[0].reset();
                     horariosYaCargados = false;
                     cargarHorariosDesdeBackend();
+
+                    // Disparar evento para actualizar otras secciones (como Mis Grupos)
+                    $(document).trigger('horariosActualizados');
                 } else {
                     alert('❌ Error: ' + resultado);
                     $(this).prop('disabled', false).html('<i class="fas fa-save me-2"></i>Confirmar y Guardar en Base de Datos');
@@ -763,6 +766,9 @@ $(document).ready(function () {
                         $('#vistaHorario').hide();
                         $('#formUnidad').show();
                     }
+
+                    // Disparar evento para actualizar otras secciones (como Mis Grupos)
+                    $(document).trigger('horariosActualizados');
                 } else {
                     alert('❌ Error al eliminar: ' + resultado);
                 }

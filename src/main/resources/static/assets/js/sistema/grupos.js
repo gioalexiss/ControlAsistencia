@@ -38,6 +38,21 @@ class GrupoManager {
         await this.cargarGrupos();
         await this.cargarEstadisticas();
         this.configurarEventListeners();
+        this.configurarEventosGlobales();
+    }
+
+    /**
+     * Configura eventos globales (escuchar cambios desde otras secciones)
+     */
+    configurarEventosGlobales() {
+        // Escuchar evento de actualización de horarios
+        // Este evento se dispara cuando se guarda o elimina una unidad en "Mi Horario"
+        $(document).off('horariosActualizados.grupoManager');
+        $(document).on('horariosActualizados.grupoManager', async () => {
+            console.log('📢 Evento horariosActualizados recibido - Actualizando grupos...');
+            await this.cargarGrupos();
+            await this.cargarEstadisticas();
+        });
     }
 
     /**
