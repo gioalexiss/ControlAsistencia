@@ -225,4 +225,83 @@ public class AsistenciaController {
             return ResponseEntity.status(500).body(Map.of("valido", false, "mensaje", "Error: " + e.getMessage()));
         }
     }
+
+    /**
+     * Registrar asistencia manual (sin QR)
+     */
+    @PostMapping("/registrar-manual")
+    @ResponseBody
+    public ResponseEntity<?> registrarAsistenciaManual(@RequestBody Map<String, Object> payload) {
+        try {
+            Long estudianteId = Long.valueOf(payload.get("estudianteId").toString());
+            Long grupoId = payload.get("grupoId") != null ? Long.valueOf(payload.get("grupoId").toString()) : null;
+            Long unidadId = payload.get("unidadId") != null ? Long.valueOf(payload.get("unidadId").toString()) : null;
+            Long docenteId = Long.valueOf(payload.get("docenteId").toString());
+            String tipoAsistencia = (String) payload.getOrDefault("tipoAsistencia", "PRESENTE");
+            String observaciones = (String) payload.get("observaciones");
+
+            // Buscar estudiante
+            Optional<EstudianteEntity> estudianteOpt = estudianteService.buscarPorId(estudianteId);
+
+            if (estudianteOpt.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "mensaje", "Estudiante no encontrado",
+                    "tipo", "error"
+                ));
+            }
+
+            EstudianteEntity estudiante = estudianteOpt.get();
+
+            // Verificar si ya registró asistencia hoy en esta unidad
+            LocalDate hoy = LocalDate.now();
+            if (unidadId != null) {
+                Optional<AsistenciaEntity> asistenciaExistente =
+                    asistenciaService.findByEstudianteIdAndFechaAndUnidadId(estudianteId, hoy, unidadId);
+
+                if (asistenciaExistente.isPresent()) {
+                    return ResponseEntity.ok(Map.of(
+                        "success", false,
+                        "mensaje", "El estudiante ya registró asistencia hoy en esta materia",
+                        "tipo", "warning"
+                    ));
+                }
+            }
+
+            // Registrar nueva asistencia
+            AsistenciaEntity asistencia = new AsistenciaEntity();
+            asistencia.setEstudianteId(estudianteId);
+            asistencia.setGrupoId(grupoId);
+            asistencia.setUnidadId(unidadId);
+            asistencia.setDocenteId(docenteId);
+            asistencia.setFechaHora(LocalDateTime.now());
+            asistencia.setTipoAsistencia(tipoAsistencia);
+            asistencia.setObservaciones(observaciones);
+
+            AsistenciaEntity nuevaAsistencia = asistenciaService.save(asistencia);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "mensaje", "Asistencia registrada correctamente como " + tipoAsistencia,
+                "tipo", "success",
+                "asistencia", Map.of(
+                    "id", nuevaAsistencia.getId(),
+                    "fechaHora", nuevaAsistencia.getFechaHora(),
+                    "tipoAsistencia", nuevaAsistencia.getTipoAsistencia()
+                ),
+                "estudiante", Map.of(
+                    "id", estudiante.getId(),
+                    "nombre", estudiante.getNombre(),
+                    "boleta", estudiante.getBoleta()
+                )
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "mensaje", "Error al registrar asistencia: " + e.getMessage(),
+                "tipo", "error"
+            ));
+        }
+    }
 }

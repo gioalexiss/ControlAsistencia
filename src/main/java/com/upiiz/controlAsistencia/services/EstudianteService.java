@@ -445,6 +445,33 @@ public class EstudianteService {
     }
 
     /**
+     * Obtiene los grupos a los que pertenece un estudiante
+     */
+    public List<Map<String, Object>> obtenerGruposDeEstudiante(Long estudianteId) {
+        String sql = """
+            SELECT DISTINCT
+                ge.id_grupo as grupoId,
+                ge.id_unidad as unidadId,
+                g.nombre_grupo as nombreGrupo,
+                u.nombre_unidad as nombreUnidad
+            FROM grupo_estudiante ge
+            INNER JOIN grupos g ON ge.id_grupo = g.id
+            INNER JOIN unidades u ON ge.id_unidad = u.id
+            WHERE ge.id_estudiante = ?
+            ORDER BY u.nombre_unidad, g.nombre_grupo
+            """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Map<String, Object> grupo = new HashMap<>();
+            grupo.put("grupoId", rs.getLong("grupoId"));
+            grupo.put("unidadId", rs.getLong("unidadId"));
+            grupo.put("nombreGrupo", rs.getString("nombreGrupo"));
+            grupo.put("nombreUnidad", rs.getString("nombreUnidad"));
+            return grupo;
+        }, estudianteId);
+    }
+
+    /**
      * Resultado de la carga masiva
      */
     public static class ResultadoCargaMasiva {

@@ -12,6 +12,7 @@ class EstudianteManager {
         this.grupoSeleccionado = '';
         this.dataTable = null;
         this.inicializado = false;
+        this.generandoQR = false; // Flag para prevenir doble ejecución
     }
 
     /**
@@ -134,7 +135,14 @@ class EstudianteManager {
                         nombreCompleto,
                         estudiante.correo || 'No registrado',
                         estadoBadge,
-                        `<button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
+                        `<button class="btn btn-success btn-sm btn-marcar-asistencia me-1"
+                                data-estudiante-id="${estudiante.id}"
+                                data-estudiante-nombre="${nombreCompleto}"
+                                data-estudiante-boleta="${estudiante.boleta}"
+                                title="Marcar asistencia">
+                            <i class="fas fa-check-circle"></i> Asistencia
+                        </button>
+                        <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
                             <i class="fas fa-eye"></i> Ver Información
                         </button>`
                     ]);
@@ -211,6 +219,13 @@ class EstudianteManager {
             <td>${estudiante.correo || 'No registrado'}</td>
             <td class="text-center">${estadoBadge}</td>
             <td class="text-center">
+                <button class="btn btn-success btn-sm btn-marcar-asistencia me-1"
+                        data-estudiante-id="${estudiante.id}"
+                        data-estudiante-nombre="${nombreCompleto}"
+                        data-estudiante-boleta="${estudiante.boleta}"
+                        title="Marcar asistencia">
+                    <i class="fas fa-check-circle"></i> Asistencia
+                </button>
                 <button class="btn btn-info btn-sm btn-ver-detalle"
                         data-estudiante-id="${estudiante.id}"
                         title="Ver detalles">
@@ -336,6 +351,13 @@ class EstudianteManager {
                 const btn = e.target.closest('.btn-ver-detalle');
                 const estudianteId = btn.getAttribute('data-estudiante-id');
                 this.verDetalleEstudiante(estudianteId);
+            }
+            if (e.target.closest('.btn-marcar-asistencia')) {
+                const btn = e.target.closest('.btn-marcar-asistencia');
+                const estudianteId = btn.getAttribute('data-estudiante-id');
+                const nombreEstudiante = btn.getAttribute('data-estudiante-nombre');
+                const boletaEstudiante = btn.getAttribute('data-estudiante-boleta');
+                this.abrirModalAsistencia(estudianteId, nombreEstudiante, boletaEstudiante);
             }
         });
 
@@ -584,6 +606,12 @@ class EstudianteManager {
      * Genera códigos QR masivamente para todos los estudiantes
      */
     async generarQRMasivo() {
+        // Prevenir ejecuciones concurrentes
+        if (this.generandoQR) {
+            console.log('Ya hay una generación de QR en proceso');
+            return;
+        }
+
         const confirmacion = confirm(
             '¿Deseas generar códigos QR únicos para todos los estudiantes?\n\n' +
             'Esto puede tardar unos momentos.'
@@ -598,6 +626,9 @@ class EstudianteManager {
             '¿Deseas enviar los códigos QR por correo electrónico a los estudiantes?\n\n' +
             'Solo se enviarán a estudiantes que tengan correo registrado.'
         );
+
+        // Marcar como en proceso ANTES de empezar
+        this.generandoQR = true;
 
         try {
             // Mostrar indicador de carga
@@ -652,6 +683,9 @@ class EstudianteManager {
                 btnGenerarQR.disabled = false;
                 btnGenerarQR.innerHTML = '<i class="fas fa-qrcode"></i> Generar QR Masivo';
             }
+        } finally {
+            // Siempre liberar el flag al terminar
+            this.generandoQR = false;
         }
     }
 
@@ -661,6 +695,128 @@ class EstudianteManager {
     mostrarError(mensaje) {
         console.error(mensaje);
         alert(mensaje);
+    }
+
+    /**
+     * Abre el modal para marcar asistencia manual
+     */
+    async abrirModalAsistencia(estudianteId, nombreEstudiante, boletaEstudiante) {
+        // Guardar ID del estudiante seleccionado
+        this.estudianteSeleccionadoId = estudianteId;
+
+        // Actualizar información del estudiante en el modal
+        document.getElementById('nombreEstudianteAsistencia').textContent = nombreEstudiante;
+        document.getElementById('boletaEstudianteAsistencia').textContent = `Boleta: ${boletaEstudiante}`;
+
+        // Cargar grupos del estudiante
+        await this.cargarGruposEstudiante(estudianteId);
+
+        // Limpiar campos
+        document.getElementById('selectTipoAsistencia').value = 'PRESENTE';
+        document.getElementById('observacionesAsistencia').value = '';
+
+        // Configurar event listener para el botón de guardar
+        const btnGuardar = document.getElementById('btnGuardarAsistencia');
+        const nuevoBtn = btnGuardar.cloneNode(true);
+        btnGuardar.parentNode.replaceChild(nuevoBtn, btnGuardar);
+
+        nuevoBtn.addEventListener('click', () => this.registrarAsistenciaManual());
+
+        // Abrir modal usando Bootstrap
+        const modal = new bootstrap.Modal(document.getElementById('modalAsistenciaManual'));
+        modal.show();
+    }
+
+    /**
+     * Carga los grupos a los que pertenece el estudiante
+     */
+    async cargarGruposEstudiante(estudianteId) {
+        try {
+            const selectGrupo = document.getElementById('selectGrupoAsistencia');
+            selectGrupo.innerHTML = '<option value="">Cargando...</option>';
+
+            // Obtener los grupos del estudiante
+            const response = await fetch(`/estudiantes/${estudianteId}/grupos`);
+            if (!response.ok) {
+                throw new Error('Error al cargar grupos del estudiante');
+            }
+
+            const gruposEstudiante = await response.json();
+
+            selectGrupo.innerHTML = '<option value="">Selecciona un grupo...</option>';
+
+            gruposEstudiante.forEach(grupo => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify({ grupoId: grupo.grupoId, unidadId: grupo.unidadId });
+                option.textContent = `${grupo.nombreGrupo} - ${grupo.nombreUnidad}`;
+                selectGrupo.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error('Error al cargar grupos:', error);
+            alert('Error al cargar los grupos del estudiante');
+        }
+    }
+
+    /**
+     * Registra la asistencia manual del estudiante
+     */
+    async registrarAsistenciaManual() {
+        const selectGrupo = document.getElementById('selectGrupoAsistencia');
+        const tipoAsistencia = document.getElementById('selectTipoAsistencia').value;
+        const observaciones = document.getElementById('observacionesAsistencia').value;
+
+        // Validar que se haya seleccionado un grupo
+        if (!selectGrupo.value) {
+            alert('Por favor selecciona un grupo');
+            return;
+        }
+
+        // Parsear el grupo seleccionado
+        const grupoData = JSON.parse(selectGrupo.value);
+
+        try {
+            const btnGuardar = document.getElementById('btnGuardarAsistencia');
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+
+            const response = await fetch('/asistencia/registrar-manual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    estudianteId: this.estudianteSeleccionadoId,
+                    grupoId: grupoData.grupoId,
+                    unidadId: grupoData.unidadId,
+                    docenteId: this.docenteId,
+                    tipoAsistencia: tipoAsistencia,
+                    observaciones: observaciones || null
+                })
+            });
+
+            const resultado = await response.json();
+
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-check"></i> Registrar Asistencia';
+
+            if (resultado.success) {
+                alert(resultado.mensaje);
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalAsistenciaManual'));
+                modal.hide();
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+
+        } catch (error) {
+            console.error('Error al registrar asistencia:', error);
+            alert('Error al registrar asistencia: ' + error.message);
+
+            const btnGuardar = document.getElementById('btnGuardarAsistencia');
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-check"></i> Registrar Asistencia';
+        }
     }
 }
 

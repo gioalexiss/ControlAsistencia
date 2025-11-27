@@ -349,6 +349,23 @@ public class EstudianteController {
     }
 
     /**
+     * Endpoint para obtener los grupos a los que pertenece un estudiante
+     * GET /estudiantes/{id}/grupos
+     */
+    @GetMapping("/{id}/grupos")
+    @ResponseBody
+    public ResponseEntity<?> obtenerGruposEstudiante(@PathVariable Long id) {
+        try {
+            List<Map<String, Object>> grupos = estudianteService.obtenerGruposDeEstudiante(id);
+            return ResponseEntity.ok(grupos);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al obtener grupos: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Método auxiliar para crear respuestas de error
      */
     private Map<String, Object> crearRespuestaError(String mensaje) {

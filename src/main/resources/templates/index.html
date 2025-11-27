@@ -1260,6 +1260,48 @@
 				Fin del cuerpo del contenido
 			***********************************-->
 
+			<!-- Modal para Marcar Asistencia Manual -->
+			<div class="modal fade" id="modalAsistenciaManual" tabindex="-1" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="modalAsistenciaManualLabel">Marcar Asistencia Manual</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<div class="mb-3">
+								<h6 id="nombreEstudianteAsistencia" class="mb-1"></h6>
+								<p class="text-muted mb-0" id="boletaEstudianteAsistencia"></p>
+							</div>
+							<hr>
+							<div class="mb-3">
+								<label class="form-label">Grupo y Materia <span class="text-danger">*</span></label>
+								<select class="form-select" id="selectGrupoAsistencia" required>
+									<option value="">Selecciona un grupo...</option>
+								</select>
+							</div>
+							<div class="mb-3">
+								<label class="form-label">Tipo de Asistencia <span class="text-danger">*</span></label>
+								<select class="form-select" id="selectTipoAsistencia" required>
+									<option value="PRESENTE">Presente</option>
+									<option value="RETARDO">Retardo</option>
+									<option value="FALTA">Falta</option>
+								</select>
+							</div>
+							<div class="mb-3">
+								<label class="form-label">Observaciones (opcional)</label>
+								<textarea class="form-control" id="observacionesAsistencia" rows="3" placeholder="Agrega observaciones si es necesario..."></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+							<button type="button" class="btn btn-primary" id="btnGuardarAsistencia">
+								<i class="fas fa-check"></i> Registrar Asistencia
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
 			<div class="modal fade" id="exampleModal1" tabindex="-1" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-center">
