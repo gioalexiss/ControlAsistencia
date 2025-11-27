@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.mail.internet.MimeMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -207,8 +209,8 @@ public class EstudianteService {
      * Generar QR codes masivamente para todos los estudiantes de un docente
      */
     @Transactional
-    public java.util.Map<String, Object> generarQRMasivoParaDocente(Long docenteId, boolean enviarCorreo) {
-        java.util.Map<String, Object> resultado = new java.util.HashMap<>();
+    public Map<String, Object> generarQRMasivoParaDocente(Long docenteId, boolean enviarCorreo) {
+        Map<String, Object> resultado = new HashMap<>();
 
         // Obtener todos los estudiantes del docente
         List<EstudianteEntity> estudiantes = obtenerEstudiantesPorDocente(docenteId);
