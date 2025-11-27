@@ -12,6 +12,7 @@ class EstudianteManager {
         this.grupoSeleccionado = '';
         this.dataTable = null;
         this.inicializado = false;
+        this.eventListenersConfigurados = false;
     }
 
     /**
@@ -305,6 +306,11 @@ class EstudianteManager {
      * Configura los event listeners
      */
     configurarEventListeners() {
+        // Evitar configurar event listeners múltiples veces
+        if (this.eventListenersConfigurados) {
+            return;
+        }
+
         // Filtro de búsqueda personalizado
         const inputBusqueda = document.getElementById('inputBuscarEstudiante');
         if (inputBusqueda) {
@@ -337,23 +343,20 @@ class EstudianteManager {
                 const estudianteId = btn.getAttribute('data-estudiante-id');
                 this.verDetalleEstudiante(estudianteId);
             }
+
+            // Botón de generar QR masivo usando event delegation
+            if (e.target.closest('#btnGenerarQRMasivo')) {
+                this.generarQRMasivo();
+            }
+
+            // Botón de recargar usando event delegation
+            if (e.target.closest('#btnRecargarEstudiantes')) {
+                this.cargarEstudiantes();
+            }
         });
 
-        // Botón de recargar
-        const btnRecargar = document.getElementById('btnRecargarEstudiantes');
-        if (btnRecargar) {
-            btnRecargar.addEventListener('click', () => {
-                this.cargarEstudiantes();
-            });
-        }
-
-        // Botón de generar QR masivo
-        const btnGenerarQR = document.getElementById('btnGenerarQRMasivo');
-        if (btnGenerarQR) {
-            btnGenerarQR.addEventListener('click', () => {
-                this.generarQRMasivo();
-            });
-        }
+        // Marcar como configurados
+        this.eventListenersConfigurados = true;
     }
 
     /**
