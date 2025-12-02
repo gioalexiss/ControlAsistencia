@@ -146,6 +146,9 @@ class EstudianteManager {
                             <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            <button class="btn btn-warning btn-sm btn-editar-estudiante" data-estudiante-id="${estudiante.id}" title="Editar estudiante">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <button class="btn btn-danger btn-sm btn-eliminar-estudiante" data-estudiante-id="${estudiante.id}" title="Eliminar estudiante">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -236,6 +239,11 @@ class EstudianteManager {
                             data-estudiante-id="${estudiante.id}"
                             title="Ver detalles">
                         <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-warning btn-sm btn-editar-estudiante"
+                            data-estudiante-id="${estudiante.id}"
+                            title="Editar estudiante">
+                        <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn btn-danger btn-sm btn-eliminar-estudiante"
                             data-estudiante-id="${estudiante.id}"
@@ -390,11 +398,23 @@ class EstudianteManager {
                 this.guardarNuevoEstudiante();
             }
 
+            // Botón de editar estudiante
+            if (e.target.closest('.btn-editar-estudiante')) {
+                const btn = e.target.closest('.btn-editar-estudiante');
+                const estudianteId = btn.getAttribute('data-estudiante-id');
+                this.mostrarModalEditarEstudiante(estudianteId);
+            }
+
             // Botón de eliminar estudiante
             if (e.target.closest('.btn-eliminar-estudiante')) {
                 const btn = e.target.closest('.btn-eliminar-estudiante');
                 const estudianteId = btn.getAttribute('data-estudiante-id');
                 this.eliminarEstudiante(estudianteId);
+            }
+
+            // Botón de actualizar estudiante
+            if (e.target.closest('#btnActualizarEstudiante')) {
+                this.actualizarEstudiante();
             }
         });
 
@@ -711,6 +731,159 @@ class EstudianteManager {
             if (btnGuardar) {
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            }
+        }
+    }
+
+    /**
+     * Mostrar modal para editar estudiante
+     */
+    mostrarModalEditarEstudiante(estudianteId) {
+        const estudiante = this.estudiantes.find(e => e.id == estudianteId);
+        if (!estudiante) {
+            this.mostrarError('Estudiante no encontrado');
+            return;
+        }
+
+        // Prellenar formulario con datos del estudiante
+        document.getElementById('editEstudianteId').value = estudiante.id;
+        document.getElementById('editInputBoleta').value = estudiante.boleta;
+        document.getElementById('editInputNombre').value = estudiante.nombre;
+        document.getElementById('editInputCorreo').value = estudiante.correo || '';
+        document.getElementById('editSelectEstado').value = estudiante.estado;
+
+        // Llenar select de grupos
+        this.llenarSelectGruposModalEditar();
+
+        // Preseleccionar el grupo actual si tiene
+        if (estudiante.grupos && estudiante.grupos.length > 0) {
+            const primerGrupo = estudiante.grupos[0];
+            const grupoValue = JSON.stringify({ idGrupo: primerGrupo.idGrupo, idUnidad: primerGrupo.idUnidad });
+            document.getElementById('editSelectGrupoModal').value = grupoValue;
+        }
+
+        // Mostrar modal
+        const modalElement = document.getElementById('modalEditarEstudiante');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+
+    /**
+     * Llenar el select de grupos en el modal de edición
+     */
+    llenarSelectGruposModalEditar() {
+        const selectGrupo = document.getElementById('editSelectGrupoModal');
+        if (!selectGrupo) return;
+
+        // Limpiar opciones existentes excepto la primera
+        selectGrupo.innerHTML = '<option value="">Sin asignar</option>';
+
+        // Agregar opciones de grupos ordenados por materia
+        this.grupos.forEach(grupo => {
+            const option = document.createElement('option');
+            option.value = JSON.stringify({ idGrupo: grupo.id, idUnidad: grupo.idUnidad });
+            option.textContent = `${grupo.nombreGrupo} - ${grupo.nombreMateria}`;
+            selectGrupo.appendChild(option);
+        });
+    }
+
+    /**
+     * Actualizar estudiante
+     */
+    async actualizarEstudiante() {
+        const form = document.getElementById('formEditarEstudiante');
+
+        // Validar formulario
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Obtener datos del formulario
+        const id = document.getElementById('editEstudianteId').value;
+        const boleta = document.getElementById('editInputBoleta').value.trim();
+        const nombre = document.getElementById('editInputNombre').value.trim();
+        const correo = document.getElementById('editInputCorreo').value.trim();
+        const estado = document.getElementById('editSelectEstado').value;
+        const grupoValue = document.getElementById('editSelectGrupoModal').value;
+
+        // Validar
+        if (!boleta) {
+            alert('La boleta es obligatoria');
+            return;
+        }
+
+        if (!nombre) {
+            alert('El nombre completo es obligatorio');
+            return;
+        }
+
+        // Preparar datos
+        const estudianteDTO = {
+            boleta: boleta,
+            nombre: nombre,
+            correo: correo || null,
+            estado: estado
+        };
+
+        // Preparar URL con parámetros de grupo si se seleccionó
+        let url = `/estudiantes/${id}`;
+        if (grupoValue) {
+            try {
+                const grupoData = JSON.parse(grupoValue);
+                url += `?idGrupo=${grupoData.idGrupo}&idUnidad=${grupoData.idUnidad}`;
+            } catch (e) {
+                console.error('Error al parsear datos del grupo:', e);
+            }
+        }
+
+        try {
+            // Deshabilitar botón
+            const btnActualizar = document.getElementById('btnActualizarEstudiante');
+            const textoOriginal = btnActualizar.innerHTML;
+            btnActualizar.disabled = true;
+            btnActualizar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+
+            // Enviar petición
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(estudianteDTO)
+            });
+
+            const resultado = await response.json();
+
+            // Restaurar botón
+            btnActualizar.disabled = false;
+            btnActualizar.innerHTML = textoOriginal;
+
+            if (resultado.success) {
+                alert(resultado.mensaje);
+
+                // Cerrar modal
+                const modalElement = document.getElementById('modalEditarEstudiante');
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+
+                // Recargar lista de estudiantes
+                await this.cargarEstudiantes();
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+
+        } catch (error) {
+            console.error('Error al actualizar estudiante:', error);
+            alert('Error al actualizar el estudiante: ' + error.message);
+
+            // Restaurar botón
+            const btnActualizar = document.getElementById('btnActualizarEstudiante');
+            if (btnActualizar) {
+                btnActualizar.disabled = false;
+                btnActualizar.innerHTML = '<i class="fas fa-save"></i> Actualizar';
             }
         }
     }

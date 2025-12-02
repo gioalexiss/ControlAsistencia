@@ -520,6 +520,64 @@ public class EstudianteService {
         return estudiante;
     }
 
+    /**
+     * Actualizar un estudiante y opcionalmente cambiar su grupo
+     */
+    @Transactional
+    public EstudianteEntity actualizarEstudiante(Long id, EstudianteDTO dto, Long idGrupo, Long idUnidad) {
+        // Buscar el estudiante
+        Optional<EstudianteEntity> estudianteOpt = estudianteRepository.findById(id);
+        if (!estudianteOpt.isPresent()) {
+            return null;
+        }
+
+        EstudianteEntity estudiante = estudianteOpt.get();
+
+        // Verificar si la boleta cambió y si ya existe
+        if (!estudiante.getBoleta().equals(dto.getBoleta())) {
+            Optional<EstudianteEntity> existente = estudianteRepository.findByBoleta(dto.getBoleta());
+            if (existente.isPresent() && !existente.get().getId().equals(id)) {
+                throw new RuntimeException("Ya existe otro estudiante con la boleta: " + dto.getBoleta());
+            }
+            estudiante.setBoleta(dto.getBoleta());
+        }
+
+        // Actualizar campos
+        if (dto.getNombre() != null && !dto.getNombre().trim().isEmpty()) {
+            estudiante.setNombre(dto.getNombre().trim());
+        }
+
+        if (dto.getCorreo() != null) {
+            estudiante.setCorreo(dto.getCorreo().trim());
+        }
+
+        // Actualizar estado si se proporciona
+        if (dto.getEstado() != null) {
+            try {
+                EstudianteEntity.Estado nuevoEstado = EstudianteEntity.Estado.valueOf(dto.getEstado());
+                estudiante.setEstado(nuevoEstado);
+            } catch (IllegalArgumentException e) {
+                // Si el estado no es válido, mantener el actual
+            }
+        }
+
+        // Guardar cambios
+        estudiante = estudianteRepository.save(estudiante);
+
+        // Si se proporcionó idGrupo e idUnidad, actualizar vinculación
+        if (idGrupo != null && idUnidad != null) {
+            // Desvincular de todos los grupos anteriores
+            List<GrupoEstudianteEntity> vinculacionesAnteriores = grupoEstudianteRepository.findByIdEstudiante(id);
+            grupoEstudianteRepository.deleteAll(vinculacionesAnteriores);
+
+            // Crear nueva vinculación
+            GrupoEstudianteEntity nuevaVinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
+            grupoEstudianteRepository.save(nuevaVinculacion);
+        }
+
+        return estudiante;
+    }
+
     // ========================================
     // CLASES INTERNAS
     // ========================================
@@ -531,6 +589,7 @@ public class EstudianteService {
         private String boleta;
         private String nombre;
         private String correo;
+        private String estado;
 
         public EstudianteDTO() {}
 
@@ -562,6 +621,14 @@ public class EstudianteService {
 
         public void setCorreo(String correo) {
             this.correo = correo;
+        }
+
+        public String getEstado() {
+            return estado;
+        }
+
+        public void setEstado(String estado) {
+            this.estado = estado;
         }
     }
 
