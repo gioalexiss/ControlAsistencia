@@ -135,9 +135,14 @@ class EstudianteManager {
                         nombreCompleto,
                         estudiante.correo || 'No registrado',
                         estadoBadge,
-                        `<button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
-                            <i class="fas fa-eye"></i> Ver Información
-                        </button>`
+                        `<div class="btn-group" role="group">
+                            <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-eliminar-estudiante" data-estudiante-id="${estudiante.id}" title="Eliminar estudiante">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>`
                     ]);
                 });
             }
@@ -212,11 +217,18 @@ class EstudianteManager {
             <td>${estudiante.correo || 'No registrado'}</td>
             <td class="text-center">${estadoBadge}</td>
             <td class="text-center">
-                <button class="btn btn-info btn-sm btn-ver-detalle"
-                        data-estudiante-id="${estudiante.id}"
-                        title="Ver detalles">
-                    <i class="fas fa-eye"></i> Ver Información
-                </button>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-info btn-sm btn-ver-detalle"
+                            data-estudiante-id="${estudiante.id}"
+                            title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm btn-eliminar-estudiante"
+                            data-estudiante-id="${estudiante.id}"
+                            title="Eliminar estudiante">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </td>
         `;
 
@@ -352,6 +364,23 @@ class EstudianteManager {
             // Botón de recargar usando event delegation
             if (e.target.closest('#btnRecargarEstudiantes')) {
                 this.cargarEstudiantes();
+            }
+
+            // Botón de agregar estudiante
+            if (e.target.closest('#btnAgregarEstudiante')) {
+                this.mostrarModalAgregarEstudiante();
+            }
+
+            // Botón de guardar estudiante
+            if (e.target.closest('#btnGuardarEstudiante')) {
+                this.guardarNuevoEstudiante();
+            }
+
+            // Botón de eliminar estudiante
+            if (e.target.closest('.btn-eliminar-estudiante')) {
+                const btn = e.target.closest('.btn-eliminar-estudiante');
+                const estudianteId = btn.getAttribute('data-estudiante-id');
+                this.eliminarEstudiante(estudianteId);
             }
         });
 
@@ -533,6 +562,109 @@ class EstudianteManager {
      */
     verGruposEstudiante(estudianteId) {
         alert(`Ver grupos del estudiante ${estudianteId} - Funcionalidad próximamente`);
+    }
+
+    /**
+     * Mostrar modal para agregar estudiante
+     */
+    mostrarModalAgregarEstudiante() {
+        // Limpiar formulario
+        const form = document.getElementById('formAgregarEstudiante');
+        if (form) {
+            form.reset();
+        }
+
+        // Mostrar modal
+        const modalElement = document.getElementById('modalAgregarEstudiante');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+
+    /**
+     * Guardar nuevo estudiante
+     */
+    async guardarNuevoEstudiante() {
+        const form = document.getElementById('formAgregarEstudiante');
+
+        // Validar formulario
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Obtener datos del formulario
+        const boleta = document.getElementById('inputBoleta').value.trim();
+        const nombre = document.getElementById('inputNombre').value.trim();
+        const correo = document.getElementById('inputCorreo').value.trim();
+
+        // Validar boleta
+        if (!boleta) {
+            alert('La boleta es obligatoria');
+            return;
+        }
+
+        // Validar nombre
+        if (!nombre) {
+            alert('El nombre completo es obligatorio');
+            return;
+        }
+
+        // Preparar datos
+        const estudianteDTO = {
+            boleta: boleta,
+            nombre: nombre,
+            correo: correo || null
+        };
+
+        try {
+            // Deshabilitar botón
+            const btnGuardar = document.getElementById('btnGuardarEstudiante');
+            const textoOriginal = btnGuardar.innerHTML;
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            // Enviar petición
+            const response = await fetch('/estudiantes/crear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(estudianteDTO)
+            });
+
+            const resultado = await response.json();
+
+            // Restaurar botón
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = textoOriginal;
+
+            if (resultado.success) {
+                alert('Estudiante creado correctamente');
+
+                // Cerrar modal
+                const modalElement = document.getElementById('modalAgregarEstudiante');
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+
+                // Recargar lista de estudiantes
+                await this.cargarEstudiantes();
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+
+        } catch (error) {
+            console.error('Error al guardar estudiante:', error);
+            alert('Error al guardar el estudiante: ' + error.message);
+
+            // Restaurar botón
+            const btnGuardar = document.getElementById('btnGuardarEstudiante');
+            if (btnGuardar) {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            }
+        }
     }
 
     /**

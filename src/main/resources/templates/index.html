@@ -795,9 +795,14 @@
 						<div class="card">
 							<div class="card-header d-flex justify-content-between align-items-center">
 								<h4 class="card-title mb-0">Lista de Estudiantes</h4>
-								<button type="button" class="btn btn-success btn-sm" id="btnGenerarQRMasivo">
-									<i class="fas fa-qrcode"></i> Generar QR Masivo
-								</button>
+								<div>
+									<button type="button" class="btn btn-primary btn-sm me-2" id="btnAgregarEstudiante">
+										<i class="fas fa-user-plus"></i> Agregar Estudiante
+									</button>
+									<button type="button" class="btn btn-success btn-sm" id="btnGenerarQRMasivo">
+										<i class="fas fa-qrcode"></i> Generar QR Masivo
+									</button>
+								</div>
 							</div>
 							<div class="card-body">
 								<div class="table-responsive">
@@ -824,6 +829,50 @@
 										</tbody>
 									</table>
 								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal Agregar Estudiante -->
+				<div class="modal fade" id="modalAgregarEstudiante" tabindex="-1" aria-labelledby="modalAgregarEstudianteLabel" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content">
+							<div class="modal-header bg-primary text-white">
+								<h5 class="modal-title" id="modalAgregarEstudianteLabel">
+									<i class="fas fa-user-plus"></i> Agregar Estudiante
+								</h5>
+								<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body">
+								<form id="formAgregarEstudiante">
+									<div class="mb-3">
+										<label for="inputBoleta" class="form-label">Boleta <span class="text-danger">*</span></label>
+										<input type="text" class="form-control" id="inputBoleta" name="boleta"
+											   placeholder="Ingrese la boleta del estudiante" required maxlength="50">
+										<div class="form-text">Número de boleta único del estudiante</div>
+									</div>
+									<div class="mb-3">
+										<label for="inputNombre" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+										<input type="text" class="form-control" id="inputNombre" name="nombre"
+											   placeholder="Ingrese el nombre completo" required maxlength="200">
+										<div class="form-text">Nombre y apellidos del estudiante</div>
+									</div>
+									<div class="mb-3">
+										<label for="inputCorreo" class="form-label">Correo Electrónico</label>
+										<input type="email" class="form-control" id="inputCorreo" name="correo"
+											   placeholder="ejemplo@alumno.ipn.mx" maxlength="150">
+										<div class="form-text">Correo electrónico del estudiante (opcional)</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+									<i class="fas fa-times"></i> Cancelar
+								</button>
+								<button type="button" class="btn btn-primary" id="btnGuardarEstudiante">
+									<i class="fas fa-save"></i> Guardar
+								</button>
 							</div>
 						</div>
 					</div>
