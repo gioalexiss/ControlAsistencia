@@ -566,13 +566,23 @@ public class EstudianteService {
 
         // Si se proporcionó idGrupo e idUnidad, actualizar vinculación
         if (idGrupo != null && idUnidad != null) {
-            // Desvincular de todos los grupos anteriores
-            List<GrupoEstudianteEntity> vinculacionesAnteriores = grupoEstudianteRepository.findByIdEstudiante(id);
-            grupoEstudianteRepository.deleteAll(vinculacionesAnteriores);
+            // Verificar si ya está en ese grupo
+            boolean yaEstaEnGrupo = grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId());
 
-            // Crear nueva vinculación
-            GrupoEstudianteEntity nuevaVinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
-            grupoEstudianteRepository.save(nuevaVinculacion);
+            if (!yaEstaEnGrupo) {
+                // Desvincular de todos los grupos anteriores
+                List<GrupoEstudianteEntity> vinculacionesAnteriores = grupoEstudianteRepository.findByIdEstudiante(id);
+                if (!vinculacionesAnteriores.isEmpty()) {
+                    grupoEstudianteRepository.deleteAll(vinculacionesAnteriores);
+                    // Hacer flush para asegurar que se eliminan antes de insertar
+                    grupoEstudianteRepository.flush();
+                }
+
+                // Crear nueva vinculación
+                GrupoEstudianteEntity nuevaVinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
+                grupoEstudianteRepository.save(nuevaVinculacion);
+            }
+            // Si ya está en ese grupo, no hacer nada (mantener la vinculación actual)
         }
 
         return estudiante;
