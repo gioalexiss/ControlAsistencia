@@ -2,8 +2,8 @@ package com.upiiz.controlAsistencia.services;
 
 import com.upiiz.controlAsistencia.models.EstudianteEntity;
 import com.upiiz.controlAsistencia.models.GrupoEstudianteEntity;
-import com.upiiz.controlAsistencia.models.GrupoEntity;
-import com.upiiz.controlAsistencia.models.UnidadEntity;
+import com.upiiz.controlAsistencia.models.GrupoModel;
+import com.upiiz.controlAsistencia.models.UnidadModel;
 import com.upiiz.controlAsistencia.repositories.EstudianteRepository;
 import com.upiiz.controlAsistencia.repositories.GrupoEstudianteRepository;
 import com.upiiz.controlAsistencia.repositories.GrupoRepository;
@@ -245,16 +245,16 @@ public class EstudianteService {
                     Map<String, Object> grupoInfo = new HashMap<>();
 
                     // Obtener información del grupo
-                    Optional<GrupoEntity> grupoOpt = grupoRepository.findById(vinculacion.getIdGrupo());
+                    Optional<GrupoModel> grupoOpt = grupoRepository.findById(vinculacion.getIdGrupo());
                     if (grupoOpt.isPresent()) {
-                        GrupoEntity grupo = grupoOpt.get();
+                        GrupoModel grupo = grupoOpt.get();
                         grupoInfo.put("idGrupo", grupo.getId());
                         grupoInfo.put("nombreGrupo", grupo.getNombreGrupo());
 
                         // Obtener información de la unidad/materia
-                        Optional<UnidadEntity> unidadOpt = unidadRepository.findById(vinculacion.getIdUnidad());
+                        Optional<UnidadModel> unidadOpt = unidadRepository.findById(vinculacion.getIdUnidad());
                         if (unidadOpt.isPresent()) {
-                            UnidadEntity unidad = unidadOpt.get();
+                            UnidadModel unidad = unidadOpt.get();
                             grupoInfo.put("idUnidad", unidad.getId());
                             grupoInfo.put("nombreMateria", unidad.getNombreUnidad());
                         }
