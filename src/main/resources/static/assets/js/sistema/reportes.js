@@ -219,7 +219,7 @@ class ReporteManager {
             </td>
             <td class="text-center">
                 <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-info btn-sm btn-ver-detalle"
+                    <button class="btn btn-info btn-sm btn-ver-reporte-detalle"
                             data-reporte="${reporteDataEscaped}"
                             title="Ver lista de alumnos">
                         <i class="fas fa-eye"></i>
@@ -549,8 +549,8 @@ class ReporteManager {
 
         // Event delegation para botones de acción
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-ver-detalle')) {
-                const btn = e.target.closest('.btn-ver-detalle');
+            if (e.target.closest('.btn-ver-reporte-detalle')) {
+                const btn = e.target.closest('.btn-ver-reporte-detalle');
                 const reporteData = btn.getAttribute('data-reporte');
                 const reporte = JSON.parse(reporteData.replace(/&quot;/g, '"'));
                 this.verDetalleReporte(reporte);
