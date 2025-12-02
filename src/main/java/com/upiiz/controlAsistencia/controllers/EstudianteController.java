@@ -278,6 +278,23 @@ public class EstudianteController {
     }
 
     /**
+     * Endpoint para obtener estudiantes de un docente con información de sus grupos
+     * GET /estudiantes/docente/{docenteId}/con-grupos
+     */
+    @GetMapping("/docente/{docenteId}/con-grupos")
+    @ResponseBody
+    public ResponseEntity<?> obtenerEstudiantesConGruposPorDocente(@PathVariable Long docenteId) {
+        try {
+            List<Map<String, Object>> estudiantes = estudianteService.obtenerEstudiantesConGruposPorDocente(docenteId);
+            return ResponseEntity.ok(estudiantes);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al obtener estudiantes del docente: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Endpoint para generar QR codes masivamente para todos los estudiantes de un docente
      * POST /estudiantes/generar-qr-masivo/{docenteId}
      */
@@ -351,10 +368,14 @@ public class EstudianteController {
     /**
      * Endpoint para crear un estudiante individual
      * POST /estudiantes/crear
+     * Parámetros opcionales: idGrupo, idUnidad (para vincular al estudiante a un grupo)
      */
     @PostMapping("/crear")
     @ResponseBody
-    public ResponseEntity<?> crearEstudiante(@RequestBody EstudianteDTO estudianteDTO) {
+    public ResponseEntity<?> crearEstudiante(
+            @RequestBody EstudianteDTO estudianteDTO,
+            @RequestParam(required = false) Long idGrupo,
+            @RequestParam(required = false) Long idUnidad) {
         try {
             // Validar datos
             if (estudianteDTO.getBoleta() == null || estudianteDTO.getBoleta().trim().isEmpty()) {
@@ -376,13 +397,19 @@ public class EstudianteController {
                         .body(crearRespuestaError("Ya existe un estudiante con esa boleta"));
             }
 
-            // Crear estudiante
-            EstudianteEntity estudiante = estudianteService.crearEstudiante(estudianteDTO);
+            // Crear estudiante y opcionalmente vincularlo a un grupo
+            EstudianteEntity estudiante = estudianteService.crearEstudianteYVincular(estudianteDTO, idGrupo, idUnidad);
 
             // Preparar respuesta
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success", true);
-            respuesta.put("mensaje", "Estudiante creado correctamente");
+
+            if (idGrupo != null && idUnidad != null) {
+                respuesta.put("mensaje", "Estudiante creado y asignado al grupo correctamente");
+            } else {
+                respuesta.put("mensaje", "Estudiante creado correctamente");
+            }
+
             respuesta.put("estudiante", estudiante);
 
             return ResponseEntity.ok(respuesta);

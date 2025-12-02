@@ -812,14 +812,16 @@
 											<th class="text-center" style="width: 60px;">#</th>
 											<th style="width: 130px;">Boleta</th>
 											<th>Nombre</th>
-											<th style="width: 280px;">Correo</th>
+											<th style="width: 200px;">Correo</th>
+											<th style="width: 150px;">Grupo</th>
+											<th style="width: 200px;">Materia</th>
 											<th class="text-center" style="width: 100px;">Estado</th>
-											<th class="text-center" style="width: 180px;">Acciones</th>
+											<th class="text-center" style="width: 150px;">Acciones</th>
 										</tr>
 										</thead>
 										<tbody id="tbodyEstudiantes">
 										<tr>
-											<td colspan="6" class="text-center">
+											<td colspan="8" class="text-center">
 												<div class="spinner-border text-primary" role="status">
 													<span class="visually-hidden">Cargando...</span>
 												</div>
@@ -863,6 +865,13 @@
 										<input type="email" class="form-control" id="inputCorreo" name="correo"
 											   placeholder="ejemplo@alumno.ipn.mx" maxlength="150">
 										<div class="form-text">Correo electrónico del estudiante (opcional)</div>
+									</div>
+									<div class="mb-3">
+										<label for="selectGrupoModal" class="form-label">Asignar a Grupo</label>
+										<select class="form-select" id="selectGrupoModal" name="grupo">
+											<option value="">Sin asignar (puedes asignarlo después)</option>
+										</select>
+										<div class="form-text">Selecciona el grupo y materia al que pertenece el estudiante</div>
 									</div>
 								</form>
 							</div>
