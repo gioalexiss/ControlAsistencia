@@ -2,8 +2,12 @@ package com.upiiz.controlAsistencia.services;
 
 import com.upiiz.controlAsistencia.models.EstudianteEntity;
 import com.upiiz.controlAsistencia.models.GrupoEstudianteEntity;
+import com.upiiz.controlAsistencia.models.GrupoEntity;
+import com.upiiz.controlAsistencia.models.UnidadEntity;
 import com.upiiz.controlAsistencia.repositories.EstudianteRepository;
 import com.upiiz.controlAsistencia.repositories.GrupoEstudianteRepository;
+import com.upiiz.controlAsistencia.repositories.GrupoRepository;
+import com.upiiz.controlAsistencia.repositories.UnidadRepository;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -11,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.mail.internet.MimeMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -20,15 +26,21 @@ public class EstudianteService {
 
     private final EstudianteRepository estudianteRepository;
     private final GrupoEstudianteRepository grupoEstudianteRepository;
+    private final GrupoRepository grupoRepository;
+    private final UnidadRepository unidadRepository;
     private final QRCodeService qrCodeService;
     private final JavaMailSender mailSender;
 
     public EstudianteService(EstudianteRepository estudianteRepository,
                            GrupoEstudianteRepository grupoEstudianteRepository,
+                           GrupoRepository grupoRepository,
+                           UnidadRepository unidadRepository,
                            QRCodeService qrCodeService,
                            JavaMailSender mailSender) {
         this.estudianteRepository = estudianteRepository;
         this.grupoEstudianteRepository = grupoEstudianteRepository;
+        this.grupoRepository = grupoRepository;
+        this.unidadRepository = unidadRepository;
         this.qrCodeService = qrCodeService;
         this.mailSender = mailSender;
     }
@@ -193,6 +205,70 @@ public class EstudianteService {
             .collect(Collectors.toList());
 
         return estudianteRepository.findAllById(idsEstudiantes);
+    }
+
+    /**
+     * Obtener estudiantes de un docente con información de sus grupos
+     */
+    public List<Map<String, Object>> obtenerEstudiantesConGruposPorDocente(Long docenteId) {
+        // Obtener todas las vinculaciones del docente
+        List<GrupoEstudianteEntity> vinculaciones = grupoEstudianteRepository.findAllByDocenteId(docenteId);
+
+        // Agrupar vinculaciones por estudiante
+        Map<Long, List<GrupoEstudianteEntity>> vinculacionesPorEstudiante = vinculaciones.stream()
+            .collect(Collectors.groupingBy(GrupoEstudianteEntity::getIdEstudiante));
+
+        // Obtener todos los estudiantes únicos
+        List<Long> idsEstudiantes = new ArrayList<>(vinculacionesPorEstudiante.keySet());
+        List<EstudianteEntity> estudiantes = estudianteRepository.findAllById(idsEstudiantes);
+
+        // Construir respuesta con información de grupos
+        List<Map<String, Object>> resultado = new ArrayList<>();
+
+        for (EstudianteEntity estudiante : estudiantes) {
+            Map<String, Object> estudianteConGrupos = new HashMap<>();
+
+            // Información del estudiante
+            estudianteConGrupos.put("id", estudiante.getId());
+            estudianteConGrupos.put("boleta", estudiante.getBoleta());
+            estudianteConGrupos.put("nombre", estudiante.getNombre());
+            estudianteConGrupos.put("correo", estudiante.getCorreo());
+            estudianteConGrupos.put("estado", estudiante.getEstado().toString());
+            estudianteConGrupos.put("qrCode", estudiante.getQrCode());
+
+            // Obtener información de grupos
+            List<Map<String, Object>> grupos = new ArrayList<>();
+            List<GrupoEstudianteEntity> vinculacionesEstudiante = vinculacionesPorEstudiante.get(estudiante.getId());
+
+            if (vinculacionesEstudiante != null) {
+                for (GrupoEstudianteEntity vinculacion : vinculacionesEstudiante) {
+                    Map<String, Object> grupoInfo = new HashMap<>();
+
+                    // Obtener información del grupo
+                    Optional<GrupoEntity> grupoOpt = grupoRepository.findById(vinculacion.getIdGrupo());
+                    if (grupoOpt.isPresent()) {
+                        GrupoEntity grupo = grupoOpt.get();
+                        grupoInfo.put("idGrupo", grupo.getId());
+                        grupoInfo.put("nombreGrupo", grupo.getNombreGrupo());
+
+                        // Obtener información de la unidad/materia
+                        Optional<UnidadEntity> unidadOpt = unidadRepository.findById(vinculacion.getIdUnidad());
+                        if (unidadOpt.isPresent()) {
+                            UnidadEntity unidad = unidadOpt.get();
+                            grupoInfo.put("idUnidad", unidad.getId());
+                            grupoInfo.put("nombreMateria", unidad.getNombreUnidad());
+                        }
+
+                        grupos.add(grupoInfo);
+                    }
+                }
+            }
+
+            estudianteConGrupos.put("grupos", grupos);
+            resultado.add(estudianteConGrupos);
+        }
+
+        return resultado;
     }
 
     /**
@@ -414,6 +490,34 @@ public class EstudianteService {
 
         // Guardar en la base de datos
         return estudianteRepository.save(estudiante);
+    }
+
+    /**
+     * Crear un estudiante individual y opcionalmente vincularlo a un grupo
+     */
+    @Transactional
+    public EstudianteEntity crearEstudianteYVincular(EstudianteDTO dto, Long idGrupo, Long idUnidad) {
+        // Validar que no exista la boleta
+        if (estudianteRepository.findByBoleta(dto.getBoleta()).isPresent()) {
+            throw new RuntimeException("Ya existe un estudiante con la boleta: " + dto.getBoleta());
+        }
+
+        // Crear nuevo estudiante
+        EstudianteEntity estudiante = crearDesdeDTO(dto);
+
+        // Guardar en la base de datos
+        estudiante = estudianteRepository.save(estudiante);
+
+        // Si se proporcionó idGrupo e idUnidad, vincular al estudiante
+        if (idGrupo != null && idUnidad != null) {
+            // Verificar que no esté ya vinculado
+            if (!grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
+                GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
+                grupoEstudianteRepository.save(vinculacion);
+            }
+        }
+
+        return estudiante;
     }
 
     // ========================================

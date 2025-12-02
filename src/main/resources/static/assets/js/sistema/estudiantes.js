@@ -90,11 +90,11 @@ class EstudianteManager {
     }
 
     /**
-     * Carga todos los estudiantes del docente
+     * Carga todos los estudiantes del docente con información de grupos
      */
     async cargarEstudiantes() {
         try {
-            const response = await fetch(`/estudiantes/docente/${this.docenteId}`);
+            const response = await fetch(`/estudiantes/docente/${this.docenteId}/con-grupos`);
 
             if (!response.ok) {
                 throw new Error('Error al cargar estudiantes');
@@ -129,11 +129,18 @@ class EstudianteManager {
                         ? '<span class="badge badge-success">Activo</span>'
                         : '<span class="badge badge-secondary">Inactivo</span>';
 
+                    // Obtener información de grupos
+                    const grupos = estudiante.grupos || [];
+                    const nombresGrupos = grupos.map(g => g.nombreGrupo).join(', ') || 'Sin asignar';
+                    const nombresMaterias = grupos.map(g => g.nombreMateria).join(', ') || 'Sin asignar';
+
                     this.dataTable.row.add([
                         index + 1,
                         `<strong>${estudiante.boleta}</strong>`,
                         nombreCompleto,
                         estudiante.correo || 'No registrado',
+                        nombresGrupos,
+                        nombresMaterias,
                         estadoBadge,
                         `<div class="btn-group" role="group">
                             <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
@@ -163,10 +170,10 @@ class EstudianteManager {
         if (this.estudiantesFiltrados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-5">
+                    <td colspan="8" class="text-center py-5">
                         <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No hay estudiantes registrados</h5>
-                        <p class="text-muted">Importa estudiantes desde la sección "Mis Grupos"</p>
+                        <p class="text-muted">Agrega estudiantes manualmente o importa desde la sección "Mis Grupos"</p>
                     </td>
                 </tr>
             `;
@@ -210,11 +217,18 @@ class EstudianteManager {
         // El nombre ya contiene el nombre completo
         const nombreCompleto = estudiante.nombre;
 
+        // Obtener información de grupos
+        const grupos = estudiante.grupos || [];
+        const nombresGrupos = grupos.map(g => g.nombreGrupo).join(', ') || 'Sin asignar';
+        const nombresMaterias = grupos.map(g => g.nombreMateria).join(', ') || 'Sin asignar';
+
         tr.innerHTML = `
             <td class="text-center">${numero}</td>
             <td><strong>${estudiante.boleta}</strong></td>
             <td>${nombreCompleto}</td>
             <td>${estudiante.correo || 'No registrado'}</td>
+            <td>${nombresGrupos}</td>
+            <td>${nombresMaterias}</td>
             <td class="text-center">${estadoBadge}</td>
             <td class="text-center">
                 <div class="btn-group" role="group">
@@ -285,7 +299,7 @@ class EstudianteManager {
                         text: '<i class="fas fa-file-excel"></i> Exportar a Excel',
                         className: 'btn btn-success btn-sm',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4]
+                            columns: [0, 1, 2, 3, 4, 5, 6]
                         }
                     },
                     {
@@ -293,7 +307,7 @@ class EstudianteManager {
                         text: '<i class="fas fa-file-pdf"></i> Exportar a PDF',
                         className: 'btn btn-danger btn-sm',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4]
+                            columns: [0, 1, 2, 3, 4, 5, 6]
                         }
                     },
                     {
@@ -301,7 +315,7 @@ class EstudianteManager {
                         text: '<i class="fas fa-print"></i> Imprimir',
                         className: 'btn btn-info btn-sm',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4]
+                            columns: [0, 1, 2, 3, 4, 5, 6]
                         }
                     }
                 ],
@@ -574,10 +588,32 @@ class EstudianteManager {
             form.reset();
         }
 
+        // Llenar select de grupos
+        this.llenarSelectGruposModal();
+
         // Mostrar modal
         const modalElement = document.getElementById('modalAgregarEstudiante');
         const modal = new bootstrap.Modal(modalElement);
         modal.show();
+    }
+
+    /**
+     * Llenar el select de grupos en el modal
+     */
+    llenarSelectGruposModal() {
+        const selectGrupo = document.getElementById('selectGrupoModal');
+        if (!selectGrupo) return;
+
+        // Limpiar opciones existentes excepto la primera
+        selectGrupo.innerHTML = '<option value="">Sin asignar (puedes asignarlo después)</option>';
+
+        // Agregar opciones de grupos ordenados por materia
+        this.grupos.forEach(grupo => {
+            const option = document.createElement('option');
+            option.value = JSON.stringify({ idGrupo: grupo.id, idUnidad: grupo.idUnidad });
+            option.textContent = `${grupo.nombreGrupo} - ${grupo.nombreMateria}`;
+            selectGrupo.appendChild(option);
+        });
     }
 
     /**
@@ -596,6 +632,7 @@ class EstudianteManager {
         const boleta = document.getElementById('inputBoleta').value.trim();
         const nombre = document.getElementById('inputNombre').value.trim();
         const correo = document.getElementById('inputCorreo').value.trim();
+        const grupoValue = document.getElementById('selectGrupoModal').value;
 
         // Validar boleta
         if (!boleta) {
@@ -616,6 +653,17 @@ class EstudianteManager {
             correo: correo || null
         };
 
+        // Preparar URL con parámetros de grupo si se seleccionó
+        let url = '/estudiantes/crear';
+        if (grupoValue) {
+            try {
+                const grupoData = JSON.parse(grupoValue);
+                url += `?idGrupo=${grupoData.idGrupo}&idUnidad=${grupoData.idUnidad}`;
+            } catch (e) {
+                console.error('Error al parsear datos del grupo:', e);
+            }
+        }
+
         try {
             // Deshabilitar botón
             const btnGuardar = document.getElementById('btnGuardarEstudiante');
@@ -624,7 +672,7 @@ class EstudianteManager {
             btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
             // Enviar petición
-            const response = await fetch('/estudiantes/crear', {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -639,7 +687,7 @@ class EstudianteManager {
             btnGuardar.innerHTML = textoOriginal;
 
             if (resultado.success) {
-                alert('Estudiante creado correctamente');
+                alert(resultado.mensaje);
 
                 // Cerrar modal
                 const modalElement = document.getElementById('modalAgregarEstudiante');
