@@ -13,7 +13,7 @@ class AsistenciaManager {
         this.sesionActiva = false;
         this.asistenciasSesionActual = [];
         this.unidadesCompletas = [];
-        this.estudiantesEscaneadosEnSesion = new Set(); // Para evitar duplicados
+        this.estudiantesEscaneadosEnSesion = new Set(); // Guarda estudianteId para evitar duplicados
     }
 
     async init() {
@@ -455,17 +455,6 @@ class AsistenciaManager {
 
         this.ultimoEscaneo = ahora;
 
-        // Verificar si este código QR ya fue escaneado en esta sesión
-        if (this.estudiantesEscaneadosEnSesion.has(codigoQR)) {
-            this.mostrarFeedback('error', `
-                <h5 class="mb-2">❌ Error: Escaneo Duplicado</h5>
-                <p class="mb-0">Este estudiante ya fue registrado en esta sesión</p>
-                <p class="mt-2 mb-0 small text-muted">Código: ${codigoQR}</p>
-            `);
-            this.reproducirSonido('error');
-            return;
-        }
-
         try {
             // Registrar asistencia
             const response = await fetch('/asistencia/registrar', {
@@ -483,8 +472,20 @@ class AsistenciaManager {
             const resultado = await response.json();
 
             if (resultado.success) {
+                // Verificar si este estudiante ya fue escaneado en esta sesión
+                const estudianteId = resultado.estudiante.id;
+                if (this.estudiantesEscaneadosEnSesion.has(estudianteId)) {
+                    this.mostrarFeedback('error', `
+                        <h5 class="mb-2">❌ Error: Escaneo Duplicado</h5>
+                        <p class="mb-0">Este estudiante ya fue registrado en esta sesión</p>
+                        <p class="mt-2 mb-0 small text-muted">${resultado.estudiante.nombre}</p>
+                    `);
+                    this.reproducirSonido('error');
+                    return;
+                }
+
                 // Éxito - Agregar a la lista de escaneados
-                this.estudiantesEscaneadosEnSesion.add(codigoQR);
+                this.estudiantesEscaneadosEnSesion.add(estudianteId);
                 this.asistenciasSesionActual.push(resultado.asistencia);
                 this.mostrarFeedback('success', `
                     <h5 class="mb-2">✅ Asistencia Registrada</h5>
@@ -795,10 +796,20 @@ class AsistenciaManager {
      */
     async ejecutarEliminacionAsistencia(id) {
         try {
+            // Buscar la asistencia antes de eliminarla para obtener el estudianteId
+            const asistenciaAEliminar = this.asistenciasHoy.find(a => a.id === id);
+            const estudianteId = asistenciaAEliminar ? asistenciaAEliminar.estudianteId : null;
+
             const response = await fetch(`/asistencia/${id}`, { method: 'DELETE' });
             const resultado = await response.json();
 
             if (resultado.success) {
+                // Remover el estudianteId del Set de escaneados para permitir re-registro
+                if (estudianteId && this.sesionActiva) {
+                    this.estudiantesEscaneadosEnSesion.delete(estudianteId);
+                    console.log(`✅ Estudiante ${estudianteId} removido del Set de escaneados`);
+                }
+
                 this.mostrarFeedback('success', `
                     <h5 class="mb-2">✅ Asistencia Eliminada</h5>
                     <p class="mb-0">El registro ha sido eliminado correctamente</p>
