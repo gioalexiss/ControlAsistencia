@@ -422,6 +422,56 @@ public class EstudianteController {
     }
 
     /**
+     * Endpoint para actualizar un estudiante
+     * PUT /estudiantes/{id}
+     * Parámetros opcionales: idGrupo, idUnidad (para cambiar el grupo del estudiante)
+     */
+    @PutMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> actualizarEstudiante(
+            @PathVariable Long id,
+            @RequestBody EstudianteDTO estudianteDTO,
+            @RequestParam(required = false) Long idGrupo,
+            @RequestParam(required = false) Long idUnidad) {
+        try {
+            // Validar datos
+            if (estudianteDTO.getBoleta() == null || estudianteDTO.getBoleta().trim().isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(crearRespuestaError("La boleta es obligatoria"));
+            }
+
+            if (estudianteDTO.getNombre() == null || estudianteDTO.getNombre().trim().isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(crearRespuestaError("El nombre es obligatorio"));
+            }
+
+            // Actualizar estudiante
+            EstudianteEntity estudiante = estudianteService.actualizarEstudiante(id, estudianteDTO, idGrupo, idUnidad);
+
+            if (estudiante == null) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(crearRespuestaError("Estudiante no encontrado"));
+            }
+
+            // Preparar respuesta
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success", true);
+            respuesta.put("mensaje", "Estudiante actualizado correctamente");
+            respuesta.put("estudiante", estudiante);
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al actualizar estudiante: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Método auxiliar para crear respuestas de error
      */
     private Map<String, Object> crearRespuestaError(String mensaje) {

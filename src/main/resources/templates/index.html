@@ -886,6 +886,66 @@
 						</div>
 					</div>
 				</div>
+
+				<!-- Modal Editar Estudiante -->
+				<div class="modal fade" id="modalEditarEstudiante" tabindex="-1" aria-labelledby="modalEditarEstudianteLabel" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content">
+							<div class="modal-header bg-warning text-dark">
+								<h5 class="modal-title" id="modalEditarEstudianteLabel">
+									<i class="fas fa-edit"></i> Editar Estudiante
+								</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body">
+								<form id="formEditarEstudiante">
+									<input type="hidden" id="editEstudianteId" name="id">
+									<div class="mb-3">
+										<label for="editInputBoleta" class="form-label">Boleta <span class="text-danger">*</span></label>
+										<input type="text" class="form-control" id="editInputBoleta" name="boleta"
+											   placeholder="Ingrese la boleta del estudiante" required maxlength="50">
+										<div class="form-text">Número de boleta único del estudiante</div>
+									</div>
+									<div class="mb-3">
+										<label for="editInputNombre" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+										<input type="text" class="form-control" id="editInputNombre" name="nombre"
+											   placeholder="Ingrese el nombre completo" required maxlength="200">
+										<div class="form-text">Nombre y apellidos del estudiante</div>
+									</div>
+									<div class="mb-3">
+										<label for="editInputCorreo" class="form-label">Correo Electrónico</label>
+										<input type="email" class="form-control" id="editInputCorreo" name="correo"
+											   placeholder="ejemplo@alumno.ipn.mx" maxlength="150">
+										<div class="form-text">Correo electrónico del estudiante (opcional)</div>
+									</div>
+									<div class="mb-3">
+										<label for="editSelectEstado" class="form-label">Estado <span class="text-danger">*</span></label>
+										<select class="form-select" id="editSelectEstado" name="estado" required>
+											<option value="activo">Activo</option>
+											<option value="inactivo">Inactivo</option>
+										</select>
+										<div class="form-text">Estado actual del estudiante</div>
+									</div>
+									<div class="mb-3">
+										<label for="editSelectGrupoModal" class="form-label">Grupo Asignado</label>
+										<select class="form-select" id="editSelectGrupoModal" name="grupo">
+											<option value="">Sin asignar</option>
+										</select>
+										<div class="form-text">Grupo y materia al que pertenece el estudiante</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+									<i class="fas fa-times"></i> Cancelar
+								</button>
+								<button type="button" class="btn btn-warning" id="btnActualizarEstudiante">
+									<i class="fas fa-save"></i> Actualizar
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 				</div>
 				<!--FIN seccion "Mis Estudiantes"-->
