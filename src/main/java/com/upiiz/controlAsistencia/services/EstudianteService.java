@@ -399,6 +399,23 @@ public class EstudianteService {
         }
     }
 
+    /**
+     * Crear un estudiante individual
+     */
+    @Transactional
+    public EstudianteEntity crearEstudiante(EstudianteDTO dto) {
+        // Validar que no exista la boleta
+        if (estudianteRepository.findByBoleta(dto.getBoleta()).isPresent()) {
+            throw new RuntimeException("Ya existe un estudiante con la boleta: " + dto.getBoleta());
+        }
+
+        // Crear nuevo estudiante
+        EstudianteEntity estudiante = crearDesdeDTO(dto);
+
+        // Guardar en la base de datos
+        return estudianteRepository.save(estudiante);
+    }
+
     // ========================================
     // CLASES INTERNAS
     // ========================================
