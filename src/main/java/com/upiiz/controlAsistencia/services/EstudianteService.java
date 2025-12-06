@@ -441,6 +441,56 @@ public class EstudianteService {
     }
 
     /**
+     * Generar y enviar QR a un estudiante individual
+     */
+    @Transactional
+    public java.util.Map<String, Object> generarYEnviarQRIndividual(Long estudianteId) {
+        java.util.Map<String, Object> resultado = new java.util.HashMap<>();
+
+        // Buscar el estudiante
+        Optional<EstudianteEntity> estudianteOpt = estudianteRepository.findById(estudianteId);
+        if (estudianteOpt.isEmpty()) {
+            resultado.put("success", false);
+            resultado.put("mensaje", "Estudiante no encontrado");
+            return resultado;
+        }
+
+        EstudianteEntity estudiante = estudianteOpt.get();
+
+        // Verificar que tenga correo
+        if (estudiante.getCorreo() == null || estudiante.getCorreo().isEmpty()) {
+            resultado.put("success", false);
+            resultado.put("mensaje", "El estudiante no tiene correo registrado");
+            return resultado;
+        }
+
+        try {
+            // Generar QR si no existe
+            boolean qrGenerado = false;
+            if (estudiante.getQrCode() == null || estudiante.getQrCode().isEmpty()) {
+                String qrCode = generarCodigoQR(estudiante.getBoleta());
+                estudiante.setQrCode(qrCode);
+                estudianteRepository.save(estudiante);
+                qrGenerado = true;
+            }
+
+            // Enviar correo
+            enviarQRPorCorreo(estudiante);
+
+            resultado.put("success", true);
+            resultado.put("mensaje", "Código QR enviado correctamente a " + estudiante.getCorreo());
+            resultado.put("qrGenerado", qrGenerado);
+            resultado.put("correoEnviado", true);
+
+        } catch (Exception e) {
+            resultado.put("success", false);
+            resultado.put("mensaje", "Error al enviar QR: " + e.getMessage());
+        }
+
+        return resultado;
+    }
+
+    /**
      * Buscar estudiante por ID
      */
     public Optional<EstudianteEntity> buscarPorId(Long id) {

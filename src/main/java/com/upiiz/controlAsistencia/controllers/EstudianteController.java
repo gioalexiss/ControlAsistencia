@@ -314,6 +314,23 @@ public class EstudianteController {
     }
 
     /**
+     * Endpoint para enviar QR a un estudiante individual
+     * POST /estudiantes/{id}/enviar-qr
+     */
+    @PostMapping("/{id}/enviar-qr")
+    @ResponseBody
+    public ResponseEntity<?> enviarQRIndividual(@PathVariable Long id) {
+        try {
+            Map<String, Object> resultado = estudianteService.generarYEnviarQRIndividual(id);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(crearRespuestaError("Error al enviar QR: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Endpoint para obtener la imagen QR de un estudiante
      * GET /estudiantes/{id}/qr-image
      */
