@@ -285,8 +285,9 @@ class EstudianteManager {
                     }
                 },
                 pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 order: [[0, 'asc']], // Ordenar por # (número de fila)
-                dom: 'Bfrtip',
+                dom: 'Blfrtip',
                 buttons: [
                     {
                         extend: 'excelHtml5',
@@ -543,7 +544,7 @@ class EstudianteManager {
                                     <th>Materias:</th>
                                     <td>
                                         ${estudiante.grupos && estudiante.grupos.length > 0
-                                            ? estudiante.grupos.map(g => `<span class="badge bg-info me-1 mb-1">${g.nombreMateria}</span>`).join('')
+                                            ? '<ul class="mb-0 ps-3" style="list-style-type: disc;">' + estudiante.grupos.map(g => `<li style="margin-bottom: 4px;">${g.nombreMateria}</li>`).join('') + '</ul>'
                                             : '<span class="badge bg-secondary">Sin materias asignadas</span>'}
                                     </td>
                                 </tr>
