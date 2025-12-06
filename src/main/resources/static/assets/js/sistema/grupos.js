@@ -560,7 +560,8 @@ class GrupoManager {
                 <h6><i class="fas fa-check-circle"></i> Importación completada</h6>
                 <ul class="mb-0">
                     <li>Estudiantes nuevos: <strong>${data.nuevos}</strong></li>
-                    <li>Estudiantes actualizados: <strong>${data.actualizados}</strong></li>
+                    <li>Estudiantes vinculados (ya existían): <strong>${data.vinculados || 0}</strong></li>
+                    <li>Estudiantes actualizados: <strong>${data.actualizados || 0}</strong></li>
                     <li>Total procesados: <strong>${data.totalProcesados}</strong></li>
                     ${data.errores > 0 ? `<li class="text-danger">Errores: <strong>${data.errores}</strong></li>` : ''}
                 </ul>

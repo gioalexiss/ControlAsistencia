@@ -101,6 +101,7 @@ public class EstudianteController {
             respuesta.put("mensaje", resultado.getMensajeResumen());
             respuesta.put("totalProcesados", resultado.getTotalProcesados());
             respuesta.put("nuevos", resultado.getTotalNuevos());
+            respuesta.put("vinculados", resultado.getTotalVinculados());
             respuesta.put("actualizados", resultado.getTotalActualizados());
             respuesta.put("errores", resultado.getTotalErrores());
             respuesta.put("listaErrores", resultado.getErrores());
@@ -226,6 +227,7 @@ public class EstudianteController {
             respuesta.put("mensaje", resultado.getMensajeResumen());
             respuesta.put("totalProcesados", resultado.getTotalProcesados());
             respuesta.put("nuevos", resultado.getTotalNuevos());
+            respuesta.put("vinculados", resultado.getTotalVinculados());
             respuesta.put("actualizados", resultado.getTotalActualizados());
             respuesta.put("errores", resultado.getTotalErrores());
             respuesta.put("listaErrores", resultado.getErrores());

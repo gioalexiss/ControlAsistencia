@@ -148,24 +148,32 @@ public class EstudianteService {
                 Optional<EstudianteEntity> existente = estudianteRepository.findByBoleta(dto.getBoleta());
 
                 EstudianteEntity estudiante;
+                boolean esNuevo = false;
+
                 if (existente.isPresent()) {
-                    // Actualizar datos si ya existe
+                    // El estudiante ya existe en el sistema
                     estudiante = existente.get();
-                    actualizarDatos(estudiante, dto);
-                    estudianteRepository.save(estudiante);
-                    resultado.agregarActualizado(dto.getBoleta());
+
+                    // Verificar si ya está vinculado a este grupo específico
+                    if (grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
+                        // Ya está vinculado a este grupo, no hacer nada
+                        continue;
+                    }
+
+                    // Estudiante existe pero no está en este grupo: vincular
+                    resultado.agregarVinculado(dto.getBoleta());
+
                 } else {
                     // Crear nuevo estudiante
                     estudiante = crearDesdeDTO(dto);
                     estudiante = estudianteRepository.save(estudiante);
                     resultado.agregarNuevo(dto.getBoleta());
+                    esNuevo = true;
                 }
 
-                // Vincular al grupo y unidad si no está ya vinculado
-                if (!grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
-                    GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
-                    grupoEstudianteRepository.save(vinculacion);
-                }
+                // Vincular al grupo y unidad
+                GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
+                grupoEstudianteRepository.save(vinculacion);
 
             } catch (Exception e) {
                 resultado.agregarError("Error con boleta " + dto.getBoleta() + ": " + e.getMessage());
@@ -547,21 +555,35 @@ public class EstudianteService {
      */
     @Transactional
     public EstudianteEntity crearEstudianteYVincular(EstudianteDTO dto, Long idGrupo, Long idUnidad) {
-        // Validar que no exista la boleta
-        if (estudianteRepository.findByBoleta(dto.getBoleta()).isPresent()) {
-            throw new RuntimeException("Ya existe un estudiante con la boleta: " + dto.getBoleta());
-        }
+        // Verificar si ya existe un estudiante con esta boleta
+        Optional<EstudianteEntity> existente = estudianteRepository.findByBoleta(dto.getBoleta());
 
-        // Crear nuevo estudiante
-        EstudianteEntity estudiante = crearDesdeDTO(dto);
+        EstudianteEntity estudiante;
 
-        // Guardar en la base de datos
-        estudiante = estudianteRepository.save(estudiante);
+        if (existente.isPresent()) {
+            // El estudiante ya existe en el sistema
+            estudiante = existente.get();
 
-        // Si se proporcionó idGrupo e idUnidad, vincular al estudiante
-        if (idGrupo != null && idUnidad != null) {
-            // Verificar que no esté ya vinculado
-            if (!grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
+            // Si se proporcionó idGrupo, verificar si ya está vinculado a este grupo
+            if (idGrupo != null) {
+                if (grupoEstudianteRepository.existsByIdGrupoAndIdEstudiante(idGrupo, estudiante.getId())) {
+                    throw new RuntimeException("Este estudiante ya está registrado en este grupo");
+                }
+
+                // Vincular al nuevo grupo
+                if (idUnidad != null) {
+                    GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
+                    grupoEstudianteRepository.save(vinculacion);
+                }
+            }
+
+        } else {
+            // Crear nuevo estudiante
+            estudiante = crearDesdeDTO(dto);
+            estudiante = estudianteRepository.save(estudiante);
+
+            // Si se proporcionó idGrupo e idUnidad, vincular al estudiante
+            if (idGrupo != null && idUnidad != null) {
                 GrupoEstudianteEntity vinculacion = new GrupoEstudianteEntity(idGrupo, estudiante.getId(), idUnidad);
                 grupoEstudianteRepository.save(vinculacion);
             }
@@ -698,6 +720,7 @@ public class EstudianteService {
     public static class ResultadoCargaMasiva {
         private List<String> nuevos = new ArrayList<>();
         private List<String> actualizados = new ArrayList<>();
+        private List<String> vinculados = new ArrayList<>();
         private List<String> errores = new ArrayList<>();
 
         public void agregarNuevo(String boleta) {
@@ -706,6 +729,10 @@ public class EstudianteService {
 
         public void agregarActualizado(String boleta) {
             actualizados.add(boleta);
+        }
+
+        public void agregarVinculado(String boleta) {
+            vinculados.add(boleta);
         }
 
         public void agregarError(String error) {
@@ -720,12 +747,16 @@ public class EstudianteService {
             return actualizados.size();
         }
 
+        public int getTotalVinculados() {
+            return vinculados.size();
+        }
+
         public int getTotalErrores() {
             return errores.size();
         }
 
         public int getTotalProcesados() {
-            return nuevos.size() + actualizados.size();
+            return nuevos.size() + actualizados.size() + vinculados.size();
         }
 
         public List<String> getNuevos() {
@@ -736,15 +767,20 @@ public class EstudianteService {
             return actualizados;
         }
 
+        public List<String> getVinculados() {
+            return vinculados;
+        }
+
         public List<String> getErrores() {
             return errores;
         }
 
         public String getMensajeResumen() {
             return String.format(
-                "Procesados: %d | Nuevos: %d | Actualizados: %d | Errores: %d",
+                "Procesados: %d | Nuevos: %d | Vinculados: %d | Actualizados: %d | Errores: %d",
                 getTotalProcesados(),
                 getTotalNuevos(),
+                getTotalVinculados(),
                 getTotalActualizados(),
                 getTotalErrores()
             );
