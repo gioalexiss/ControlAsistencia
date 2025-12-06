@@ -604,21 +604,10 @@
 						</div>
 
 						<!-- Sección de Gráficas -->
-						<div class="row">
-							<!-- Gráfica 1: Estudiantes por Grupo -->
-							<div class="col-xl-4">
-								<div class="card">
-									<div class="card-header">
-										<h4 class="card-title">Estudiantes por Grupo</h4>
-									</div>
-									<div class="card-body">
-										<canvas id="chartEstudiantesPorGrupo" height="250"></canvas>
-									</div>
-								</div>
-							</div>
-
-							<!-- Gráfica 2: Asistencia Semanal -->
-							<div class="col-xl-4">
+						<!-- Primera fila: Asistencia Semanal y Promedio de Asistencia -->
+						<div class="row mb-4">
+							<!-- Gráfica 1: Asistencia Semanal -->
+							<div class="col-xl-6">
 								<div class="card">
 									<div class="card-header">
 										<h4 class="card-title">Asistencia Semanal</h4>
@@ -629,14 +618,28 @@
 								</div>
 							</div>
 
-							<!-- Gráfica 3: Promedio de Asistencia -->
-							<div class="col-xl-4">
+							<!-- Gráfica 2: Promedio de Asistencia -->
+							<div class="col-xl-6">
 								<div class="card">
 									<div class="card-header">
 										<h4 class="card-title">Promedio de Asistencia</h4>
 									</div>
 									<div class="card-body">
 										<canvas id="chartPromedioAsistencia" height="250"></canvas>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Segunda fila: Estudiantes por Grupo (más grande) -->
+						<div class="row">
+							<div class="col-xl-12">
+								<div class="card">
+									<div class="card-header">
+										<h4 class="card-title">Distribución de Estudiantes por Grupo y Materia</h4>
+									</div>
+									<div class="card-body">
+										<canvas id="chartEstudiantesPorGrupo" height="400"></canvas>
 									</div>
 								</div>
 							</div>
@@ -680,13 +683,12 @@
                                                     <th>Grupo</th>
                                                     <th>Materia</th>
                                                     <th>Estudiantes</th>
-                                                    <th>Asistencia Promedio</th>
                                                     <th>Acciones</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody id="tbodyGrupos">
                                                 <tr>
-                                                    <td colspan="5" class="text-center">
+                                                    <td colspan="4" class="text-center">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>
@@ -799,8 +801,11 @@
 									<button type="button" class="btn btn-primary btn-sm me-2" id="btnAgregarEstudiante">
 										<i class="fas fa-user-plus"></i> Agregar Estudiante
 									</button>
-									<button type="button" class="btn btn-success btn-sm" id="btnGenerarQRMasivo">
+									<button type="button" class="btn btn-success btn-sm me-2" id="btnGenerarQRMasivo">
 										<i class="fas fa-qrcode"></i> Generar QR Masivo
+									</button>
+									<button type="button" class="btn btn-info btn-sm" id="btnEnviarQRPersonal">
+										<i class="fas fa-paper-plane"></i> Enviar QR Personal
 									</button>
 								</div>
 							</div>
@@ -812,16 +817,14 @@
 											<th class="text-center" style="width: 60px;">#</th>
 											<th style="width: 130px;">Boleta</th>
 											<th>Nombre</th>
-											<th style="width: 200px;">Correo</th>
-											<th style="width: 150px;">Grupo</th>
-											<th style="width: 200px;">Materia</th>
+											<th style="width: 250px;">Correo</th>
 											<th class="text-center" style="width: 100px;">Estado</th>
 											<th class="text-center" style="width: 150px;">Acciones</th>
 										</tr>
 										</thead>
 										<tbody id="tbodyEstudiantes">
 										<tr>
-											<td colspan="8" class="text-center">
+											<td colspan="6" class="text-center">
 												<div class="spinner-border text-primary" role="status">
 													<span class="visually-hidden">Cargando...</span>
 												</div>
@@ -1043,6 +1046,37 @@
 											<!-- Contenido dinámico -->
 										</div>
 										<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Gráficos de Asistencia en Tiempo Real -->
+						<div class="row mb-4" id="graficosAsistenciaActual" style="display: none;">
+							<!-- Gráfica 1: Resumen de Sesión Actual -->
+							<div class="col-xl-6">
+								<div class="card">
+									<div class="card-header bg-primary text-white">
+										<h5 class="card-title mb-0">
+											<i class="fas fa-chart-pie me-2"></i>Resumen de Sesión Actual
+										</h5>
+									</div>
+									<div class="card-body">
+										<canvas id="chartSesionActual" height="300"></canvas>
+									</div>
+								</div>
+							</div>
+
+							<!-- Gráfica 2: Tendencia de Asistencias de Hoy -->
+							<div class="col-xl-6">
+								<div class="card">
+									<div class="card-header bg-success text-white">
+										<h5 class="card-title mb-0">
+											<i class="fas fa-chart-line me-2"></i>Tendencia de Asistencias Hoy
+										</h5>
+									</div>
+									<div class="card-body">
+										<canvas id="chartTendenciaHoy" height="300"></canvas>
 									</div>
 								</div>
 							</div>

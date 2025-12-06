@@ -14,6 +14,7 @@ class AsistenciaManager {
         this.asistenciasSesionActual = [];
         this.unidadesCompletas = [];
         this.estudiantesEscaneadosEnSesion = new Set(); // Guarda estudianteId para evitar duplicados
+        this.chartsAsistencia = {}; // Gráficos de asistencia en tiempo real
     }
 
     async init() {
@@ -301,6 +302,10 @@ class AsistenciaManager {
         $('#btnFinalizarSesion').fadeIn();
         $('#btnFinalizarSesionFinal').fadeIn();
 
+        // Mostrar gráficos interactivos
+        $('#graficosAsistenciaActual').fadeIn();
+        this.inicializarGraficosAsistencia();
+
         // Mostrar mensaje
         this.mostrarFeedback('success', `
             <h5 class="mb-2">✅ Sesión Iniciada</h5>
@@ -418,6 +423,10 @@ class AsistenciaManager {
         $('#btnFinalizarSesionFinal').fadeOut();
         $('#btnIniciarSesion').fadeIn();
 
+        // Ocultar gráficos
+        $('#graficosAsistenciaActual').fadeOut();
+        this.destruirGraficosAsistencia();
+
         // Mostrar mensaje de éxito
         this.mostrarFeedback('success', `
             <h5 class="mb-2">✅ Sesión Finalizada</h5>
@@ -495,6 +504,7 @@ class AsistenciaManager {
                 `, resultado.estudiante);
                 this.reproducirSonido('success');
                 await this.cargarAsistenciasHoy(); // Recargar lista
+                this.actualizarGraficosAsistencia(); // Actualizar gráficos
             } else {
                 // Error o advertencia
                 if (resultado.tipo === 'warning') {
@@ -877,6 +887,192 @@ class AsistenciaManager {
             oscilador.start(this.audioContext.currentTime);
             oscilador.stop(this.audioContext.currentTime + 0.3);
         }
+    }
+
+    /**
+     * Inicializar gráficos de asistencia en tiempo real
+     */
+    inicializarGraficosAsistencia() {
+        this.crearGraficoSesionActual();
+        this.crearGraficoTendenciaHoy();
+    }
+
+    /**
+     * Crear gráfico de resumen de sesión actual
+     */
+    crearGraficoSesionActual() {
+        const canvas = document.getElementById('chartSesionActual');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        if (this.chartsAsistencia.sesionActual) {
+            this.chartsAsistencia.sesionActual.destroy();
+        }
+
+        this.chartsAsistencia.sesionActual = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Presentes', 'Sin Registrar'],
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#000',
+                            padding: 15,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + ' estudiantes';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Crear gráfico de tendencia de asistencias de hoy
+     */
+    crearGraficoTendenciaHoy() {
+        const canvas = document.getElementById('chartTendenciaHoy');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        if (this.chartsAsistencia.tendenciaHoy) {
+            this.chartsAsistencia.tendenciaHoy.destroy();
+        }
+
+        this.chartsAsistencia.tendenciaHoy = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Asistencias',
+                    data: [],
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#28a745',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: '#000'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#000'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#000'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Actualizar gráficos de asistencia con datos actuales
+     */
+    async actualizarGraficosAsistencia() {
+        // Actualizar gráfico de sesión actual
+        if (this.chartsAsistencia.sesionActual) {
+            const totalSesion = this.asistenciasSesionActual.length;
+
+            // Obtener total de estudiantes del grupo actual
+            let totalEstudiantes = totalSesion; // Por defecto, asumimos que el total es lo registrado
+            if (this.grupoSeleccionado) {
+                try {
+                    const response = await fetch(`/estudiantes/grupo/${this.grupoSeleccionado}`);
+                    const estudiantes = await response.json();
+                    totalEstudiantes = estudiantes.length;
+                } catch (error) {
+                    console.error('Error al obtener estudiantes del grupo:', error);
+                }
+            }
+
+            const sinRegistrar = Math.max(0, totalEstudiantes - totalSesion);
+
+            this.chartsAsistencia.sesionActual.data.datasets[0].data = [totalSesion, sinRegistrar];
+            this.chartsAsistencia.sesionActual.update();
+        }
+
+        // Actualizar gráfico de tendencia de hoy
+        if (this.chartsAsistencia.tendenciaHoy && this.asistenciasHoy.length > 0) {
+            // Agrupar asistencias por hora
+            const asistenciasPorHora = {};
+            this.asistenciasHoy.forEach(asistencia => {
+                const fecha = new Date(asistencia.fechaHora);
+                const hora = fecha.getHours();
+                if (!asistenciasPorHora[hora]) {
+                    asistenciasPorHora[hora] = 0;
+                }
+                asistenciasPorHora[hora]++;
+            });
+
+            const horas = Object.keys(asistenciasPorHora).sort((a, b) => a - b);
+            const labels = horas.map(h => `${h}:00`);
+            const datos = horas.map(h => asistenciasPorHora[h]);
+
+            this.chartsAsistencia.tendenciaHoy.data.labels = labels;
+            this.chartsAsistencia.tendenciaHoy.data.datasets[0].data = datos;
+            this.chartsAsistencia.tendenciaHoy.update();
+        }
+    }
+
+    /**
+     * Destruir gráficos de asistencia
+     */
+    destruirGraficosAsistencia() {
+        Object.keys(this.chartsAsistencia).forEach(key => {
+            if (this.chartsAsistencia[key]) {
+                this.chartsAsistencia[key].destroy();
+            }
+        });
+        this.chartsAsistencia = {};
     }
 }
 

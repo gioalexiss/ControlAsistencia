@@ -175,22 +175,32 @@ class DashboardManager {
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'right',
                             labels: {
                                 color: '#fff',
-                                padding: 15,
+                                padding: 20,
                                 font: {
-                                    size: 12
-                                }
+                                    size: 14
+                                },
+                                boxWidth: 20
                             }
                         },
                         title: {
-                            display: true,
-                            text: 'Distribución de Estudiantes por Grupo',
-                            color: '#fff',
-                            font: {
-                                size: 16,
-                                weight: 'bold'
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed + ' estudiantes';
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const porcentaje = ((context.parsed / total) * 100).toFixed(1);
+                                    label += ` (${porcentaje}%)`;
+                                    return label;
+                                }
                             }
                         }
                     }

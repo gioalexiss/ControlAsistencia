@@ -25,7 +25,7 @@ class GrupoManager {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center py-5">
+                    <td colspan="4" class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Cargando...</span>
                         </div>
@@ -184,11 +184,6 @@ class GrupoManager {
             <td>
                 <span class="badge badge-info" id="estudiantes-${grupo.id}">
                     <i class="fas fa-spinner fa-spin"></i>
-                </span>
-            </td>
-            <td>
-                <span class="badge badge-secondary">
-                    <i class="fas fa-chart-line"></i> N/D
                 </span>
             </td>
             <td>
@@ -591,7 +586,7 @@ class GrupoManager {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center py-5">
+                    <td colspan="4" class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No hay grupos registrados</h5>
                         <p class="text-muted">Agrega tus horarios en la sección "Mi Horario" para comenzar</p>
