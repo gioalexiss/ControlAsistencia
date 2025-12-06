@@ -409,14 +409,8 @@ public class EstudianteController {
                         .body(crearRespuestaError("El nombre es obligatorio"));
             }
 
-            // Verificar si ya existe la boleta
-            if (estudianteService.buscarPorBoleta(estudianteDTO.getBoleta()).isPresent()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(crearRespuestaError("Ya existe un estudiante con esa boleta"));
-            }
-
             // Crear estudiante y opcionalmente vincularlo a un grupo
+            // El servicio manejará si el estudiante ya existe y necesita vincularse
             EstudianteEntity estudiante = estudianteService.crearEstudianteYVincular(estudianteDTO, idGrupo, idUnidad);
 
             // Preparar respuesta
@@ -424,9 +418,9 @@ public class EstudianteController {
             respuesta.put("success", true);
 
             if (idGrupo != null && idUnidad != null) {
-                respuesta.put("mensaje", "Estudiante creado y asignado al grupo correctamente");
+                respuesta.put("mensaje", "Estudiante agregado al grupo correctamente");
             } else {
-                respuesta.put("mensaje", "Estudiante creado correctamente");
+                respuesta.put("mensaje", "Estudiante registrado correctamente");
             }
 
             respuesta.put("estudiante", estudiante);
