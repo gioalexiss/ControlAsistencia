@@ -304,7 +304,7 @@
 										<a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 											<div class="header-info2 d-flex align-items-center">
 												<div class="header-media">
-													<i class="fas fa-user-circle fa-3x text-primary"></i>
+													<i class="fas fa-user-circle fa-2x text-primary"></i>
 												</div>
 												<div class="header-info">
 													<h6 id="nombreDocente">Cargando...</h6>
@@ -320,10 +320,10 @@
 												<!--Pestaña principal donde se ve la foto y nombre del usuario/docente-->
 												<div class="card-header py-2">
 													<div class="products">
-														<img src="images/tab/1.jpg" class="avatar avatar-md" alt="">
+														<i class="fas fa-user-circle fa-3x text-primary"></i>
 														<div>
-															<h6>Thomas Fleming</h6>
-															<span>Web Designer</span>
+															<h6 id="nombreDocenteDropdown">Cargando...</h6>
+															<span>Docente</span>
 														</div>
 													</div>
 												</div>
@@ -1501,6 +1501,7 @@
 
 					$('#nombreDocente').text(nombreDocente);
 					$('#correoDocente').text(correoDocente);
+					$('#nombreDocenteDropdown').text(nombreDocente);
 				}
 			});
 		</script>
