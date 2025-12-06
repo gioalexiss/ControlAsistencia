@@ -287,7 +287,7 @@ class EstudianteManager {
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
                 order: [[0, 'asc']], // Ordenar por # (número de fila)
-                dom: '<"row mb-3"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-6"B>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                dom: 'Blfrtip',
                 buttons: [
                     {
                         extend: 'excelHtml5',
