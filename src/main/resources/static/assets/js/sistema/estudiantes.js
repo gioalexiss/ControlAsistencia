@@ -129,18 +129,11 @@ class EstudianteManager {
                         ? '<span class="badge badge-success">Activo</span>'
                         : '<span class="badge badge-secondary">Inactivo</span>';
 
-                    // Obtener información de grupos
-                    const grupos = estudiante.grupos || [];
-                    const nombresGrupos = grupos.map(g => g.nombreGrupo).join(', ') || 'Sin asignar';
-                    const nombresMaterias = grupos.map(g => g.nombreMateria).join(', ') || 'Sin asignar';
-
                     this.dataTable.row.add([
                         index + 1,
                         `<strong>${estudiante.boleta}</strong>`,
                         nombreCompleto,
                         estudiante.correo || 'No registrado',
-                        nombresGrupos,
-                        nombresMaterias,
                         estadoBadge,
                         `<div class="btn-group" role="group">
                             <button class="btn btn-info btn-sm btn-ver-detalle" data-estudiante-id="${estudiante.id}" title="Ver detalles">
@@ -173,7 +166,7 @@ class EstudianteManager {
         if (this.estudiantesFiltrados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center py-5">
+                    <td colspan="6" class="text-center py-5">
                         <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No hay estudiantes registrados</h5>
                         <p class="text-muted">Agrega estudiantes manualmente o importa desde la sección "Mis Grupos"</p>
@@ -220,18 +213,11 @@ class EstudianteManager {
         // El nombre ya contiene el nombre completo
         const nombreCompleto = estudiante.nombre;
 
-        // Obtener información de grupos
-        const grupos = estudiante.grupos || [];
-        const nombresGrupos = grupos.map(g => g.nombreGrupo).join(', ') || 'Sin asignar';
-        const nombresMaterias = grupos.map(g => g.nombreMateria).join(', ') || 'Sin asignar';
-
         tr.innerHTML = `
             <td class="text-center">${numero}</td>
             <td><strong>${estudiante.boleta}</strong></td>
             <td>${nombreCompleto}</td>
             <td>${estudiante.correo || 'No registrado'}</td>
-            <td>${nombresGrupos}</td>
-            <td>${nombresMaterias}</td>
             <td class="text-center">${estadoBadge}</td>
             <td class="text-center">
                 <div class="btn-group" role="group">
@@ -299,7 +285,7 @@ class EstudianteManager {
                     }
                 },
                 pageLength: 25,
-                order: [[1, 'asc']], // Ordenar por boleta
+                order: [[0, 'asc']], // Ordenar por # (número de fila)
                 dom: 'Bfrtip',
                 buttons: [
                     {
@@ -307,7 +293,7 @@ class EstudianteManager {
                         text: '<i class="fas fa-file-excel"></i> Exportar a Excel',
                         className: 'btn btn-success btn-sm',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3, 4]
                         }
                     },
                     {
@@ -315,7 +301,7 @@ class EstudianteManager {
                         text: '<i class="fas fa-file-pdf"></i> Exportar a PDF',
                         className: 'btn btn-danger btn-sm',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3, 4]
                         }
                     },
                     {
@@ -323,7 +309,7 @@ class EstudianteManager {
                         text: '<i class="fas fa-print"></i> Imprimir',
                         className: 'btn btn-info btn-sm',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6]
+                            columns: [0, 1, 2, 3, 4]
                         }
                     }
                 ],
@@ -381,6 +367,11 @@ class EstudianteManager {
             // Botón de generar QR masivo usando event delegation
             if (e.target.closest('#btnGenerarQRMasivo')) {
                 this.generarQRMasivo();
+            }
+
+            // Botón de enviar QR personal
+            if (e.target.closest('#btnEnviarQRPersonal')) {
+                this.mostrarModalEnviarQRPersonal();
             }
 
             // Botón de recargar usando event delegation
@@ -538,6 +529,22 @@ class EstudianteManager {
                                         ${estudiante.estado === 'activo'
                                             ? '<span class="badge badge-success">Activo</span>'
                                             : '<span class="badge badge-secondary">Inactivo</span>'}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Grupos Asignados:</th>
+                                    <td>
+                                        ${estudiante.grupos && estudiante.grupos.length > 0
+                                            ? estudiante.grupos.map(g => `<span class="badge bg-primary me-1 mb-1">${g.nombreGrupo}</span>`).join('')
+                                            : '<span class="badge bg-secondary">Sin grupos asignados</span>'}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Materias:</th>
+                                    <td>
+                                        ${estudiante.grupos && estudiante.grupos.length > 0
+                                            ? estudiante.grupos.map(g => `<span class="badge bg-info me-1 mb-1">${g.nombreMateria}</span>`).join('')
+                                            : '<span class="badge bg-secondary">Sin materias asignadas</span>'}
                                     </td>
                                 </tr>
                                 <tr>
@@ -1009,6 +1016,214 @@ class EstudianteManager {
                 btnGenerarQR.innerHTML = '<i class="fas fa-qrcode"></i> Generar QR Masivo';
             }
         }
+    }
+
+    /**
+     * Mostrar modal para enviar QR de manera personal (selectiva)
+     */
+    mostrarModalEnviarQRPersonal() {
+        if (this.estudiantes.length === 0) {
+            alert('No hay estudiantes registrados');
+            return;
+        }
+
+        // Limpiar modales anteriores
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        const modalAnterior = document.getElementById('modalEnviarQRPersonal');
+        if (modalAnterior) {
+            const modalInstance = bootstrap.Modal.getInstance(modalAnterior);
+            if (modalInstance) {
+                modalInstance.dispose();
+            }
+            modalAnterior.remove();
+        }
+
+        // Crear lista de estudiantes con checkboxes
+        let listaEstudiantes = '';
+        this.estudiantes.forEach(estudiante => {
+            const correo = estudiante.correo || 'Sin correo';
+            const tieneCorreo = estudiante.correo && estudiante.correo.trim() !== '';
+            listaEstudiantes += `
+                <div class="form-check mb-2">
+                    <input class="form-check-input estudiante-check" type="checkbox"
+                           value="${estudiante.id}"
+                           id="check-${estudiante.id}"
+                           ${!tieneCorreo ? 'disabled' : ''}>
+                    <label class="form-check-label ${!tieneCorreo ? 'text-muted' : ''}" for="check-${estudiante.id}">
+                        <strong>${estudiante.boleta}</strong> - ${estudiante.nombre}
+                        <br><small class="${tieneCorreo ? 'text-primary' : 'text-danger'}">${correo}</small>
+                    </label>
+                </div>
+            `;
+        });
+
+        const modalHTML = `
+            <div class="modal fade" id="modalEnviarQRPersonal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-paper-plane"></i>
+                                Enviar QR de Forma Personal
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                Selecciona los estudiantes a los que deseas enviar su código QR por correo electrónico.
+                                Solo se pueden seleccionar estudiantes con correo registrado.
+                            </div>
+
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-sm btn-primary" id="btnSeleccionarTodos">
+                                    <i class="fas fa-check-square"></i> Seleccionar Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-secondary" id="btnDeseleccionarTodos">
+                                    <i class="fas fa-square"></i> Deseleccionar Todos
+                                </button>
+                            </div>
+
+                            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px;">
+                                ${listaEstudiantes}
+                            </div>
+
+                            <!-- Barra de progreso (oculta inicialmente) -->
+                            <div id="progressContainer" class="mt-3" style="display: none;">
+                                <h6>Enviando correos...</h6>
+                                <div class="progress" style="height: 30px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                         role="progressbar"
+                                         id="progressBar"
+                                         style="width: 0%"
+                                         aria-valuenow="0"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                        <span id="progressText">0%</span>
+                                    </div>
+                                </div>
+                                <p class="mt-2 mb-0" id="progressStatus">Preparando envío...</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-info" id="btnConfirmarEnvioPersonal">
+                                <i class="fas fa-paper-plane"></i> Enviar QR Seleccionados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Agregar modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Inicializar modal
+        const modalElement = document.getElementById('modalEnviarQRPersonal');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Evento para limpiar el modal cuando se oculta
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            modalElement.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, { once: true });
+
+        // Configurar botones de selección
+        document.getElementById('btnSeleccionarTodos').addEventListener('click', () => {
+            document.querySelectorAll('.estudiante-check:not(:disabled)').forEach(cb => cb.checked = true);
+        });
+
+        document.getElementById('btnDeseleccionarTodos').addEventListener('click', () => {
+            document.querySelectorAll('.estudiante-check').forEach(cb => cb.checked = false);
+        });
+
+        // Evento del botón de confirmar
+        document.getElementById('btnConfirmarEnvioPersonal').addEventListener('click', () => {
+            this.enviarQRPersonal();
+        });
+
+        modal.show();
+    }
+
+    /**
+     * Enviar QR de manera personal a los estudiantes seleccionados
+     */
+    async enviarQRPersonal() {
+        // Obtener estudiantes seleccionados
+        const checkboxes = document.querySelectorAll('.estudiante-check:checked');
+        if (checkboxes.length === 0) {
+            alert('Por favor selecciona al menos un estudiante');
+            return;
+        }
+
+        const estudiantesSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+        // Mostrar barra de progreso
+        document.getElementById('progressContainer').style.display = 'block';
+        const btnEnviar = document.getElementById('btnConfirmarEnvioPersonal');
+        btnEnviar.disabled = true;
+
+        // Enviar QR uno por uno
+        let enviados = 0;
+        let errores = 0;
+
+        for (let i = 0; i < estudiantesSeleccionados.length; i++) {
+            const estudianteId = estudiantesSeleccionados[i];
+            const estudiante = this.estudiantes.find(e => e.id === estudianteId);
+
+            // Actualizar progreso
+            const progreso = Math.round(((i + 1) / estudiantesSeleccionados.length) * 100);
+            document.getElementById('progressBar').style.width = progreso + '%';
+            document.getElementById('progressBar').setAttribute('aria-valuenow', progreso);
+            document.getElementById('progressText').textContent = progreso + '%';
+            document.getElementById('progressStatus').textContent = `Enviando a ${estudiante.nombre}... (${i + 1}/${estudiantesSeleccionados.length})`;
+
+            try {
+                // Llamar al endpoint para enviar QR individual
+                const response = await fetch(`/estudiantes/generar-qr-masivo/${this.docenteId}?enviarCorreo=true`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify([estudianteId])
+                });
+
+                const resultado = await response.json();
+                if (resultado.success) {
+                    enviados++;
+                } else {
+                    errores++;
+                }
+            } catch (error) {
+                console.error('Error al enviar QR a estudiante', estudianteId, error);
+                errores++;
+            }
+
+            // Pequeña pausa para no saturar el servidor
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // Mostrar resultado final
+        document.getElementById('progressStatus').textContent =
+            `Proceso completado: ${enviados} enviados, ${errores} errores`;
+        btnEnviar.disabled = false;
+        btnEnviar.innerHTML = '<i class="fas fa-check"></i> Completado';
+
+        // Mostrar alerta con resultado
+        setTimeout(() => {
+            alert(`Envío completado:\n\n✅ Enviados: ${enviados}\n❌ Errores: ${errores}`);
+
+            // Cerrar modal
+            const modalElement = document.getElementById('modalEnviarQRPersonal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }, 1000);
     }
 
     /**
