@@ -536,7 +536,8 @@ class EstudianteManager {
                                     <th>Grupos Asignados:</th>
                                     <td>
                                         ${estudiante.grupos && estudiante.grupos.length > 0
-                                            ? estudiante.grupos.map(g => `<span class="badge bg-primary me-1 mb-1">${g.nombreGrupo}</span>`).join('')
+                                            ? Array.from(new Set(estudiante.grupos.map(g => g.nombreGrupo)))
+                                                .map(nombreGrupo => `<span class="badge bg-primary me-1 mb-1">${nombreGrupo}</span>`).join('')
                                             : '<span class="badge bg-secondary">Sin grupos asignados</span>'}
                                     </td>
                                 </tr>

@@ -387,8 +387,8 @@ class ReporteManager {
      * Descargar reporte como Excel
      */
     async descargarExcel(reporte) {
-        // Obtener lista de ausentes
-        const { presentes, ausentes } = await this.obtenerPresentesYAusentes(reporte);
+        // Obtener lista completa de estudiantes con estado
+        const estudiantesConEstado = await this.obtenerEstudiantesConEstado(reporte);
 
         // Crear tabla HTML
         let html = `
@@ -412,16 +412,17 @@ class ReporteManager {
                 </tr>
                 <tr>
                     <th>Total Presentes:</th>
-                    <td colspan="4">${presentes.length}</td>
+                    <td colspan="4">${estudiantesConEstado.filter(e => e.estado !== 'AUSENTE').length}</td>
                 </tr>
                 <tr>
                     <th>Total Ausentes:</th>
-                    <td colspan="4">${ausentes.length}</td>
+                    <td colspan="4">${estudiantesConEstado.filter(e => e.estado === 'AUSENTE').length}</td>
+                </tr>
+                <tr>
+                    <th>Total Estudiantes:</th>
+                    <td colspan="4">${estudiantesConEstado.length}</td>
                 </tr>
                 <tr><td colspan="5">&nbsp;</td></tr>
-                <tr style="background-color:#28a745; color:white; font-weight:bold;">
-                    <th colspan="5">ESTUDIANTES PRESENTES</th>
-                </tr>
                 <tr style="background-color:#4472C4; color:white; font-weight:bold;">
                     <th>#</th>
                     <th>Boleta</th>
@@ -431,43 +432,15 @@ class ReporteManager {
                 </tr>
         `;
 
-        presentes.forEach((asistencia, index) => {
-            const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        estudiantesConEstado.forEach((estudiante, index) => {
+            const bgColor = estudiante.estado === 'AUSENTE' ? '#ffdddd' : '#ddffdd';
             html += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${asistencia.boletaEstudiante}</td>
-                    <td>${asistencia.nombreEstudiante}</td>
-                    <td>${hora}</td>
-                    <td>${asistencia.tipoAsistencia}</td>
-                </tr>
-            `;
-        });
-
-        // Agregar sección de ausentes
-        html += `
-                <tr><td colspan="5">&nbsp;</td></tr>
-                <tr style="background-color:#dc3545; color:white; font-weight:bold;">
-                    <th colspan="5">ESTUDIANTES AUSENTES</th>
-                </tr>
-                <tr style="background-color:#4472C4; color:white; font-weight:bold;">
-                    <th>#</th>
-                    <th>Boleta</th>
-                    <th>Nombre</th>
-                    <th colspan="2">Estado</th>
-                </tr>
-        `;
-
-        ausentes.forEach((estudiante, index) => {
-            html += `
-                <tr>
+                <tr style="background-color:${bgColor}">
                     <td>${index + 1}</td>
                     <td>${estudiante.boleta}</td>
                     <td>${estudiante.nombre}</td>
-                    <td colspan="2">AUSENTE</td>
+                    <td>${estudiante.hora || '-'}</td>
+                    <td>${estudiante.estado}</td>
                 </tr>
             `;
         });
@@ -490,8 +463,8 @@ class ReporteManager {
      * Descargar reporte como PDF
      */
     async descargarPDF(reporte) {
-        // Obtener lista de ausentes
-        const { presentes, ausentes } = await this.obtenerPresentesYAusentes(reporte);
+        // Obtener lista completa de estudiantes con estado
+        const estudiantesConEstado = await this.obtenerEstudiantesConEstado(reporte);
 
         // Usar window.print() con una página personalizada
         const fecha = new Date(reporte.fecha + 'T00:00:00');
@@ -501,33 +474,23 @@ class ReporteManager {
             day: 'numeric'
         });
 
-        let listaPresentes = '';
-        presentes.forEach((asistencia, index) => {
-            const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            listaPresentes += `
-                <tr>
+        // Generar lista unificada
+        let listaEstudiantes = '';
+        estudiantesConEstado.forEach((estudiante, index) => {
+            const rowClass = estudiante.estado === 'AUSENTE' ? 'ausente' : 'presente';
+            listaEstudiantes += `
+                <tr class="${rowClass}">
                     <td>${index + 1}</td>
-                    <td>${asistencia.boletaEstudiante}</td>
-                    <td>${asistencia.nombreEstudiante}</td>
-                    <td>${hora}</td>
-                    <td>${asistencia.tipoAsistencia}</td>
+                    <td>${estudiante.boleta}</td>
+                    <td>${estudiante.nombre}</td>
+                    <td>${estudiante.hora || '-'}</td>
+                    <td>${estudiante.estado}</td>
                 </tr>
             `;
         });
 
-        let listaAusentes = '';
-        ausentes.forEach((estudiante, index) => {
-            listaAusentes += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${estudiante.boleta}</td>
-                    <td colspan="3">${estudiante.nombre}</td>
-                </tr>
-            `;
-        });
+        const totalPresentes = estudiantesConEstado.filter(e => e.estado !== 'AUSENTE').length;
+        const totalAusentes = estudiantesConEstado.filter(e => e.estado === 'AUSENTE').length;
 
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
@@ -538,14 +501,13 @@ class ReporteManager {
                 <style>
                     body { font-family: Arial, sans-serif; margin: 20px; }
                     h1 { text-align: center; color: #333; }
-                    h2 { color: #333; margin-top: 30px; }
                     .info { margin: 20px 0; }
                     .info p { margin: 5px 0; }
                     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    .presentes th { background-color: #28a745; color: white; }
-                    .ausentes th { background-color: #dc3545; color: white; }
-                    .section-title { background-color: #f8f9fa; padding: 10px; margin-top: 20px; font-weight: bold; }
+                    thead th { background-color: #4472C4; color: white; }
+                    .presente { background-color: #ddffdd; }
+                    .ausente { background-color: #ffdddd; }
                     @media print {
                         body { margin: 0; }
                     }
@@ -557,12 +519,11 @@ class ReporteManager {
                     <p><strong>Fecha:</strong> ${fechaFormateada}</p>
                     <p><strong>Grupo:</strong> ${reporte.nombreGrupo}</p>
                     <p><strong>Materia:</strong> ${reporte.nombreUnidad}</p>
-                    <p><strong>Total Presentes:</strong> ${presentes.length}</p>
-                    <p><strong>Total Ausentes:</strong> ${ausentes.length}</p>
-                    <p><strong>Total de Alumnos:</strong> ${presentes.length + ausentes.length}</p>
+                    <p><strong>Total Presentes:</strong> ${totalPresentes}</p>
+                    <p><strong>Total Ausentes:</strong> ${totalAusentes}</p>
+                    <p><strong>Total de Alumnos:</strong> ${estudiantesConEstado.length}</p>
                 </div>
-                <div class="section-title">ESTUDIANTES PRESENTES</div>
-                <table class="presentes">
+                <table>
                     <thead>
                         <tr>
                             <th>#</th>
@@ -573,20 +534,7 @@ class ReporteManager {
                         </tr>
                     </thead>
                     <tbody>
-                        ${listaPresentes}
-                    </tbody>
-                </table>
-                <div class="section-title">ESTUDIANTES AUSENTES</div>
-                <table class="ausentes">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Boleta</th>
-                            <th colspan="3">Nombre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${listaAusentes}
+                        ${listaEstudiantes}
                     </tbody>
                 </table>
             </body>
@@ -802,6 +750,79 @@ class ReporteManager {
         } catch (error) {
             console.error('Error al obtener ausentes:', error);
             return { presentes, ausentes: [] };
+        }
+    }
+
+    /**
+     * Obtener lista completa de estudiantes con su estado (presente/ausente)
+     * Mantiene el orden alfabético original de importación
+     */
+    async obtenerEstudiantesConEstado(reporte) {
+        const presentes = reporte.asistencias || [];
+
+        try {
+            if (!reporte.grupoId || reporte.grupoId === 'sin-grupo') {
+                // Si no hay grupo, solo devolver presentes
+                return presentes.map((asistencia, index) => {
+                    const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    return {
+                        boleta: asistencia.boletaEstudiante,
+                        nombre: asistencia.nombreEstudiante,
+                        hora: hora,
+                        estado: asistencia.tipoAsistencia
+                    };
+                });
+            }
+
+            // Obtener todos los estudiantes del grupo en su orden original
+            const response = await fetch(`/estudiantes/grupo/${reporte.grupoId}`);
+            if (!response.ok) {
+                console.error('Error al obtener estudiantes del grupo');
+                return [];
+            }
+
+            const todosLosEstudiantes = await response.json();
+
+            // Crear mapa de asistencias por boleta
+            const asistenciasMap = new Map();
+            presentes.forEach(asistencia => {
+                asistenciasMap.set(asistencia.boletaEstudiante, asistencia);
+            });
+
+            // Generar lista unificada manteniendo el orden original
+            const estudiantesConEstado = todosLosEstudiantes.map(estudiante => {
+                const asistencia = asistenciasMap.get(estudiante.boleta);
+
+                if (asistencia) {
+                    // Estudiante presente
+                    const hora = new Date(asistencia.fechaHora).toLocaleTimeString('es-MX', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    return {
+                        boleta: estudiante.boleta,
+                        nombre: estudiante.nombre,
+                        hora: hora,
+                        estado: asistencia.tipoAsistencia
+                    };
+                } else {
+                    // Estudiante ausente
+                    return {
+                        boleta: estudiante.boleta,
+                        nombre: estudiante.nombre,
+                        hora: null,
+                        estado: 'AUSENTE'
+                    };
+                }
+            });
+
+            return estudiantesConEstado;
+        } catch (error) {
+            console.error('Error al obtener estudiantes con estado:', error);
+            return [];
         }
     }
 
