@@ -2,7 +2,6 @@ package com.upiiz.controlAsistencia.controllers;
 
 import com.upiiz.controlAsistencia.models.Alumno;
 import com.upiiz.controlAsistencia.services.EmailService;
-import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +37,7 @@ public class RegistroController {
             response.put("mensaje", "Registro exitoso. Se ha enviado un correo con el código QR a " + alumno.getCorreo());
             return ResponseEntity.ok(response);
 
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             response.put("error", "Error al enviar el correo: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
