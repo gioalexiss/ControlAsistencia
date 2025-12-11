@@ -54,19 +54,28 @@ public class EmailService {
         byte[] qrCode = generarQRCode(qrContent, 200, 200);
         String qrBase64 = Base64.getEncoder().encodeToString(qrCode);
 
-        // Construir contenido del email con QR incrustado
-        String contenidoHtml = construirContenidoEmail(alumno, qrBase64);
+        // Construir contenido del email con CID para la imagen
+        String contenidoHtml = construirContenidoEmail(alumno);
         Content content = new Content("text/html", contenidoHtml);
 
         Mail mail = new Mail(from, subject, to, content);
 
-        // También agregar QR como adjunto
-        Attachments attachments = new Attachments();
-        attachments.setContent(qrBase64);
-        attachments.setType("image/png");
-        attachments.setFilename("codigo-qr.png");
-        attachments.setDisposition("attachment");
-        mail.addAttachments(attachments);
+        // Agregar QR como adjunto inline con Content-ID
+        Attachments inlineAttachment = new Attachments();
+        inlineAttachment.setContent(qrBase64);
+        inlineAttachment.setType("image/png");
+        inlineAttachment.setFilename("codigo-qr.png");
+        inlineAttachment.setDisposition("inline");
+        inlineAttachment.setContentId("qrcode");
+        mail.addAttachments(inlineAttachment);
+
+        // También agregar QR como adjunto descargable
+        Attachments downloadAttachment = new Attachments();
+        downloadAttachment.setContent(qrBase64);
+        downloadAttachment.setType("image/png");
+        downloadAttachment.setFilename("codigo-qr.png");
+        downloadAttachment.setDisposition("attachment");
+        mail.addAttachments(downloadAttachment);
 
         // Enviar
         Request request = new Request();
@@ -122,7 +131,7 @@ public class EmailService {
         );
     }
 
-    private String construirContenidoEmail(Alumno alumno, String qrBase64) {
+    private String construirContenidoEmail(Alumno alumno) {
         return "<!DOCTYPE html>" +
                 "<html>" +
                 "<head>" +
@@ -162,7 +171,7 @@ public class EmailService {
                 "</div>" +
                 "<div class='qr-container'>" +
                 "<h3 style='color: #8B0A50; margin-top: 0;'>Tu Código QR</h3>" +
-                "<img src='data:image/png;base64," + qrBase64 + "' alt='Código QR' width='200' height='200' style='border: 3px solid #8B0A50; border-radius: 10px; display: block; margin: 15px auto;' />" +
+                "<img src='cid:qrcode' alt='Código QR' width='200' height='200' style='border: 3px solid #8B0A50; border-radius: 10px; display: block; margin: 15px auto;' />" +
                 "<p style='color: #666; font-size: 14px;'>Guarda este código QR para registrar tu asistencia</p>" +
                 "</div>" +
                 "<p><strong>Guarda este correo como comprobante de tu registro.</strong></p>" +
