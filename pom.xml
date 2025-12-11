@@ -87,10 +87,11 @@
 
 
 
-		<!-- DEPENDENCIA FALTANTE MÁS IMPORTANTE: Spring Boot Mail -->
+		<!-- SendGrid Java SDK para envío de correos via API HTTP -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
+			<groupId>com.sendgrid</groupId>
+			<artifactId>sendgrid-java</artifactId>
+			<version>4.10.2</version>
 		</dependency>
 
 		<dependency>
@@ -111,12 +112,6 @@
 			<groupId>com.google.zxing</groupId>
 			<artifactId>core</artifactId>
 			<version>3.5.3</version>
-		</dependency>
-
-		<!-- DEPENDENCIA FALTANTE: Jakarta Mail API -->
-		<dependency>
-			<groupId>jakarta.mail</groupId>
-			<artifactId>jakarta.mail-api</artifactId>
 		</dependency>
 
 		<dependency>
