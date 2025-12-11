@@ -52,16 +52,17 @@ public class EmailService {
         // Generar QR
         String qrContent = generarContenidoQR(alumno);
         byte[] qrCode = generarQRCode(qrContent, 200, 200);
+        String qrBase64 = Base64.getEncoder().encodeToString(qrCode);
 
-        // Construir contenido del email
-        String contenidoHtml = construirContenidoEmail(alumno);
+        // Construir contenido del email con QR incrustado
+        String contenidoHtml = construirContenidoEmail(alumno, qrBase64);
         Content content = new Content("text/html", contenidoHtml);
 
         Mail mail = new Mail(from, subject, to, content);
 
-        // Agregar QR como adjunto
+        // También agregar QR como adjunto
         Attachments attachments = new Attachments();
-        attachments.setContent(Base64.getEncoder().encodeToString(qrCode));
+        attachments.setContent(qrBase64);
         attachments.setType("image/png");
         attachments.setFilename("codigo-qr.png");
         attachments.setDisposition("attachment");
@@ -121,7 +122,7 @@ public class EmailService {
         );
     }
 
-    private String construirContenidoEmail(Alumno alumno) {
+    private String construirContenidoEmail(Alumno alumno, String qrBase64) {
         return "<!DOCTYPE html>" +
                 "<html>" +
                 "<head>" +
@@ -132,35 +133,38 @@ public class EmailService {
                 ".header { background: linear-gradient(135deg, #8B0A50 0%, #A62C63 100%); color: white; padding: 30px; text-align: center; border-radius: 13px 13px 0 0; }" +
                 ".content { padding: 30px; }" +
                 ".info { background-color: #fdf2f6; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #8B0A50; border-right: 1px solid #edd4df; }" +
+                ".qr-container { text-align: center; padding: 20px; background-color: #fdf2f6; border-radius: 10px; margin: 20px 0; border-left: 5px solid #8B0A50; }" +
                 ".footer { text-align: center; margin-top: 30px; padding: 20px; color: #8B0A50; font-size: 14px; border-top: 2px solid #f0e0e7; }" +
                 ".success { color: #8B0A50; font-weight: bold; font-size: 16px; }" +
                 ".nombre-alumno { font-size: 20px; color: #8B0A50; font-weight: bold; margin: 15px 0; text-align: center; }" +
                 ".datos-label { color: #8B0A50; font-weight: 600; }" +
                 ".datos-valor { color: #333; }" +
-                "</style>"+
-
-
+                "</style>" +
                 "</head>" +
                 "<body>" +
                 "<div class='container'>" +
                 "<div class='header'>" +
-                "<h1> Registro Exitoso</h1>" +
+                "<h1>✓ Registro Exitoso</h1>" +
                 "<p>Sistema de Registro de Alumnos</p>" +
                 "</div>" +
                 "<div class='content'>" +
                 "<p>Hola <strong class='nombre-alumno'>" + alumno.getNombre() + "</strong>,</p>" +
-                "<p class='success'> Tu registro ha sido completado exitosamente.</p>" +
+                "<p class='success'>✓ Tu registro ha sido completado exitosamente.</p>" +
                 "<p>Aquí están los detalles de tu registro:</p>" +
                 "<div class='info'>" +
-                "<p><strong> Carrera:</strong> " + alumno.getCarrera() + "</p>" +
-                "<p><strong> Grado:</strong> " + alumno.getGrado() + "°</p>" +
-                "<p><strong> Materia:</strong> " + alumno.getMateria() + "</p>" +
-                "<p><strong>Grupo:</strong> " + alumno.getGrupo() + "</p>" +
-                "<p><strong> Número de Boleta:</strong> " + alumno.getBoleta() + "</p>" +
-                "<p><strong> Correo:</strong> " + alumno.getCorreo() + "</p>" +
-                "<p><strong> Fecha de Registro:</strong> " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")) + "</p>" +
+                "<p><strong>📚 Carrera:</strong> " + alumno.getCarrera() + "</p>" +
+                "<p><strong>📊 Grado:</strong> " + alumno.getGrado() + "°</p>" +
+                "<p><strong>📖 Materia:</strong> " + alumno.getMateria() + "</p>" +
+                "<p><strong>👥 Grupo:</strong> " + alumno.getGrupo() + "</p>" +
+                "<p><strong>🎫 Número de Boleta:</strong> " + alumno.getBoleta() + "</p>" +
+                "<p><strong>📧 Correo:</strong> " + alumno.getCorreo() + "</p>" +
+                "<p><strong>📅 Fecha de Registro:</strong> " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm")) + "</p>" +
                 "</div>" +
-                "<p>Se ha generado un código QR con tu información que puedes encontrar adjunto en este correo.</p>" +
+                "<div class='qr-container'>" +
+                "<h3 style='color: #8B0A50; margin-top: 0;'>Tu Código QR</h3>" +
+                "<img src='data:image/png;base64," + qrBase64 + "' alt='Código QR' width='200' height='200' style='border: 3px solid #8B0A50; border-radius: 10px; display: block; margin: 15px auto;' />" +
+                "<p style='color: #666; font-size: 14px;'>Guarda este código QR para registrar tu asistencia</p>" +
+                "</div>" +
                 "<p><strong>Guarda este correo como comprobante de tu registro.</strong></p>" +
                 "</div>" +
                 "<div class='footer'>" +
