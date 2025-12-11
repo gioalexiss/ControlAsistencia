@@ -387,6 +387,7 @@ public class EstudianteService {
 
             // Generar imagen QR
             byte[] qrImage = qrCodeService.generarImagenQR(estudiante.getQrCode());
+            String qrBase64 = Base64.getEncoder().encodeToString(qrImage);
 
             String htmlContent = String.format(
                     "<!DOCTYPE html>" +
@@ -409,7 +410,7 @@ public class EstudianteService {
                             "<p style='font-size: 16px; color: #333; text-align: center;'>Este es tu código QR personal para el control de asistencia.</p>" +
 
                             "<div style='text-align: center; padding: 20px; background-color: #F4E8EC; border-radius: 10px; border-left: 6px solid #8B0A50; margin: 25px 0;'>" +
-                            "<img src='data:image/png;base64,%s' alt='Código QR' width='260' height='260' " +
+                            "<img src='cid:qrcode' alt='Código QR' width='260' height='260' " +
                             "style='display:block; margin:auto; border: 3px solid #8B0A50; border-radius: 10px;'>" +
                             "</div>" +
 
@@ -431,13 +432,29 @@ public class EstudianteService {
                             "</body>" +
                             "</html>",
                     estudiante.getNombre(),
-                    Base64.getEncoder().encodeToString(qrImage),
                     estudiante.getQrCode(),
                     estudiante.getBoleta()
             );
 
             Content content = new Content("text/html", htmlContent);
             Mail mail = new Mail(from, subject, to, content);
+
+            // Agregar QR como adjunto inline con Content-ID
+            Attachments inlineAttachment = new Attachments();
+            inlineAttachment.setContent(qrBase64);
+            inlineAttachment.setType("image/png");
+            inlineAttachment.setFilename("codigo-qr.png");
+            inlineAttachment.setDisposition("inline");
+            inlineAttachment.setContentId("qrcode");
+            mail.addAttachments(inlineAttachment);
+
+            // También agregar QR como adjunto descargable
+            Attachments downloadAttachment = new Attachments();
+            downloadAttachment.setContent(qrBase64);
+            downloadAttachment.setType("image/png");
+            downloadAttachment.setFilename("codigo-qr.png");
+            downloadAttachment.setDisposition("attachment");
+            mail.addAttachments(downloadAttachment);
 
             Request request = new Request();
             request.setMethod(Method.POST);
