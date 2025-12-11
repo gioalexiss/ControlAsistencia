@@ -5,50 +5,75 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Attachments;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import com.upiiz.controlAsistencia.models.Alumno;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${sendgrid.api.key}")
+    private String sendGridApiKey;
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.from}")
-    private String mailFrom;
+    @Value("${sendgrid.from.email}")
+    private String fromEmail;
 
-    public void enviarCorreoConQR(Alumno alumno) throws MessagingException, IOException, WriterException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    @Value("${sendgrid.from.name:Sistema Control de Asistencia}")
+    private String fromName;
 
-        helper.setFrom(mailFrom);
-        helper.setTo(alumno.getCorreo());
-        helper.setSubject("Confirmación de Registro - " + alumno.getMateria());
+    public void enviarCorreoConQR(Alumno alumno) throws IOException, WriterException {
+        SendGrid sg = new SendGrid(sendGridApiKey);
+
+        Email from = new Email(fromEmail, fromName);
+        Email to = new Email(alumno.getCorreo());
+        String subject = "Confirmación de Registro - " + alumno.getMateria();
 
         // Generar QR
         String qrContent = generarContenidoQR(alumno);
         byte[] qrCode = generarQRCode(qrContent, 200, 200);
 
         // Construir contenido del email
-        String contenido = construirContenidoEmail(alumno);
+        String contenidoHtml = construirContenidoEmail(alumno);
+        Content content = new Content("text/html", contenidoHtml);
 
-        helper.setText(contenido, true);
-        helper.addAttachment("codigo-qr.png", new ByteArrayResource(qrCode));
+        Mail mail = new Mail(from, subject, to, content);
 
-        mailSender.send(message);
+        // Agregar QR como adjunto
+        Attachments attachments = new Attachments();
+        attachments.setContent(Base64.getEncoder().encodeToString(qrCode));
+        attachments.setType("image/png");
+        attachments.setFilename("codigo-qr.png");
+        attachments.setDisposition("attachment");
+        mail.addAttachments(attachments);
+
+        // Enviar
+        Request request = new Request();
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sg.api(request);
+
+            if (response.getStatusCode() >= 400) {
+                throw new IOException("Error al enviar correo: " + response.getBody());
+            }
+        } catch (IOException ex) {
+            throw new IOException("Error al enviar correo con QR: " + ex.getMessage(), ex);
+        }
     }
 
     private byte[] generarQRCode(String text, int width, int height) throws WriterException, IOException {
@@ -129,20 +154,16 @@ public class EmailService {
                 "</body>" +
                 "</html>";
     }
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
 
     public void enviarCodigo(String destino, String codigo) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            SendGrid sg = new SendGrid(sendGridApiKey);
 
-            helper.setFrom(mailFrom);
-            helper.setTo(destino);
-            helper.setSubject("Código de verificación - Control de Asistencia IPN");
+            Email from = new Email(fromEmail, fromName);
+            Email to = new Email(destino);
+            String subject = "Código de verificación - Control de Asistencia IPN";
 
-            String htmlTemplate = """
+            String htmlTemplate = String.format("""
                 <html>
                 <head>
                     <meta charset='UTF-8'>
@@ -183,17 +204,24 @@ public class EmailService {
                     </div>
                 </body>
                 </html>
-                """;
+                """, codigo);
 
-            String html = String.format(htmlTemplate, codigo);
+            Content content = new Content("text/html", htmlTemplate);
+            Mail mail = new Mail(from, subject, to, content);
 
-            helper.setText(html, true); // true = HTML
-            mailSender.send(message);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
 
-        } catch (Exception e) {
+            Response response = sg.api(request);
+
+            if (response.getStatusCode() >= 400) {
+                System.err.println("Error al enviar código: " + response.getBody());
+            }
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
 }
