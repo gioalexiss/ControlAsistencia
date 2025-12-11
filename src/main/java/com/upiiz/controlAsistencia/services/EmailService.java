@@ -14,6 +14,8 @@ import com.sendgrid.helpers.mail.objects.Attachments;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.upiiz.controlAsistencia.models.Alumno;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,8 @@ import java.util.Base64;
 @Service
 public class EmailService {
 
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+
     @Value("${sendgrid.api.key}")
     private String sendGridApiKey;
 
@@ -36,6 +40,9 @@ public class EmailService {
     private String fromName;
 
     public void enviarCorreoConQR(Alumno alumno) throws IOException, WriterException {
+        log.info("Iniciando envío de correo a: {}", alumno.getCorreo());
+        log.info("Usando FROM: {} <{}>", fromName, fromEmail);
+
         SendGrid sg = new SendGrid(sendGridApiKey);
 
         Email from = new Email(fromEmail, fromName);
@@ -66,12 +73,22 @@ public class EmailService {
             request.setMethod(Method.POST);
             request.setEndpoint("mail/send");
             request.setBody(mail.build());
+
+            log.info("Enviando request a SendGrid...");
             Response response = sg.api(request);
 
+            log.info("Respuesta de SendGrid - Status: {}", response.getStatusCode());
+            log.info("Respuesta de SendGrid - Body: {}", response.getBody());
+            log.info("Respuesta de SendGrid - Headers: {}", response.getHeaders());
+
             if (response.getStatusCode() >= 400) {
+                log.error("Error al enviar correo. Status: {}, Body: {}", response.getStatusCode(), response.getBody());
                 throw new IOException("Error al enviar correo: " + response.getBody());
             }
+
+            log.info("Correo enviado exitosamente a: {}", alumno.getCorreo());
         } catch (IOException ex) {
+            log.error("Excepción al enviar correo: {}", ex.getMessage(), ex);
             throw new IOException("Error al enviar correo con QR: " + ex.getMessage(), ex);
         }
     }
@@ -156,6 +173,9 @@ public class EmailService {
     }
 
     public void enviarCodigo(String destino, String codigo) {
+        log.info("Iniciando envío de código de verificación a: {}", destino);
+        log.info("Usando FROM: {} <{}>", fromName, fromEmail);
+
         try {
             SendGrid sg = new SendGrid(sendGridApiKey);
 
@@ -214,14 +234,20 @@ public class EmailService {
             request.setEndpoint("mail/send");
             request.setBody(mail.build());
 
+            log.info("Enviando código de verificación a SendGrid...");
             Response response = sg.api(request);
 
+            log.info("Respuesta SendGrid (código) - Status: {}", response.getStatusCode());
+            log.info("Respuesta SendGrid (código) - Body: {}", response.getBody());
+
             if (response.getStatusCode() >= 400) {
-                System.err.println("Error al enviar código: " + response.getBody());
+                log.error("Error al enviar código. Status: {}, Body: {}", response.getStatusCode(), response.getBody());
+            } else {
+                log.info("Código de verificación enviado exitosamente a: {}", destino);
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Excepción al enviar código de verificación: {}", e.getMessage(), e);
         }
     }
 }
