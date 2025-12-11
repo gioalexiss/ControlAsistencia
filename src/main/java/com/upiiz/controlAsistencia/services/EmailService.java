@@ -27,10 +27,14 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.from}")
+    private String mailFrom;
+
     public void enviarCorreoConQR(Alumno alumno) throws MessagingException, IOException, WriterException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
+        helper.setFrom(mailFrom);
         helper.setTo(alumno.getCorreo());
         helper.setSubject("Confirmación de Registro - " + alumno.getMateria());
 
@@ -134,6 +138,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            helper.setFrom(mailFrom);
             helper.setTo(destino);
             helper.setSubject("Código de verificación - Control de Asistencia IPN");
 
