@@ -314,8 +314,7 @@ class EstudianteManager {
                         }
                     }
                 ],
-                retrieve: true,
-                stateSave: true
+                retrieve: true
             });
         } catch (error) {
             console.error('Error al inicializar DataTable:', error);
