@@ -284,7 +284,7 @@ class EstudianteManager {
                         "sSortDescending": ": Activar para ordenar la columna de manera descendente"
                     }
                 },
-                pageLength: 25,
+                pageLength: 200,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
                 order: [[0, 'asc']], // Ordenar por # (número de fila)
                 dom: 'Blfrtip',
